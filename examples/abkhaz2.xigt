@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<igt-list>
+  <metadata>
+    <meta type="language">Abkhaz</meta>
+    <meta type="iso-639-3">abk</meta>
+    <meta type="author">Safiyyah Saleem</meta>
+    <meta type="date">May 1 2009</meta>
+    <meta type="source" id="a">Abkhaz by Viacheslav A. Chirkba</meta>
+  </metadata>
+  <igt id="1" source="a:60" vetted="s" judgment="g">
+    <phenomenon type="word order"/>
+    <comment>Ex 1 demonstrates the standard SOV word order</comment>
+    <tier type="string" id="s">at͡ʂʰkʷʰən atəpha dəjəbajt</tier>
+    <tier type="words" ref="s" id="w">
+      <token id="w1" ref="0:9">at͡ʂʰkʷʰən</token>
+      <token id="w2" ref="10:16">atəpha</token>
+      <token id="w3" ref="17:25">dəjəbajt</token>
+    </tier>
+    <tier type="morphemes" ref="w" id="m">
+      <token id="w1m1" ref="w1[0]">a</token>
+      <token id="w1m2" ref="w1[1:9]">t͡ʂʰkʷʰən</token>
+      <token id="w2m1" ref="w2[0]">a</token>
+      <token id="w2m2" ref="w2[1:6]">təpha</token>
+      <token id="w3m1" ref="w3[0:2]">də</token>
+      <token id="w3m2" ref="w3[2:4]">jə</token>
+      <token id="w3m3" ref="w3[4:6]">ba</token>
+      <token id="w3m4" ref="w3[6:8]">jt</token>
+    </tier>
+    <tier type="glosses" ref="m" id="g">
+      <token id="w1m1g" ref="w1m1">the</token>
+      <token id="w1m2g" ref="w1m2">boy</token>
+      <token id="w2m1g" ref="w2m1">the</token>
+      <token id="w2m2g" ref="w2m2">girl</token>
+      <token id="w3m1g" ref="w3m1">her</token>
+      <token id="w3m2g" ref="w3m2">he</token>
+      <token id="w3m3g" ref="w3m3">see</token>
+      <token id="w3m4g" ref="w3m4">DYN.FIN</token>
+    </tier>
+    <tier type="syntax" ref="w" id="x">
+      <leaf id="x1" ref="w1">NP-SBJ</leaf>
+      <leaf id="x2" ref="w2">NP-OBJ</leaf>
+      <leaf id="x3" ref="w3">VBZ</leaf>
+      <node id="x4" ref="x2,x3">VP</node>
+      <node id="x5" ref="x1,x4">S</node>
+    </tier>
+    <tier type="translation" ref="s" id="t">The boy saw the girl.</translation>
+  </igt>
+</igt-list>
+
+#Ex 30 demonstrates negation.  The present tense is negated by adding the suffix "-m" after the tense marker.  The dynamic/finite marker does not appear on the verb.
+Source: author
+Vetted: f
+Judgment: g
+Phenomena: neg
+at͡ʂʰkʷʰən atəpha dəjəbawam
+a-t͡ʂʰkʷʰən a-təpha də-jə-ba-wa-m
+the-boy the-girl her-he-see-neg
+The boy does not see the girl.
