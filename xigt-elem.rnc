@@ -1,0 +1,18 @@
+start = element elem {
+    attribute id { Elem.id },
+    attribute ref { Elem.ref }?,
+    Elem.subtype
+}
+Elem.id = parent Elem.id
+Elem.ref = parent Elem.ref
+Elem.subtype = Elem.typeattr,
+               Elem.content
+Elem.typeattr = attribute type { Elem.type }?
+Elem.type = parent Elem.type
+Elem.content = text | parent Elem.content
+
+# keep these in scope
+Id = parent Id
+Ref = parent Ref
+AlgnExpr = parent AlgnExpr
+

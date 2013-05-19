@@ -1,0 +1,27 @@
+start = element tier {
+    attribute id { Tier.id },
+    attribute ref { Tier.ref }?,
+    Tier.subtype
+}
+Tier.id = parent Tier.id
+Tier.ref = parent Tier.ref
+Tier.subtype = attribute type { Tier.type },
+               Tier.metadata,
+               Tier.content
+Tier.type = notAllowed
+Tier.metadata = Metadata?
+Tier.content = Elem* | parent Tier.content
+
+Elem |= grammar { include "xigt-elem.rnc" }
+
+# Copy up Elem definitions or establish Tier-relevant ones
+Elem.id = parent Elem.id
+Elem.ref = parent Elem.id
+Elem.type = notAllowed
+Elem.content = parent Elem.content
+
+# keep these in scope
+Id = parent Id
+Ref = parent Ref
+AlgnExpr = parent AlgnExpr
+Metadata = parent Metadata
