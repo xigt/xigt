@@ -10,7 +10,7 @@ Id = xsd:string { pattern="[A-Za-z][\-.\w]*" }
 Ref = xsd:string { pattern="[A-Za-z][\-.\w]*" }
 
 AlgnExpr = xsd:string {
-    pattern="[A-Za-z][\-.\w](\[\d+:\d+([,+]\d+:\d+)*\])?([,+][A-Za-z][\-.\w](\[\d+:\d+([,+]\d+:\d+)*\])?)*"
+    pattern="[A-Za-z][\-.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?([,+][A-Za-z][\-.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?)*"
 }
 
 # Metadata element (mostly unconstrained)
@@ -55,7 +55,7 @@ Igt.subtype = attribute type { Igt.type }?,
               Igt.content
 Igt.type = notAllowed
 Igt.metadata = Metadata?
-Igt.content = BaseTier* | Tier*
+Igt.content = (BasicTier | Tier)*
 
 Tier = notAllowed
 
@@ -63,7 +63,7 @@ Tier = notAllowed
 #--- Default subtypes ---
 #------------------------
 
-BaseTier |= grammar { include "xigt-tier.rnc" {
+BasicTier |= grammar { include "xigt-tier.rnc" {
     Tier.type = "phrases"
 } }
      | grammar { include "xigt-tier.rnc" {
@@ -83,5 +83,7 @@ BaseTier |= grammar { include "xigt-tier.rnc" {
 } }
      | grammar { include "xigt-tier.rnc" {
     Tier.type = "alignments"
+    Tier.content = attribute alignref { Ref },
+                   (Elem | parent Tier.content)*
     Elem.content = attribute alignref { AlgnExpr }
 } }

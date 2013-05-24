@@ -10,13 +10,13 @@ Tier.subtype = attribute type { Tier.type },
                Tier.content
 Tier.type = notAllowed
 Tier.metadata = Metadata?
-Tier.content = Elem* | parent Tier.content
+Tier.content = ( Elem | parent Tier.content )*
 
 Elem |= grammar { include "xigt-elem.rnc" }
 
 # Copy up Elem definitions or establish Tier-relevant ones
 Elem.id = parent Elem.id
-Elem.ref = parent Elem.id
+Elem.ref = parent Elem.ref
 Elem.type = notAllowed
 Elem.content = parent Elem.content
 
