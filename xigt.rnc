@@ -65,6 +65,7 @@ Tier = notAllowed
 
 BasicTier |= grammar { include "xigt-tier.rnc" {
     Tier.type = "phrases"
+    Elem.type = ( "original" | "transliteration" )
 } }
      | grammar { include "xigt-tier.rnc" {
     Tier.type = "words"
@@ -79,7 +80,6 @@ BasicTier |= grammar { include "xigt-tier.rnc" {
 } }
      | grammar { include "xigt-tier.rnc" {
     Tier.type = "translations"
-    Elem.type |= "transliteration"
 } }
      | grammar { include "xigt-tier.rnc" {
     Tier.type = "alignments"
