@@ -47,43 +47,43 @@ The boy does not see the girl.
       <meta type="comment">Ex 1 demonstrates the standard SOV word order</meta>
     </metadata>
     <tier type="phrases" id="p">
-      <elem id="p1">at͡ʂʰkʷʰən atəpha dəjəbajt</elem>
+      <item id="p1">at͡ʂʰkʷʰən atəpha dəjəbajt</item>
     </tier>
     <tier type="words" id="w" ref="p">
-      <elem id="w1" ref="p1[0:9]"/>
-      <elem id="w2" ref="p1[10:16]"/>
-      <elem id="w3" ref="p1[17:25]"/>
+      <item id="w1" ref="p1[0:9]"/>
+      <item id="w2" ref="p1[10:16]"/>
+      <item id="w3" ref="p1[17:25]"/>
     </tier>
     <tier type="morphemes" id="m" ref="w">
-      <elem id="w1m1" ref="w1[0:1]"/>
-      <elem id="w1m2" ref="w1[1:9]"/>
-      <elem id="w2m1" ref="w2[0:1]"/>
-      <elem id="w2m2" ref="w2[1:6]"/>
-      <elem id="w3m1" ref="w3[0:2]"/>
-      <elem id="w3m2" ref="w3[2:4]"/>
-      <elem id="w3m3" ref="w3[4:6]"/>
-      <elem id="w3m4" ref="w3[6:8]"/>
+      <item id="w1m1" ref="w1[0:1]"/>
+      <item id="w1m2" ref="w1[1:9]"/>
+      <item id="w2m1" ref="w2[0:1]"/>
+      <item id="w2m2" ref="w2[1:6]"/>
+      <item id="w3m1" ref="w3[0:2]"/>
+      <item id="w3m2" ref="w3[2:4]"/>
+      <item id="w3m3" ref="w3[4:6]"/>
+      <item id="w3m4" ref="w3[6:8]"/>
     </tier>
     <tier type="glosses" id="g" ref="m">
-      <elem id="w1m1g" ref="w1m1">the</elem>
-      <elem id="w1m2g" ref="w1m2">boy</elem>
-      <elem id="w2m1g" ref="w2m1">the</elem>
-      <elem id="w2m2g" ref="w2m2">girl</elem>
-      <elem id="w3m1g" ref="w3m1">her</elem>
-      <elem id="w3m2g" ref="w3m2">he</elem>
-      <elem id="w3m3g" ref="w3m3">see</elem>
-      <elem id="w3m4g1" ref="w3m4">DYN</elem>
-      <elem id="w3m4g2" ref="w3m4">FIN</elem>
+      <item id="w1m1g" ref="w1m1">the</item>
+      <item id="w1m2g" ref="w1m2">boy</item>
+      <item id="w2m1g" ref="w2m1">the</item>
+      <item id="w2m2g" ref="w2m2">girl</item>
+      <item id="w3m1g" ref="w3m1">her</item>
+      <item id="w3m2g" ref="w3m2">he</item>
+      <item id="w3m3g" ref="w3m3">see</item>
+      <item id="w3m4g1" ref="w3m4">DYN</item>
+      <item id="w3m4g2" ref="w3m4">FIN</item>
     </tier>
     <tier type="syntax" id="x" ref="w">
-      <elem id="x1" ref="w1">NP-SBJ</elem>
-      <elem id="x2" ref="w2">NP-OBJ</elem>
-      <elem id="x3" ref="w3">VBD</elem>
-      <elem id="x4" synref="x2,x3">VP</elem>
-      <elem id="x5" synref="x1,x4">S</elem>
+      <item id="x1" ref="w1">NP-SBJ</item>
+      <item id="x2" ref="w2">NP-OBJ</item>
+      <item id="x3" ref="w3">VBD</item>
+      <item id="x4" synref="x2,x3">VP</item>
+      <item id="x5" synref="x1,x4">S</item>
     </tier>
     <tier type="translations" ref="p" id="t">
-      <elem id="t1" ref="p1">The boy saw the girl.</elem>
+      <item id="t1" ref="p1">The boy saw the girl.</item>
     </tier>
   </igt>
   <igt id="i30">
@@ -97,44 +97,44 @@ The boy does not see the girl.
       <meta type="comment">Ex 30 demonstrates negation.  The present tense is negated by adding the suffix "-m" after the tense marker.  The dynamic/finite marker does not appear on the verb.</meta>
     </metadata>
     <tier type="phrases" id="p">
-      <elem id="p1">at͡ʂʰkʷʰən atəpha dəjəbawam</elem>
+      <item id="p1">at͡ʂʰkʷʰən atəpha dəjəbawam</item>
     </tier>
     <tier type="words" id="w" ref="p">
-      <elem id="w1" ref="p1[0:9]"/>
-      <elem id="w2" ref="p1[10:16]"/>
-      <elem id="w3" ref="p1[17:26]"/>
+      <item id="w1" ref="p1[0:9]"/>
+      <item id="w2" ref="p1[10:16]"/>
+      <item id="w3" ref="p1[17:26]"/>
     </tier>
     <tier type="morphemes" id="m" ref="w">
-      <elem id="w1m1" ref="w1[0:1]"/>
-      <elem id="w1m2" ref="w1[1:9]"/>
-      <elem id="w2m1" ref="w2[0:1]"/>
-      <elem id="w2m2" ref="w2[1:6]"/>
-      <elem id="w3m1" ref="w3[0:2]"/>
-      <elem id="w3m2" ref="w3[2:4]"/>
-      <elem id="w3m3" ref="w3[4:6]"/>
-      <elem id="w3m4" ref="w3[6:8]"/>
-      <elem id="w3m5" ref="w3[8:9]"/>
+      <item id="w1m1" ref="w1[0:1]"/>
+      <item id="w1m2" ref="w1[1:9]"/>
+      <item id="w2m1" ref="w2[0:1]"/>
+      <item id="w2m2" ref="w2[1:6]"/>
+      <item id="w3m1" ref="w3[0:2]"/>
+      <item id="w3m2" ref="w3[2:4]"/>
+      <item id="w3m3" ref="w3[4:6]"/>
+      <item id="w3m4" ref="w3[6:8]"/>
+      <item id="w3m5" ref="w3[8:9]"/>
     </tier>
     <tier type="glosses" id="g" ref="m">
-      <elem id="w1m1g" ref="w1m1">the</elem>
-      <elem id="w1m2g" ref="w1m2">boy</elem>
-      <elem id="w2m1g" ref="w2m1">the</elem>
-      <elem id="w2m2g" ref="w2m2">girl</elem>
-      <elem id="w3m1g" ref="w3m1">her</elem>
-      <elem id="w3m2g" ref="w3m2">he</elem>
-      <elem id="w3m3g" ref="w3m3">see</elem>
-      <elem id="w3m4g" ref="w3m4">PRS</elem>
-      <elem id="w3m5g" ref="w3m5">NEG</elem>
+      <item id="w1m1g" ref="w1m1">the</item>
+      <item id="w1m2g" ref="w1m2">boy</item>
+      <item id="w2m1g" ref="w2m1">the</item>
+      <item id="w2m2g" ref="w2m2">girl</item>
+      <item id="w3m1g" ref="w3m1">her</item>
+      <item id="w3m2g" ref="w3m2">he</item>
+      <item id="w3m3g" ref="w3m3">see</item>
+      <item id="w3m4g" ref="w3m4">PRS</item>
+      <item id="w3m5g" ref="w3m5">NEG</item>
     </tier>
     <tier type="syntax" id="x" ref="w">
-      <elem id="x1" ref="w1">NP-SBJ</elem>
-      <elem id="x2" ref="w2">NP-OBJ</elem>
-      <elem id="x3" ref="w3">VBZ</elem>
-      <elem id="x4" synref="x2,x3">VP</elem>
-      <elem id="x5" synref="x1,x4">S</elem>
+      <item id="x1" ref="w1">NP-SBJ</item>
+      <item id="x2" ref="w2">NP-OBJ</item>
+      <item id="x3" ref="w3">VBZ</item>
+      <item id="x4" synref="x2,x3">VP</item>
+      <item id="x5" synref="x1,x4">S</item>
     </tier>
     <tier type="translations" id="t" ref="p">
-      <elem id="t1" ref="p1">The boy does not see the girl.</elem>
+      <item id="t1" ref="p1">The boy does not see the girl.</item>
     </tier>
   </igt>
 </xigt-corpus>

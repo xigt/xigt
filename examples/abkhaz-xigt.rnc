@@ -1,10 +1,10 @@
 include "xigt.rnc" {
 Tier |= grammar { include "xigt-tier.rnc" {
     Tier.type = "syntax"
-    Elem = grammar { include "xigt-elem.rnc" }
-         | grammar { include "xigt-elem.rnc" {
-        Elem.ref = notAllowed
-        Elem.content = attribute synref { AlgnExpr }, text
+    Item = grammar { include "xigt-item.rnc" }
+         | grammar { include "xigt-item.rnc" {
+        Item.ref = notAllowed
+        Item.content = attribute synref { AlgnExpr }, text
     } }
 } }
 }

@@ -1,0 +1,18 @@
+start = element item {
+    attribute id { Item.id },
+    attribute ref { Item.ref }?,
+    Item.subtype
+}
+Item.id = parent Item.id
+Item.ref = parent Item.ref
+Item.subtype = Item.typeattr,
+               Item.content
+Item.typeattr = attribute type { Item.type }?
+Item.type = parent Item.type
+Item.content = text | parent Item.content
+
+# keep these in scope
+Id = parent Id
+Ref = parent Ref
+AlgnExpr = parent AlgnExpr
+
