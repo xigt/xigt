@@ -6,13 +6,13 @@ xc = XigtCorpus(
   metadata=Metadata(content="<author>me</author>"),
   igts=[Igt(id='igt1',
             attributes={'judgment':'g'},
-            tiers=[Tier(type='sentences', id='s',
-                        items=[Item(id='s1',
+            tiers=[Tier(type='phrases', id='p',
+                        items=[Item(id='p1',
                                     content='a sentence.')]),
-                   Tier(type='words', id='w', ref='s',
-                        items=[Item(id='w1',ref='s1[0:1]'),
-                               Item(id='w2',ref='s1[2:10]'),
-                               Item(id='w3',ref='s1[10:11]')])])]
+                   Tier(type='words', id='w', ref='p',
+                        items=[Item(id='w1',ref='p1[0:1]'),
+                               Item(id='w2',ref='p1[2:10]'),
+                               Item(id='w3',ref='p1[10:11]')])])]
 )
 # get items using ids as keys:
 print('xc1:igt1:w:w1: {}'

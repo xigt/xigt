@@ -15,11 +15,11 @@ AlgnExpr = xsd:string {
 
 # Metadata element (mostly unconstrained)
 Metadata = element metadata {
-    attribute type { Metadata.type },
+    attribute type { Metadata.type }?,
     Metadata.attrs,
     Metadata.content
 }
-Metadata.type = empty | "xigt-meta"
+Metadata.type = "xigt-meta"
 Metadata.attrs = empty
 Metadata.content = anything
 anything = (text | element * { attribute * { text }*, anything})*
