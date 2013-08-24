@@ -6,9 +6,11 @@ start = element item {
 Item.id = parent Item.id
 Item.ref = parent Item.ref
 Item.subtype = Item.typeattr,
+               Item.attrs,
                Item.content
 Item.typeattr = attribute type { Item.type }?
 Item.type = parent Item.type
+Item.attrs = parent Item.attrs
 Item.content = text | parent Item.content
 
 # keep these in scope

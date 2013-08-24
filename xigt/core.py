@@ -2,6 +2,14 @@ import re
 from collections import OrderedDict
 
 class XigtMixin(object):
+    """
+    Common methods for accessing subelements in XigtCorpus, Igt, and
+    Tier objects.
+    """
+    def __init__(self):
+        self._list = []
+        self._dict = OrderedDict()
+
     def __iter__(self):
         return iter(self._list)
 
@@ -19,72 +27,98 @@ class XigtMixin(object):
         except (KeyError, IndexError):
             return default
 
+    def add(self, obj):
+        obj._parent = self
+        if obj.id is not None:
+            if obj.id in self._dict:
+                raise ValueError('Id "{}" already exists in collection.'
+                                 .format(obj.id))
+            self._dict[obj.id] = obj
+        self._list.append(obj)
+
+    def add_list(self, objs):
+        if objs is not None:
+            for obj in objs:
+                self.add(obj)
+
 class XigtCorpus(XigtMixin):
+    """
+    A container of Igt objects, as well as corpus-level attributes and
+    metadata. In serialization formats (e.g. XigtXML), XigtCorpus
+    becomes the root element.
+    """
     def __init__(self, id=None, attributes=None, metadata=None, igts=None):
+        XigtMixin.__init__(self)
         self.id = id
-        self.attributes = attributes or {}
+        self.attributes = attributes or OrderedDict()
         self.metadata = metadata
-        self._list = igts or []
-        self._dict = {}
-        for igt in self._list:
-            igt.corpus = self
-            if igt.id is None: continue
-            if igt.id in self._dict:
-                raise ValueError('Igt id "{}" already exists in XigtCorpus'
-                                 .format(igt.id))
-            self._dict[igt.id] = igt
+        self.add_list(igts)
 
     @property
     def igts(self):
         return self._list
 
+    @igts.setter
+    def igts(self, value):
+        self._list = value
+
 class Igt(XigtMixin):
-    def __init__(self, id=None, attributes=None, corpus=None,
-                 metadata=None, tiers=None):
+    """
+    An IGT (Interlinear Glossed Text) instance.
+    """
+    def __init__(self, id=None, type=None, attributes=None, metadata=None,
+                 tiers=None, corpus=None):
+        XigtMixin.__init__(self)
         self.id = id
-        self.attributes = attributes or {}
-        self.corpus = corpus
+        self.type = type
+        self.attributes = attributes or OrderedDict()
         self.metadata = metadata
-        self._list = tiers or []
-        self._dict = {}
-        for tier in self._list:
-            tier.igt = self
-            if tier.id is None: continue
-            if tier.id in self._dict:
-                raise ValueError('Tier id "{}" already exists in Igt'
-                                 .format(tier.id))
-            self._dict[tier.id] = tier
+        self.add_list(tiers)
+        self._parent = corpus
+
+    @property
+    def corpus(self):
+        return self._parent
 
     @property
     def tiers(self):
         return self._list
 
+    @tiers.setter
+    def tiers(self, value):
+        self._list = value
+
 class Tier(XigtMixin):
-    def __init__(self, type=None, id=None, ref=None, igt=None,
-                 metadata=None, attributes=None, items=None):
-        self.type = type
+    """
+    A tier of IGT data. A tier should contain homogenous Items of
+    data, such as all words or all glosses.
+    """
+    def __init__(self, id=None, ref=None, type=None, attributes=None,
+                 metadata=None, items=None, igt=None):
+        XigtMixin.__init__(self)
         self.id = id
         self.ref = ref
-        self.igt = igt
+        self.type = type
+        self.attributes = attributes or OrderedDict()
         self.metadata = metadata
-        self.attributes = attributes or {}
-        self._list = items or []
-        self._dict = {}
-        for item in self._list:
-            item.tier = self
-            if item.id is None: continue
-            if item.id in self._dict:
-                raise ValueError('Item id "{}" already exists in Tier'
-                                 .format(item.id))
-            self._dict[item.id] = item
+        self.add_list(items)
+        self._parent = igt
 
     def __repr__(self):
-        return 'Tier({},{},{},[{}])'.format(            
+        return 'Tier({},{},{},[{}])'.format(
             str(self.type), str(self.id), str(self.ref), ','.join(self.items))
+
+    @property
+    def igt(self):
+        return self._parent
 
     @property
     def items(self):
         return self._list
+
+    @items.setter
+    def items(self, value):
+        self._list = value
 
     @property
     def reftier(self):
@@ -95,14 +129,19 @@ class Tier(XigtMixin):
             return None
 
 class Item(object):
-    def __init__(self, type=None, id=None, ref=None, tier=None,
-                 attributes=None, content=None):
-        self.type = type
+    """
+    A single datum on a Tier. Often these are tokens, such as words
+    or glosses, but may be phrases, translations, or (via extensions)
+    more complex data like syntax nodes or dependencies.
+    """
+    def __init__(self, id=None, ref=None, type=None, attributes=None,
+                 content=None, tier=None):
         self.id = id
         self.ref = ref
-        self.tier = tier # mainly used for alignment expressions
-        self.attributes = attributes or {}
+        self.type = type
+        self.attributes = attributes or OrderedDict()
         self.content = content
+        self._parent = tier # mainly used for alignment expressions
 
     def __repr__(self):
         return 'Item({},{},{},{})'.format(
@@ -110,6 +149,10 @@ class Item(object):
 
     def __str__(self):
         return str(self.content)
+
+    @property
+    def tier(self):
+        return self._parent
 
     def resolve_ref(self):
         if self.ref is not None and self.tier is not None:
@@ -123,9 +166,13 @@ class Item(object):
         return self.content[start:end]
 
 class Metadata(object):
+    """
+    A container for metadata on XigtCorpus, Igt, or Tier objects.
+    Extensions may place constraints on the allowable metadata.
+    """
     def __init__(self, type=None, attributes=None, content=None):
         self.type = type
-        self.attributes = attributes or {}
+        self.attributes = attributes or OrderedDict()
         self.content = content
 
     def __repr__(self):

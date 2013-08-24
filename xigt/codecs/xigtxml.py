@@ -28,47 +28,74 @@ def dumps(xc, encoding='unicode', pretty_print=False):
 ##############################################################################
 ### Decoding
 
-#def decode_list(fh):
-#    """Decode """
-#    # element xigt-corpus { xigt* }
-#    # if memory becomes a big problem, consider catching start events,
-#    # get the root element (later start events can be ignored), and
-#    # root.clear() after decoding each xigt
-#    for event, elem in etree.iterparse(fh, events=('end')):
-#        yield decode_igt(elem)
-#        elem.clear()
-#
-#def decode(fh):
-#    """Decode an igt XML element."""
-#    elem = etree.parse(fh)
-#    return decode_igt(elem)
-#
-#def decode_igt(elem):
-#    # Igt = element igt { attribute id { Igt.id }, Igt.subtype }
-#    # Igt.subtype = attribute type { Igt.type }?, Igt.metadata, Igt.content
-#    # Igt.metadata = Metadata?
-#    # Igt.content = ( BasicTier | Tier )*
-#    elem = elem.find('.') # in case elem is an ElementTree rather than Element
-#    return Xigt(id=elem.get('id'),
-#                type=elem.get('type'),
-#                metadata=decode_metadata(elem.find('metadata')),
-#                tiers=[decode_tier(tier) for tier in elem.iter('tier')])
-#
-#def decode_metadata(elem):
-#    # Metadata = element metadata { anything }
-#    # anything = attribute * { token }* & element * { anything }* & text
-#    # metadata elements can be redefined, but at this point just parse anything
-#    return elem
-#
-#def decode_tier(elem):
-#    #
-#    pass
+def default_decode(fh):
+    """Decode a XigtCorpus element."""
+    elem = etree.parse(fh)
+    return decode_xigtcorpus(elem.find('.'))
+
+def default_get_attributes(elem, ignore=None):
+    if ignore is None: ignore = tuple()
+    return OrderedDict((k,v) for (k,v) in elem.items() if k not in ignore)
+
+def default_decode_xigtcorpus(elem):
+    # xigt-corpus { attrs, metadata, content }
+    return XigtCorpus(
+        id=elem.get('id'),
+        attributes=get_attributes(elem, ignore=('id',)),
+        metadata=decode_metadata(elem.find('metadata')),
+        igts=[decode_igt(igt) for igt in elem.iter('igt')]
+    )
+
+def default_decode_igt(elem):
+    return Igt(
+        id=elem.get('id'),
+        type=elem.get('type'),
+        attributes=get_attributes(elem, ignore=('id','type')),
+        metadata=decode_metadata(elem.find('metadata')),
+        tiers=[decode_tier(tier) for tier in elem.iter('tier')]
+    )
+
+def default_decode_tier(elem):
+    return Tier(
+        id=elem.get('id'),
+        ref=elem.get('ref'),
+        type=elem.get('type'),
+        attributes=get_attributes(elem, ignore=('id','ref','type')),
+        metadata=decode_metadata(elem.find('metadata')),
+        items=[decode_item(item) for item in elem.iter('item')]
+    )
+
+def default_decode_item(elem):
+    return Item(
+        id=elem.get('id'),
+        ref=elem.get('ref'),
+        type=elem.get('type'),
+        attributes=get_attributes(elem, ignore=('id','ref','type')),
+        content=elem.text
+    )
+
+def default_decode_metadata(elem):
+    if elem is None: return None
+    return Metadata(
+        type=elem.get('type'),
+        attributes=get_attributes(elem, ignore=('type',)),
+        content=elem.text
+    )
 
 ##############################################################################
 ##############################################################################
 ### Encoding
 
-def encode(xc, encoding='unicode', pretty_print=False):
+def default_encode(xc, encoding='unicode', pretty_print=False):
+    e = encode_xigtcorpus(xc)
+    try:
+        xmlstring = etree.tostring(e, encoding=encoding,
+                                   pretty_print=pretty_print)
+    except TypeError:
+        xmlstring = etree.tostring(e, encoding=encoding)
+    return xmlstring
+
+def default_encode_xigtcorpus(xc):
     attributes = xc.attributes
     if xc.id is not None:
         attributes['id'] = xc.id
@@ -77,14 +104,9 @@ def encode(xc, encoding='unicode', pretty_print=False):
         e.append(encode_metadata(xc.metadata))
     for igt in xc.igts:
         e.append(encode_igt(igt))
-    try:
-        xmlstring = etree.tostring(e, encoding=encoding,
-                                   pretty_print=pretty_print)
-    except TypeError:
-        xmlstring = etree.tostring(e, encoding=encoding)
-    return xmlstring
+    return e
 
-def encode_igt(igt):
+def default_encode_igt(igt):
     attributes = igt.attributes
     if igt.id is not None:
         attributes['id'] = igt.id
@@ -95,7 +117,7 @@ def encode_igt(igt):
         e.append(encode_tier(tier))
     return e
 
-def encode_tier(tier):
+def default_encode_tier(tier):
     attributes = tier.attributes
     if tier.type is not None:
         attributes['type'] = tier.type
@@ -110,7 +132,7 @@ def encode_tier(tier):
         e.append(encode_item(item))
     return e
 
-def encode_item(item):
+def default_encode_item(item):
     attributes = item.attributes
     if item.id is not None:
         attributes['id'] = item.id
@@ -121,10 +143,28 @@ def encode_item(item):
         e.text = item.content
     return e
 
-def encode_metadata(metadata):
+def default_encode_metadata(metadata):
     attributes = metadata.attributes
     if metadata.type is not None:
         attributes['type'] = metadata.type
     e = etree.Element('metadata', attrib=attributes)
     e.text = metadata.content
     return e
+
+##############################################################################
+### Default function mappings
+
+decode            = default_decode
+get_attributes    = default_get_attributes
+decode_xigtcorpus = default_decode_xigtcorpus
+decode_igt        = default_decode_igt
+decode_tier       = default_decode_tier
+decode_item       = default_decode_item
+decode_metadata   = default_decode_metadata
+
+encode            = default_encode
+encode_xigtcorpus = default_encode_xigtcorpus
+encode_igt        = default_encode_igt
+encode_tier       = default_encode_tier
+encode_item       = default_encode_item
+encode_metadata   = default_encode_metadata
