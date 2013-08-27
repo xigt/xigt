@@ -85,3 +85,4 @@ if __name__ == '__main__':
     f = sys.argv[1]
     xc = xigtxml.load(open(f,'r'))
     print(xigtxml.dumps(xc, pretty_print=True))
+    xigtxml.dump(open('abkhaz-out.xigt','w'), xc, pretty_print=True)

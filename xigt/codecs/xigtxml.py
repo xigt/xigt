@@ -13,24 +13,39 @@ except ImportError:
 ### Pickle-API methods
 
 def load(fh):
-    return decode(fh)
+    elem = etree.parse(fh)
+    return decode(elem)
 
 def loads(s):
-    return decode_string(s)
+    elem = etree.fromstring(s)
+    return decode(elem)
 
-def dump(fh, xc, encoding='unicode', pretty_print=False):
-    fh.write(dumps(xc, encoding=encoding, pretty_print=pretty_print))
+def dump(fh, xc, encoding='utf-8', pretty_print=False):
+    # if encoding is 'unicode', dumps() will return a string, otherwise
+    # a bytestring (which must be written to a buffer)
+    outstring = dumps(xc, encoding=encoding, pretty_print=pretty_print)
+    try:
+        fh.write(outstring)
+    except TypeError:
+        fh.buffer.write(outstring)
 
 def dumps(xc, encoding='unicode', pretty_print=False):
-    return encode(xc, encoding=encoding, pretty_print=pretty_print)
+    e = encode(xc)
+    xmldecl = encoding != 'unicode'
+    try:
+        return etree.tostring(e, encoding=encoding,
+                              xml_declaration=xmldecl,
+                              pretty_print=pretty_print)
+    except TypeError:
+        return etree.tostring(e, encoding=encoding,
+                              xml_declaration=xmldecl)
 
 ##############################################################################
 ##############################################################################
 ### Decoding
 
-def default_decode(fh):
+def default_decode(elem):
     """Decode a XigtCorpus element."""
-    elem = etree.parse(fh)
     return decode_xigtcorpus(elem.find('.'))
 
 def default_get_attributes(elem, ignore=None):
@@ -86,14 +101,8 @@ def default_decode_metadata(elem):
 ##############################################################################
 ### Encoding
 
-def default_encode(xc, encoding='unicode', pretty_print=False):
-    e = encode_xigtcorpus(xc)
-    try:
-        xmlstring = etree.tostring(e, encoding=encoding,
-                                   pretty_print=pretty_print)
-    except TypeError:
-        xmlstring = etree.tostring(e, encoding=encoding)
-    return xmlstring
+def default_encode(xc):
+    return encode_xigtcorpus(xc)
 
 def default_encode_xigtcorpus(xc):
     attributes = xc.attributes
