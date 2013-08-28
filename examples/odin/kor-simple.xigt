@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+stage3_lang_chosen: korean (kor)
+lang_code: korean (kor) || seoul (kor) || japanese (jpn) || inuit (ike) || french (fra) || malayalam (mal)
+note: lang_chosen_idx=0
+line=959 tag=L:   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta
+line=960 tag=G:     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec
+line=961 tag=T:     `I made the child eat rice.'
+-->
+<xigt-corpus>
+  <metadata type="odin-meta">
+    <meta type="language" name="korean" iso-639-3="kor"
+          tiers="phrases words morphemes"/>
+    <meta type="language" name="english" iso-639-3="eng"
+          tiers="glosses translations"/>
+  </metadata>
+  <igt id="i0">
+    <tier type="odin-txt" id="o">
+      <item id="o0">stage3_lang_chosen: korean (kor)</item>
+      <item id="o1">lang_code: korean (kor) || seoul (kor) || japanese (jpn) || inuit (ike) || french (fra) || malayalam (mal)</item>
+      <item id="o2">note: lang_chosen_idx=0</item>
+      <item id="o3" line="959" tag="L">   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="o4" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="o5" line="961" tag="T">     `I made the child eat rice.'</item>
+    </tier>
+    <tier type="phrases" id="p" txtref="o">
+      <item id="p0" txtref="o3[5:40]">Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+    </tier>
+    <tier type="words" id="w" ref="p" txtref="o">
+      <item id="w0" ref="p0[0:6]" txtref="o3[5:11]"/>
+      <item id="w1" ref="p0[7:15]" txtref="o3[12:20]"/>
+      <item id="w2" ref="p0[16:22]" txtref="o3[21:27]"/>
+      <item id="w3" ref="p0[23:35]" txtref="o3[28:40]"/>
+    </tier>
+    <tier type="glosses" id="g" ref="w" txtref="o">
+      <item id="g0" ref="w0" txtref="o4[5:10]">I-Nom</item>
+      <item id="g1" ref="w1" txtref="o4[11:20]">child-Dat</item>
+      <item id="g2" ref="w2" txtref="o4[21:29]">rice-Acc</item>
+      <item id="g6" ref="w3" txtref="o4[30:46]">eat-Caus-Pst-Dec</item>
+    </tier>
+    <tier type="translations" id="t" ref="p" txtref="o">
+      <item id="t0" ref="p0" txtref="o5[6:32]">I made the child eat rice.</item>
+    </tier>
+  </igt>
+</xigt-corpus>
