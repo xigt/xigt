@@ -1,11 +1,13 @@
 Xigt
 ====
 
-A library for extensible Interlinear glossed text (IGT)
+A library for *eXtensible Interlinear Glossed Text*
+([IGT](http://en.wikipedia.org/wiki/Interlinear_gloss))
 
 Xigt is created with extensibility in mind, offering a core framework
-and XML schema (in RelaxNG) ready to be extended without much trouble.
-A small example:
+and XML schema (in [RelaxNG](http://relaxng.org/)) ready to be extended
+without much trouble. Here is a small example of an IGT encoded in
+Xigt's XML format:
 
 ```xml
 <igt id="i1" lg="spa">
@@ -25,6 +27,27 @@ A small example:
   </tier>
 </igt>
 ```
+
+### Installation and Requirements
+
+Xigt requires the following:
+* [Python3](http://python.org/download/)
+
+For using Xigt's XML format, we recommend you also install:
+* A RelaxNG validator for compact schema, like
+  [Jing](http://www.thaiopensource.com/relaxng/jing.html)
+* The [lxml](http://lxml.de/) XML library for Python
+
+After downloading Xigt, install it with the setup.py command:
+
+```Bash
+$ ./setup.py install
+```
+
+Note: To remove (uninstall) Xigt, remove its package directory. On a Linux
+system, this may somewhere like `/usr/lib/python3.X/site-packages/xigt/`.
+There may also be an Egg info file, such as
+`/usr/lib/python3.X/site-packages/Xigt-(version)-py3.X.egg-info`.
 
 ### Features
 
