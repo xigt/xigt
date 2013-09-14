@@ -41,6 +41,24 @@ class XigtMixin(object):
             for obj in objs:
                 self.add(obj)
 
+class XigtInheritanceMixin(object):
+    """
+    Enables the inheritance of attributes and metadata.
+    """
+    def __init__(self):
+        self._local_attrs = set()
+
+    def get_attribute(self, key, inherit=True):
+        if key in self.attributes:
+            return self.attributes[key]
+        elif inherit and hasattr(self, _parent) and self._parent is not None:
+            return self._parent.get_attribute(key, inherit=inherit)
+        else:
+            return None
+
+    def get_meta(self, key, inherit=True):
+        pass # what to do here?
+
 class XigtCorpus(XigtMixin):
     """
     A container of Igt objects, as well as corpus-level attributes and
