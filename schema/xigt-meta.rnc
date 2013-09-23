@@ -1,0 +1,16 @@
+start = element meta {
+    # no ID or Ref?
+    attribute type { Meta.type },
+    # tiers defaults to all tiers, but may be a space-separated list
+    attribute tiers { text }?,
+    Meta.attrs,
+    Meta.content
+}
+Meta.type = notAllowed
+Meta.attrs = empty
+Meta.content = empty
+
+# keep these in scope
+Id = parent Id
+Ref = parent Ref
+AlgnExpr = parent AlgnExpr

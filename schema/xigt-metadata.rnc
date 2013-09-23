@@ -1,0 +1,14 @@
+start = element metadata {
+    # no ID or Ref?
+    attribute type { Metadata.type },
+    Metadata.attrs,
+    Metadata.content
+}
+Metadata.type = notAllowed
+Metadata.attrs = empty
+Metadata.content = empty
+
+# keep these in scope
+Id = parent Id
+Ref = parent Ref
+AlgnExpr = parent AlgnExpr
