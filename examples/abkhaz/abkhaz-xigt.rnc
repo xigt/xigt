@@ -1,26 +1,19 @@
 include "xigt.rnc" {
 
-  Metadata.type = "matrix-meta"
-  # disallow other attrs? use this: Metadata.attrs = empty
-  Metadata.content = element meta {
-      ( attribute type { "language" },
-        attribute name { text }?,
-        attribute iso-639-3 { text },
-        attribute tiers { text } )
-    | ( attribute type { "date" }, text )
-    | ( attribute type { "author" }, text )
-    | ( attribute type { "source" },
-        attribute id { Id },
-        text )
-    | ( attribute type { "source" },
-        attribute ref { Ref },
-        attribute page { text }? )
-    | ( attribute type { "vetted" }, attribute value { text } )
-    | ( attribute type { "judgment" }, attribute value { text } )
-    | ( attribute type { "phenomena" },
-        element phenomenon { text }* )
-    | ( attribute type { "comment" }, text )
-  }*
+  Meta |= grammar { include "xigt-meta.rnc" {
+    Meta.type = "vetted"
+    Meta.attrs = attribute value { text }
+  }}
+  
+  Meta |= grammar { include "xigt-meta.rnc" {
+    Meta.type = "judgment"
+    Meta.attrs = attribute value { text }
+  }}
+  
+  Meta |= grammar { include "xigt-meta.rnc" {
+    Meta.type = "phenomena"
+    Meta.content = element phenomenon { text }*
+  }}
 
   # Syntax tier allows Items as nodes, synrefs as edges for a parse tree
   Tier |= grammar { include "xigt-tier.rnc" {

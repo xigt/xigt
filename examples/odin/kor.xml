@@ -7,8 +7,8 @@ line=959 tag=L:   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta
 line=960 tag=G:     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec
 line=961 tag=T:     `I made the child eat rice.'
 -->
-<xigt-corpus>
-  <metadata type="odin-meta">
+<xigt-corpus content-ref="txtref">
+  <metadata type="xigt-meta">
     <meta type="language" name="korean" iso-639-3="kor"
           tiers="phrases words morphemes"/>
     <meta type="language" name="english" iso-639-3="eng"
@@ -16,48 +16,47 @@ line=961 tag=T:     `I made the child eat rice.'
   </metadata>
   <igt id="i0">
     <tier type="odin-txt" id="o">
-      <item id="o0">stage3_lang_chosen: korean (kor)</item>
-      <item id="o1">lang_code: korean (kor) || seoul (kor) || japanese (jpn) || inuit (ike) || french (fra) || malayalam (mal)</item>
-      <item id="o2">note: lang_chosen_idx=0</item>
-      <item id="o3" line="959" tag="L">   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
-      <item id="o4" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
-      <item id="o5" line="961" tag="T">     `I made the child eat rice.'</item>
+      <item id="o0">doc id=397 959 961 L G T</item>
+      <item id="o1">language: korean (kor)</item>
+      <item id="o2" line="959" tag="L">   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="o3" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="o4" line="961" tag="T">     `I made the child eat rice.'</item>
     </tier>
     <tier type="phrases" id="p" txtref="o">
-      <item id="p0" txtref="o3[5:40]">Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="p0" txtref="o2[5:40]"/>
     </tier>
     <tier type="words" id="w" ref="p" txtref="o">
-      <item id="w0" ref="p0[0:6]" txtref="o3[5:11]"/>
-      <item id="w1" ref="p0[7:15]" txtref="o3[12:20]"/>
-      <item id="w2" ref="p0[16:22]" txtref="o3[21:27]"/>
-      <item id="w3" ref="p0[23:35]" txtref="o3[28:40]"/>
+      <item id="w0" ref="p0[0:6]" txtref="o2[5:11]"/>
+      <item id="w1" ref="p0[7:15]" txtref="o2[12:20]"/>
+      <item id="w2" ref="p0[16:22]" txtref="o2[21:27]"/>
+      <item id="w3" ref="p0[23:35]" txtref="o2[28:40]"/>
     </tier>
     <tier type="morphemes" id="m" ref="w" txtref="o">
-      <item id="w0.m0" ref="w0[0:3]" txtref="o3[5:8]"/>
-      <item id="w0.m1" ref="w0[4:6]" txtref="o3[9:11]"/>
-      <item id="w1.m0" ref="w1[0:2]" txtref="o3[12:14]"/>
-      <item id="w1.m1" ref="w1[3:8]" txtref="o3[15:20]"/>
-      <item id="w2.m0" ref="w2[0:3]" txtref="o3[21:24]"/>
-      <item id="w2.m1" ref="w2[4:6]" txtref="o3[25:27]"/>
-      <item id="w3.m0" ref="w3[0:3]" txtref="o3[28:31]"/>
-      <item id="w3.m1" ref="w3[4:5]" txtref="o3[32:33]"/>
-      <item id="w3.m2" ref="w3[6:9]" txtref="o3[34:37]"/>
-      <item id="w3.m3" ref="w3[10:12]" txtref="o3[38:40]"/>
+      <item id="w0.m0" ref="w0[0:3]" txtref="o2[5:8]"/>
+      <item id="w0.m1" ref="w0[4:6]" txtref="o2[9:11]"/>
+      <item id="w1.m0" ref="w1[0:2]" txtref="o2[12:14]"/>
+      <item id="w1.m1" ref="w1[3:8]" txtref="o2[15:20]"/>
+      <item id="w2.m0" ref="w2[0:3]" txtref="o2[21:24]"/>
+      <item id="w2.m1" ref="w2[4:6]" txtref="o2[25:27]"/>
+      <item id="w3.m0" ref="w3[0:3]" txtref="o2[28:31]"/>
+      <item id="w3.m1" ref="w3[4:5]" txtref="o2[32:33]"/>
+      <item id="w3.m2" ref="w3[6:9]" txtref="o2[34:37]"/>
+      <item id="w3.m3" ref="w3[10:12]" txtref="o2[38:40]"/>
     </tier>
     <tier type="glosses" id="g" ref="m" txtref="o">
-      <item id="w0.g0" ref="w0.m0" txtref="o4[5:6]">I</item>
-      <item id="w0.g1" ref="w0.m1" txtref="o4[7:10]">Nom</item>
-      <item id="w1.g0" ref="w1.m0" txtref="o4[11:16]">child</item>
-      <item id="w1.g1" ref="w1.m1" txtref="o4[17:20]">Dat</item>
-      <item id="w2.g0" ref="w2.m0" txtref="o4[21:25]">rice</item>
-      <item id="w2.g1" ref="w2.m1" txtref="o4[26:29]">Acc</item>
-      <item id="w3.g0" ref="w3.m0" txtref="o4[30:33]">eat</item>
-      <item id="w3.g1" ref="w3.m1" txtref="o4[34:38]">Caus</item>
-      <item id="w3.g2" ref="w3.m2" txtref="o4[39:42]">Pst</item>
-      <item id="w3.g3" ref="w3.m3" txtref="o4[43:46]">Dec</item>
+      <item id="w0.g0" ref="w0.m0" txtref="o3[5:6]"/>
+      <item id="w0.g1" ref="w0.m1" txtref="o3[7:10]"/>
+      <item id="w1.g0" ref="w1.m0" txtref="o3[11:16]"/>
+      <item id="w1.g1" ref="w1.m1" txtref="o3[17:20]"/>
+      <item id="w2.g0" ref="w2.m0" txtref="o3[21:25]"/>
+      <item id="w2.g1" ref="w2.m1" txtref="o3[26:29]"/>
+      <item id="w3.g0" ref="w3.m0" txtref="o3[30:33]"/>
+      <item id="w3.g1" ref="w3.m1" txtref="o3[34:38]"/>
+      <item id="w3.g2" ref="w3.m2" txtref="o3[39:42]"/>
+      <item id="w3.g3" ref="w3.m3" txtref="o3[43:46]"/>
     </tier>
     <tier type="translations" id="t" ref="p" txtref="o">
-      <item id="t0" ref="p0" txtref="o5[6:32]">I made the child eat rice.</item>
+      <item id="t0" ref="p0" txtref="o4[6:32]"/>
     </tier>
   </igt>
 </xigt-corpus>

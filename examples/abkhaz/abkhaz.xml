@@ -27,7 +27,7 @@ the-boy the-girl her-he-see-neg
 The boy does not see the girl.
 -->
 <xigt-corpus>
-  <metadata type="matrix-meta">
+  <metadata type="xigt-meta">
     <meta type="language" name="Abkhaz" iso-639-3="abk"
           tiers="phrases words morphemes"/>
     <meta type="language" name="English" iso-639-3="eng"
@@ -38,7 +38,7 @@ The boy does not see the girl.
     <meta type="source" id="src-b">Safiyyah Saleem</meta>
   </metadata>
   <igt id="i1">
-    <metadata type="matrix-meta">
+    <metadata type="xigt-meta">
       <meta type="source" ref="src-a" page="60"/>
       <meta type="vetted" value="s"/>
       <meta type="judgment" value="g"/>
@@ -88,7 +88,7 @@ The boy does not see the girl.
     </tier>
   </igt>
   <igt id="i30">
-    <metadata type="matrix-meta">
+    <metadata type="xigt-meta">
       <meta type="source" ref="src-b"/>
       <meta type="vetted" value="f"/>
       <meta type="judgment" value="g"/>

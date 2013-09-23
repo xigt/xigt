@@ -7,8 +7,8 @@ line=959 tag=L:   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta
 line=960 tag=G:     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec
 line=961 tag=T:     `I made the child eat rice.'
 -->
-<xigt-corpus>
-  <metadata type="odin-meta">
+<xigt-corpus content-ref="txtref">
+  <metadata type="xigt-meta">
     <meta type="language" name="korean" iso-639-3="kor"
           tiers="phrases words morphemes"/>
     <meta type="language" name="english" iso-639-3="eng"
@@ -16,21 +16,20 @@ line=961 tag=T:     `I made the child eat rice.'
   </metadata>
   <igt id="i0">
     <tier type="odin-txt" id="o">
-      <item id="o0">stage3_lang_chosen: korean (kor)</item>
-      <item id="o1">lang_code: korean (kor) || seoul (kor) || japanese (jpn) || inuit (ike) || french (fra) || malayalam (mal)</item>
-      <item id="o2">note: lang_chosen_idx=0</item>
-      <item id="o3" line="959" tag="L">   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
-      <item id="o4" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
-      <item id="o5" line="961" tag="T">     `I made the child eat rice.'</item>
+      <item id="o0">doc id=397 959 961 L G T</item>
+      <item id="o1">language: korean (kor)</item>
+      <item id="o2" line="959" tag="L">   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="o3" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="o4" line="961" tag="T">     `I made the child eat rice.'</item>
     </tier>
     <tier type="phrases" id="p" txtref="o">
-      <item id="p0" txtref="o3[5:40]">Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="p0" txtref="o2[5:40]"/>
     </tier>
     <tier type="glosses" id="g" ref="p" txtref="o">
-      <item id="g0" ref="p0" txtref="o4[5:46]">I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="g0" ref="p0" txtref="o3[5:46]"/>
     </tier>
     <tier type="translations" id="t" ref="p" txtref="o">
-      <item id="t0" ref="p0" txtref="o5[6:32]">I made the child eat rice.</item>
+      <item id="t0" ref="p0" txtref="o4[6:32]"/>
     </tier>
   </igt>
 </xigt-corpus>

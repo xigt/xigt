@@ -1,6 +1,7 @@
 start = element item {
     attribute id { Item.id },
     attribute ref { Item.ref }?,
+    BaseAttrs,
     Item.subtype
 }
 Item.id = parent Item.id
@@ -17,4 +18,4 @@ Item.content = text | parent Item.content
 Id = parent Id
 Ref = parent Ref
 AlgnExpr = parent AlgnExpr
-
+BaseAttrs = parent BaseAttrs

@@ -1,6 +1,7 @@
 start = element tier {
     attribute id { Tier.id },
     attribute ref { Tier.ref }?,
+    BaseAttrs,
     Tier.subtype
 }
 Tier.id = parent Tier.id
@@ -11,7 +12,7 @@ Tier.subtype = attribute type { Tier.type },
                Tier.content
 Tier.type = notAllowed
 Tier.attrs = parent Tier.attrs
-Tier.metadata = Metadata?
+Tier.metadata = (BasicMetadata | Metadata)*
 Tier.content = ( Item | parent Tier.content )*
 
 Item |= grammar { include "xigt-item.rnc" }
@@ -27,4 +28,6 @@ Item.content = parent Item.content
 Id = parent Id
 Ref = parent Ref
 AlgnExpr = parent AlgnExpr
+BaseAttrs = parent BaseAttrs
 Metadata = parent Metadata
+BasicMetadata = parent BasicMetadata

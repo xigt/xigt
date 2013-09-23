@@ -1,6 +1,17 @@
 import re
 from collections import OrderedDict
 
+# common strings
+_content_ref   = 'content-ref'
+_annotation_ref = 'annotation-ref'
+_ref           = 'ref'
+_alignref      = 'alignref'
+
+defaults = {
+    _content_ref: _ref,
+    _annotation_ref: _ref
+}
+
 class XigtMixin(object):
     """
     Common methods for accessing subelements in XigtCorpus, Igt, and
@@ -48,18 +59,18 @@ class XigtInheritanceMixin(object):
     def __init__(self):
         self._local_attrs = set()
 
-    def get_attribute(self, key, inherit=True):
+    def get_attribute(self, key, default=None, inherit=True):
         if key in self.attributes:
             return self.attributes[key]
-        elif inherit and hasattr(self, _parent) and self._parent is not None:
+        elif inherit and hasattr(self, '_parent') and self._parent is not None:
             return self._parent.get_attribute(key, inherit=inherit)
         else:
-            return None
+            return default
 
     def get_meta(self, key, inherit=True):
         pass # what to do here?
 
-class XigtCorpus(XigtMixin):
+class XigtCorpus(XigtMixin,XigtInheritanceMixin):
     """
     A container of Igt objects, as well as corpus-level attributes and
     metadata. In serialization formats (e.g. XigtXML), XigtCorpus
@@ -80,7 +91,7 @@ class XigtCorpus(XigtMixin):
     def igts(self, value):
         self._list = value
 
-class Igt(XigtMixin):
+class Igt(XigtMixin,XigtInheritanceMixin):
     """
     An IGT (Interlinear Glossed Text) instance.
     """
@@ -106,16 +117,15 @@ class Igt(XigtMixin):
     def tiers(self, value):
         self._list = value
 
-class Tier(XigtMixin):
+class Tier(XigtMixin,XigtInheritanceMixin):
     """
     A tier of IGT data. A tier should contain homogenous Items of
     data, such as all words or all glosses.
     """
-    def __init__(self, id=None, ref=None, type=None, attributes=None,
+    def __init__(self, id=None, type=None, attributes=None,
                  metadata=None, items=None, igt=None):
         XigtMixin.__init__(self)
         self.id = id
-        self.ref = ref
         self.type = type
         self.attributes = attributes or OrderedDict()
         self.metadata = metadata
@@ -124,11 +134,17 @@ class Tier(XigtMixin):
 
     def __repr__(self):
         return 'Tier({},{},{},[{}])'.format(
-            str(self.type), str(self.id), str(self.ref), ','.join(self.items))
+            str(self.type), str(self.id), str(self.attributes),
+            ','.join(self.items)
+        )
 
     @property
     def igt(self):
         return self._parent
+
+    @property
+    def corpus(self):
+        return self.igt._parent
 
     @property
     def items(self):
@@ -138,32 +154,23 @@ class Tier(XigtMixin):
     def items(self, value):
         self._list = value
 
-    @property
-    def reftier(self):
-        if self.ref is not None and self.igt is not None:
-            return self.igt.get(self.ref)
-        else:
-            #TODO log this
-            return None
-
-class Item(object):
+class Item(XigtInheritanceMixin):
     """
     A single datum on a Tier. Often these are tokens, such as words
     or glosses, but may be phrases, translations, or (via extensions)
     more complex data like syntax nodes or dependencies.
     """
-    def __init__(self, id=None, ref=None, type=None, attributes=None,
+    def __init__(self, id=None, type=None, attributes=None,
                  content=None, tier=None):
         self.id = id
-        self.ref = ref
         self.type = type
         self.attributes = attributes or OrderedDict()
-        self.content = content
+        self._content = content
         self._parent = tier # mainly used for alignment expressions
 
     def __repr__(self):
         return 'Item({},{},{},{})'.format(
-            map(str, [self.type, self.id, self.ref, self.content]))
+            *map(str, [self.type, self.id, str(self.attributes), self.content]))
 
     def __str__(self):
         return str(self.content)
@@ -172,11 +179,30 @@ class Item(object):
     def tier(self):
         return self._parent
 
-    def resolve_ref(self):
-        if self.ref is not None and self.tier is not None:
-            return resolve_alignment_expression(self.ref, self.tier.reftier)
+    @property
+    def igt(self):
+        return self.tier._parent
+
+    @property
+    def corpus(self):
+        return self.igt._parent
+
+    @property
+    def content(self):
+        if self._content is not None:
+            return self._content
         else:
-            return None #TODO log this
+            contentref = self.get_attribute(_content_ref, default=_ref)
+            return self.resolve_ref(contentref)
+
+    def resolve_ref(self, refattr):
+        try:
+            algnexpr = self.attributes[refattr]
+            reftier_id = self.tier.attributes[refattr]
+            reftier = self.igt[reftier_id]
+            return resolve_alignment_expression(algnexpr, reftier)
+        except KeyError:
+            return None #TODO: log this
 
     def span(self, start, end):
         if self.content is None:
@@ -195,6 +221,18 @@ class Metadata(object):
 
     def __repr__(self):
         return 'Metadata({},"{}")'.format(str(self.type), self.content)
+
+class Meta(object):
+    def __init__(self, type, attributes=None, content=None):
+        self.type = type
+        self.attributes = attributes or OrderedDict()
+        self.content = content
+
+    def __repr__(self):
+        return 'Meta({},{},"{}")'.format(
+            str(self.type),
+            ','.join('='.join(k,v) for k,v in self.attributes.items()),
+            str(self.content))
 
 ### Alignment Expressions ####################################################
 

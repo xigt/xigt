@@ -1,23 +1,16 @@
 include "xigt.rnc" {
-    Metadata.type = "odin-meta"
-    Metadata.content = element meta {
-      ( attribute type { "language" },
-        # language or iso-639-3 or both may be specified
-        ( attribute name { text } |
-          attribute iso-639-3 { text } )+,
-        attribute tiers { text } )
-    }*
-
+    BaseAttrs.contentRef.value = "txtref"
     # global attributes (really applies to all but odin-txt tiers)
     Tier.attrs = attribute txtref { Ref }
     Item.attrs = attribute txtref { AlgnExpr }
 
     Tier |= grammar { include "xigt-tier.rnc" {
       Tier.type = "odin-txt"
-      Tier.attrs = empty # block txtref
+      # setting attrs to empty blocks txtref on this tier
+      Tier.attrs = empty
       Item = grammar { include "xigt-item.rnc" {
         Item.attrs = attribute line { xsd:int }?
                    , attribute tag { text }?
       }}
     }}
-}
+} 

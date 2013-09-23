@@ -1,5 +1,5 @@
 
-from xigt.core import XigtCorpus, Igt, Tier, Item, Metadata
+from xigt.core import XigtCorpus, Igt, Tier, Item, Metadata, Meta
 from collections import OrderedDict
 
 # Import LXML if available, otherwise fall back to another etree implementation
@@ -73,9 +73,8 @@ def default_decode_igt(elem):
 def default_decode_tier(elem):
     return Tier(
         id=elem.get('id'),
-        ref=elem.get('ref'),
         type=elem.get('type'),
-        attributes=get_attributes(elem, ignore=('id','ref','type')),
+        attributes=get_attributes(elem, ignore=('id','type')),
         metadata=decode_metadata(elem.find('metadata')),
         items=[decode_item(item) for item in elem.iter('item')]
     )
@@ -83,19 +82,54 @@ def default_decode_tier(elem):
 def default_decode_item(elem):
     return Item(
         id=elem.get('id'),
-        ref=elem.get('ref'),
         type=elem.get('type'),
-        attributes=get_attributes(elem, ignore=('id','ref','type')),
+        attributes=get_attributes(elem, ignore=('id','type')),
         content=elem.text
     )
 
 def default_decode_metadata(elem):
     if elem is None: return None
-    return Metadata(
-        type=elem.get('type'),
-        attributes=get_attributes(elem, ignore=('type',)),
-        content=elem.text
-    )
+    # no metadata type... just treat contents as text
+    if elem.get('type') is None:
+        return Metadata(
+            type=elem.get('type'),
+            attributes=get_attributes(elem, ignore=('type',)),
+            content=elem.text
+        )
+    # basic metadata subtype allowed by default schema
+    elif elem.get('type') == 'xigt-meta':
+        return Metadata(
+            type=elem.get('type'),
+            attributes=get_attributes(elem, ignore=('type',)),
+            content=[decode_meta(meta) for meta in elem.iter('meta')]
+        )
+    else:
+        raise TypeError('Invalid subtype of Metadata: {}'
+                        .format(elem.get('type')))
+
+def default_decode_meta(elem):
+    metatype = elem.get('type').lower()
+    metaattrs = get_attributes(elem, ignore=('type',))
+    # language is easy---just attributes
+    if metatype == 'language':
+        return Meta(type=metatype,
+                    attributes=metaattrs)
+    # and the following have basic content
+    elif metatype in ('date', 'author', 'comment'):
+        return Meta(type=metatype,
+                    attributes=metaattrs,
+                    content=elem.text)
+    # source has two alternatives
+    elif metatype == 'source' and elem.get('id') is not None:
+        return Meta(type=metatype,
+                    attributes=metaattrs,
+                    content=elem.text)
+    elif metatype == 'source' and elem.get('ref') is not None:
+        return Meta(type=metatype,
+                    attributes=metaattrs)
+    else:
+        raise ValueError('Invalid subtype of Meta: {}'
+                         .format(metatype))
 
 ##############################################################################
 ##############################################################################
@@ -132,8 +166,6 @@ def default_encode_tier(tier):
         attributes['type'] = tier.type
     if tier.id is not None:
         attributes['id'] = tier.id
-    if tier.ref is not None:
-        attributes['ref'] = tier.ref
     e = etree.Element('tier', attrib=attributes)
     if tier.metadata is not None:
         e.append(encode_metadata(tier.metadata))
@@ -145,8 +177,6 @@ def default_encode_item(item):
     attributes = item.attributes
     if item.id is not None:
         attributes['id'] = item.id
-    if item.ref is not None:
-        attributes['ref'] = item.ref
     e = etree.Element('item', attrib=attributes)
     if item.content is not None:
         e.text = item.content
@@ -154,10 +184,28 @@ def default_encode_item(item):
 
 def default_encode_metadata(metadata):
     attributes = metadata.attributes
-    if metadata.type is not None:
+    if metadata.type is None:
+        e = etree.Element('metadata', attrib=attributes)
+        e.text = metadata.content
+        return e
+    elif metadata.type == 'xigt-meta':
         attributes['type'] = metadata.type
-    e = etree.Element('metadata', attrib=attributes)
-    e.text = metadata.content
+        e = etree.Element('metadata', attrib=attributes)
+        for meta in metadata.content:
+            e.append(encode_meta(meta))
+        return e
+    else:
+        raise ValueError('Invalid subtype of Metadata: {}'
+                         .format(metadata.type))
+
+def default_encode_meta(meta):
+    if meta.type.lower() not in ('language', 'date', 'author', 'source',
+                                 'comment'):
+        raise ValueError('Invalid subtype of Meta: {}'
+                         .format(meta.type))
+    attributes = dict(type=meta.type, **meta.attributes)
+    e = etree.Element('meta', attrib=attributes)
+    e.text = meta.content
     return e
 
 ##############################################################################
@@ -170,6 +218,7 @@ decode_igt        = default_decode_igt
 decode_tier       = default_decode_tier
 decode_item       = default_decode_item
 decode_metadata   = default_decode_metadata
+decode_meta       = default_decode_meta
 
 encode            = default_encode
 encode_xigtcorpus = default_encode_xigtcorpus
@@ -177,3 +226,4 @@ encode_igt        = default_encode_igt
 encode_tier       = default_encode_tier
 encode_item       = default_encode_item
 encode_metadata   = default_encode_metadata
+encode_meta       = default_encode_meta

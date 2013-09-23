@@ -25,22 +25,38 @@ Item.ref = AlgnExpr
 Item.attrs = empty
 Item.content = notAllowed
 
+#--- Base Attributes (inherited from any level and overridable)
+
+BaseAttrs = BaseAttrs.annotationRef,
+            BaseAttrs.contentRef,
+            BaseAttrs.alignmentMethod
+# BaseAttrs.IterableTiers (those that can be aligned visually?)
+# BaseAttrs... (others?)
+BaseAttrs.annotationRef = attribute annotation-ref { BaseAttrs.annotationRef.value }?
+BaseAttrs.annotationRef.value = "ref"
+BaseAttrs.contentRef = attribute content-ref { BaseAttrs.contentRef.value }?
+BaseAttrs.contentRef.value = "ref"
+BaseAttrs.alignmentMethod = attribute alignment-method { BaseAttrs.alignmentMethod.value }?
+BaseAttrs.alignmentMethod.value = ( "auto" | "gold" | "vetted" )
+
 #--- Include Structural Definitions ---
 
 # Root element
 start = XigtCorpus
 XigtCorpus = element xigt-corpus {
     attribute id { Id }?,
+    BaseAttrs,
     XigtCorpus.attrs,
     XigtCorpus.metadata,
     XigtCorpus.content
 }
 # no corpus-level attributes by default, but they can be added via extensions
 XigtCorpus.attrs = empty
-XigtCorpus.metadata = Metadata?
+XigtCorpus.metadata = (BasicMetadata | Metadata)*
 XigtCorpus.content = Igt*
 Igt = element igt {
     attribute id { Igt.id },
+    BaseAttrs,
     Igt.subtype
 }
 Igt.subtype = attribute type { Igt.type }?,
@@ -49,47 +65,85 @@ Igt.subtype = attribute type { Igt.type }?,
               Igt.content
 Igt.type = notAllowed
 Igt.attrs = empty
-Igt.metadata = Metadata?
+Igt.metadata = (BasicMetadata | Metadata)*
 Igt.content = (BasicTier | Tier)*
 
 Tier = notAllowed
+Metadata = notAllowed
+Meta = notAllowed
 
 #------------------------
 #--- Default subtypes ---
 #------------------------
 
 BasicTier |= grammar { include "xigt-tier.rnc" {
-    Tier.type = "phrases"
-    Item.type = ( "original" | "transliteration" )
-} }
-     | grammar { include "xigt-tier.rnc" {
-    Tier.type = "words"
-} }
-     | grammar { include "xigt-tier.rnc" {
-    Tier.type = "morphemes"
-    Item.type |= ( "affix" | "clitic" )
-} }
-     | grammar { include "xigt-tier.rnc" {
-    Tier.type = "glosses"
-    Item.type |= ( "leipzig" | "lexeme" )
-} }
-     | grammar { include "xigt-tier.rnc" {
-    Tier.type = "translations"
-} }
-     | grammar { include "xigt-tier.rnc" {
-    Tier.type = "alignments"
-    Tier.attrs = attribute alignref { Ref }
-    Tier.content = (Item | parent Tier.content)*
-    Item.attrs = attribute alignref { AlgnExpr }
-} }
+  Tier.type = "phrases"
+  Item.type = ( "original" | "transliteration" )
+}}
 
-#--- Metadata ---
+BasicTier |= grammar { include "xigt-tier.rnc" {
+  Tier.type = "words"
+}}
 
-Metadata = element metadata {
-    attribute type { Metadata.type },
-    Metadata.attrs,
-    Metadata.content
-}
-Metadata.type = notAllowed
-Metadata.attrs = empty
-Metadata.content = text
+BasicTier |= grammar { include "xigt-tier.rnc" {
+      Tier.type = "morphemes"
+      Item.type |= ( "affix" | "clitic" )
+}}
+
+BasicTier |= grammar { include "xigt-tier.rnc" {
+      Tier.type = "glosses"
+      Item.type |= ( "leipzig" | "lexeme" )
+}}
+
+BasicTier |= grammar { include "xigt-tier.rnc" {
+      Tier.type = "translations"
+}}
+
+BasicTier |= grammar { include "xigt-tier.rnc" {
+      Tier.type = "alignments"
+      Tier.attrs = attribute alignref { Ref }
+      Tier.content = (Item | parent Tier.content)*
+      Item.attrs = attribute alignref { AlgnExpr }
+}}
+
+BasicMetadata |= grammar { include "xigt-metadata.rnc" {
+  Metadata.type = "xigt-meta"
+  # These are not available in the scope of this grammar, so we use
+  # "parent" to get at them.
+  Metadata.content = (parent BasicMeta | parent Meta)*
+}}
+
+BasicMeta |= grammar { include "xigt-meta.rnc" {
+    Meta.type = "language"
+    # name or iso-639-3 or both may be specified
+    Meta.attrs = ( attribute name { text } |
+                   attribute iso-639-3 { text } )+
+}}
+
+BasicMeta |= grammar { include "xigt-meta.rnc" {
+  Meta.type = "date"
+  # should this be xsd:dateTime?
+  Meta.content = text
+}}
+
+BasicMeta |= grammar { include "xigt-meta.rnc" {
+  Meta.type = "author"
+  Meta.content = text
+}}
+
+BasicMeta |= grammar { include "xigt-meta.rnc" {
+  Meta.type = "source"
+  Meta.attrs = attribute id { Id }
+  Meta.content = text
+}}
+
+BasicMeta |= grammar { include "xigt-meta.rnc" {
+  Meta.type = "source"
+  Meta.attrs = attribute ref { Ref },
+               attribute page { text }?
+}}
+
+BasicMeta |= grammar { include "xigt-meta.rnc" {
+  Meta.type = "comment"
+  Meta.content = text
+}}
