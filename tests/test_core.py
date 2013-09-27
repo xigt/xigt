@@ -22,26 +22,26 @@ class TestItem(unittest.TestCase):
         # empty members
         self.assertEqual(i.type, None)
         self.assertEqual(i.id, None)
-        self.assertEqual(i.ref, None)
         self.assertEqual(i.tier, None)
+        self.assertEqual(i.igt, None)
+        self.assertEqual(i.corpus, None)
         self.assertEqual(i.attributes, dict())
         self.assertEqual(i.content, None)
         # sub-spans of null content is also null content
         self.assertEqual(i.span(0,1), None)
-        self.assertEqual(i.resolve_ref(), None)
 
     def test_basic(self):
         i = Item(id='i1', type='basic', attributes={'attr':'val'},
                  content='content')
         self.assertEqual(i.type, 'basic')
         self.assertEqual(i.id, 'i1')
-        self.assertEqual(i.ref, None)
         self.assertEqual(i.tier, None)
+        self.assertEqual(i.igt, None)
+        self.assertEqual(i.corpus, None)
         self.assertEqual(i.attributes, {'attr':'val'})
         self.assertEqual(i.content, 'content')
         # sub-spans of null content is also null content
         self.assertEqual(i.span(0,1), 'c')
-        self.assertEqual(i.resolve_ref(), None)
 
     def test_linked(self):
         #t = Tier(id='t', items=[Item(id='t1',content='content')])
@@ -53,14 +53,13 @@ class TestTier(unittest.TestCase):
         # empty members
         self.assertEqual(t.type, None)
         self.assertEqual(t.id, None)
-        self.assertEqual(t.ref, None)
         self.assertEqual(t.igt, None)
+        self.assertEqual(t.corpus, None)
         self.assertEqual(t.metadata, None)
         self.assertEqual(t.attributes, dict())
         self.assertEqual(len(t.items), 0)
         # empty properties
         self.assertEqual(t.items, [])
-        self.assertEqual(t.reftier, None)
 
     def test_basic(self):
         t = Tier(id='t', type='basic',
@@ -69,8 +68,8 @@ class TestTier(unittest.TestCase):
                  items=[Item(), Item()])
         self.assertEqual(t.type, 'basic')
         self.assertEqual(t.id, 't')
-        self.assertEqual(t.ref, None)
         self.assertEqual(t.igt, None)
+        self.assertEqual(t.corpus, None)
         self.assertEqual(t.metadata.type, 'meta')
         self.assertEqual(t.metadata.content, 'metacontent')
         self.assertEqual(t.attributes, {'attr':'val'})
@@ -78,7 +77,6 @@ class TestTier(unittest.TestCase):
         # contained Items should now have their tier specified
         for i in t.items:
             self.assertEqual(i.tier, t)
-        self.assertEqual(t.reftier, None)
         # don't allow multiple items with the same ID
         self.assertRaises(ValueError, Tier, items=[Item(id='i1'),
                                                    Item(id='i1')])

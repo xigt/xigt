@@ -144,7 +144,10 @@ class Tier(XigtMixin,XigtInheritanceMixin):
 
     @property
     def corpus(self):
-        return self.igt._parent
+        try:
+            return self.igt.corpus
+        except AttributeError:
+            return None
 
     @property
     def items(self):
@@ -181,11 +184,17 @@ class Item(XigtInheritanceMixin):
 
     @property
     def igt(self):
-        return self.tier._parent
+        try:
+            return self.tier.igt
+        except AttributeError:
+            return None
 
     @property
     def corpus(self):
-        return self.igt._parent
+        try:
+            return self.igt.corpus
+        except AttributeError:
+            return None
 
     @property
     def content(self):
