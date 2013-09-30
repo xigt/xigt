@@ -4,6 +4,10 @@ Xigt
 A library for *eXtensible Interlinear Glossed Text*
 ([IGT](http://en.wikipedia.org/wiki/Interlinear_gloss))
 
+* [Installation and Requirements](#installation-and-requirements)
+* [Features](#features)
+* [Acknowledgments](#acknowledgments)
+
 Xigt is created with extensibility in mind, offering a core framework
 and XML schema (in [RelaxNG](http://relaxng.org/)) ready to be extended
 without much trouble. Here is a small example of an IGT encoded in
@@ -49,7 +53,7 @@ system, this may somewhere like `/usr/lib/python3.X/site-packages/xigt/`.
 There may also be an Egg info file, such as
 `/usr/lib/python3.X/site-packages/Xigt-(version)-py3.X.egg-info`.
 
-### Features
+### Features ###
 
 Xigt has several features that help enable complex alignments, and
 these features can be ignored for simpler IGT.
@@ -130,3 +134,15 @@ content, and not that of any items **x** refers to. For example, in the followin
 ...
 <item id="y" ref="x[0:1]"/>
 ```
+
+### Acknowledgments
+
+This material is based upon work supported by the National Science Foundation
+under Grant No.
+[1160274](http://www.nsf.gov/awardsearch/showAward?AWD_ID=1160274).Any opinions,
+findings, and conclusions or recommendations expressed in this material are
+those of the author(s) and do not necessarily reflect the views of the National
+Science Foundation.
+
+Xigt was developed under the AGGREGATION project
+(http://depts.washington.edu/uwcl/aggregation/)
