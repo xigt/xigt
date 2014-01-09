@@ -7,7 +7,7 @@ line=959 tag=L:   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta
 line=960 tag=G:     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec
 line=961 tag=T:     `I made the child eat rice.'
 -->
-<xigt-corpus content-ref="txtref">
+<xigt-corpus>
   <metadata type="xigt-meta">
     <meta type="language" name="korean" iso-639-3="kor"
           tiers="phrases words morphemes"/>
@@ -22,14 +22,14 @@ line=961 tag=T:     `I made the child eat rice.'
       <item id="o3" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
       <item id="o4" line="961" tag="T">     `I made the child eat rice.'</item>
     </tier>
-    <tier type="phrases" id="p" txtref="o">
-      <item id="p0" txtref="o2[5:40]"/>
+    <tier type="phrases" id="p" content="o">
+      <item id="p0" content="o2[5:40]"/>
     </tier>
-    <tier type="glosses" id="g" ref="p" txtref="o">
-      <item id="g0" ref="p0" txtref="o3[5:46]"/>
+    <tier type="glosses" id="g" alignment="p" content="o">
+      <item id="g0" alignment="p0" content="o3[5:46]"/>
     </tier>
-    <tier type="translations" id="t" ref="p" txtref="o">
-      <item id="t0" ref="p0" txtref="o4[6:32]"/>
+    <tier type="translations" id="t" alignment="p" content="o">
+      <item id="t0" alignment="p0" content="o4[6:32]"/>
     </tier>
   </igt>
 </xigt-corpus>

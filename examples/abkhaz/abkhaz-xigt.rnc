@@ -20,7 +20,7 @@ include "xigt.rnc" {
     Tier.type = "syntax"
     Item = grammar { include "xigt-item.rnc" }
          | grammar { include "xigt-item.rnc" {
-      Item.ref = notAllowed
+      Item.refs = empty
       Item.attrs = attribute synref { AlgnExpr }
       Item.content = text
     }}

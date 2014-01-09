@@ -7,7 +7,7 @@ line=959 tag=L:   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta
 line=960 tag=G:     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec
 line=961 tag=T:     `I made the child eat rice.'
 -->
-<xigt-corpus content-ref="txtref">
+<xigt-corpus>
   <metadata type="xigt-meta">
     <meta type="language" name="korean" iso-639-3="kor"
           tiers="phrases words morphemes"/>
@@ -22,41 +22,41 @@ line=961 tag=T:     `I made the child eat rice.'
       <item id="o3" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
       <item id="o4" line="961" tag="T">     `I made the child eat rice.'</item>
     </tier>
-    <tier type="phrases" id="p" txtref="o">
-      <item id="p0" txtref="o2[5:40]"/>
+    <tier type="phrases" id="p" content="o">
+      <item id="p0" content="o2[5:40]"/>
     </tier>
-    <tier type="words" id="w" ref="p" txtref="o">
-      <item id="w0" ref="p0[0:6]" txtref="o2[5:11]"/>
-      <item id="w1" ref="p0[7:15]" txtref="o2[12:20]"/>
-      <item id="w2" ref="p0[16:22]" txtref="o2[21:27]"/>
-      <item id="w3" ref="p0[23:35]" txtref="o2[28:40]"/>
+    <tier type="words" id="w" alignment="p" content="o">
+      <item id="w0" alignment="p0[0:6]" content="o2[5:11]"/>
+      <item id="w1" alignment="p0[7:15]" content="o2[12:20]"/>
+      <item id="w2" alignment="p0[16:22]" content="o2[21:27]"/>
+      <item id="w3" alignment="p0[23:35]" content="o2[28:40]"/>
     </tier>
-    <tier type="morphemes" id="m" ref="w" txtref="o">
-      <item id="w0.m0" ref="w0[0:3]" txtref="o2[5:8]"/>
-      <item id="w0.m1" ref="w0[4:6]" txtref="o2[9:11]"/>
-      <item id="w1.m0" ref="w1[0:2]" txtref="o2[12:14]"/>
-      <item id="w1.m1" ref="w1[3:8]" txtref="o2[15:20]"/>
-      <item id="w2.m0" ref="w2[0:3]" txtref="o2[21:24]"/>
-      <item id="w2.m1" ref="w2[4:6]" txtref="o2[25:27]"/>
-      <item id="w3.m0" ref="w3[0:3]" txtref="o2[28:31]"/>
-      <item id="w3.m1" ref="w3[4:5]" txtref="o2[32:33]"/>
-      <item id="w3.m2" ref="w3[6:9]" txtref="o2[34:37]"/>
-      <item id="w3.m3" ref="w3[10:12]" txtref="o2[38:40]"/>
+    <tier type="morphemes" id="m" alignment="w" content="o">
+      <item id="w0.m0" alignment="w0[0:3]" content="o2[5:8]"/>
+      <item id="w0.m1" alignment="w0[4:6]" content="o2[9:11]"/>
+      <item id="w1.m0" alignment="w1[0:2]" content="o2[12:14]"/>
+      <item id="w1.m1" alignment="w1[3:8]" content="o2[15:20]"/>
+      <item id="w2.m0" alignment="w2[0:3]" content="o2[21:24]"/>
+      <item id="w2.m1" alignment="w2[4:6]" content="o2[25:27]"/>
+      <item id="w3.m0" alignment="w3[0:3]" content="o2[28:31]"/>
+      <item id="w3.m1" alignment="w3[4:5]" content="o2[32:33]"/>
+      <item id="w3.m2" alignment="w3[6:9]" content="o2[34:37]"/>
+      <item id="w3.m3" alignment="w3[10:12]" content="o2[38:40]"/>
     </tier>
-    <tier type="glosses" id="g" ref="m" txtref="o">
-      <item id="w0.g0" ref="w0.m0" txtref="o3[5:6]"/>
-      <item id="w0.g1" ref="w0.m1" txtref="o3[7:10]"/>
-      <item id="w1.g0" ref="w1.m0" txtref="o3[11:16]"/>
-      <item id="w1.g1" ref="w1.m1" txtref="o3[17:20]"/>
-      <item id="w2.g0" ref="w2.m0" txtref="o3[21:25]"/>
-      <item id="w2.g1" ref="w2.m1" txtref="o3[26:29]"/>
-      <item id="w3.g0" ref="w3.m0" txtref="o3[30:33]"/>
-      <item id="w3.g1" ref="w3.m1" txtref="o3[34:38]"/>
-      <item id="w3.g2" ref="w3.m2" txtref="o3[39:42]"/>
-      <item id="w3.g3" ref="w3.m3" txtref="o3[43:46]"/>
+    <tier type="glosses" id="g" alignment="m" content="o">
+      <item id="w0.g0" alignment="w0.m0" content="o3[5:6]"/>
+      <item id="w0.g1" alignment="w0.m1" content="o3[7:10]"/>
+      <item id="w1.g0" alignment="w1.m0" content="o3[11:16]"/>
+      <item id="w1.g1" alignment="w1.m1" content="o3[17:20]"/>
+      <item id="w2.g0" alignment="w2.m0" content="o3[21:25]"/>
+      <item id="w2.g1" alignment="w2.m1" content="o3[26:29]"/>
+      <item id="w3.g0" alignment="w3.m0" content="o3[30:33]"/>
+      <item id="w3.g1" alignment="w3.m1" content="o3[34:38]"/>
+      <item id="w3.g2" alignment="w3.m2" content="o3[39:42]"/>
+      <item id="w3.g3" alignment="w3.m3" content="o3[43:46]"/>
     </tier>
-    <tier type="translations" id="t" ref="p" txtref="o">
-      <item id="t0" ref="p0" txtref="o4[6:32]"/>
+    <tier type="translations" id="t" alignment="p" content="o">
+      <item id="t0" alignment="p0" content="o4[6:32]"/>
     </tier>
   </igt>
 </xigt-corpus>

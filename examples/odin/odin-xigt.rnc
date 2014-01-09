@@ -1,9 +1,4 @@
 include "xigt.rnc" {
-    BaseAttrs.contentRef.value = "txtref"
-    # global attributes (really applies to all but odin-txt tiers)
-    Tier.attrs = attribute txtref { Ref }
-    Item.attrs = attribute txtref { AlgnExpr }
-
     Tier |= grammar { include "xigt-tier.rnc" {
       Tier.type = "odin-txt"
       # setting attrs to empty blocks txtref on this tier

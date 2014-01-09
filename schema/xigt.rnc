@@ -17,25 +17,23 @@ AlgnExpr = xsd:string {
 
 Igt.id = Id
 Tier.id = Id
-Tier.ref = Ref
+Tier.alnref = Ref
+Tier.cntref = Ref
+Tier.segref = Ref
 Tier.attrs = empty
 Tier.content = notAllowed
 Item.id = Id
-Item.ref = AlgnExpr
+Item.alnref = AlgnExpr
+Item.cntref = AlgnExpr
+Item.segref = AlgnExpr
 Item.attrs = empty
 Item.content = notAllowed
 
 #--- Base Attributes (inherited from any level and overridable)
 
-BaseAttrs = BaseAttrs.annotationRef,
-            BaseAttrs.contentRef,
-            BaseAttrs.alignmentMethod
+BaseAttrs = BaseAttrs.alignmentMethod
 # BaseAttrs.IterableTiers (those that can be aligned visually?)
 # BaseAttrs... (others?)
-BaseAttrs.annotationRef = attribute annotation-ref { BaseAttrs.annotationRef.value }?
-BaseAttrs.annotationRef.value = "ref"
-BaseAttrs.contentRef = attribute content-ref { BaseAttrs.contentRef.value }?
-BaseAttrs.contentRef.value = "ref"
 BaseAttrs.alignmentMethod = attribute alignment-method { BaseAttrs.alignmentMethod.value }?
 BaseAttrs.alignmentMethod.value = ( "auto" | "gold" | "vetted" )
 
@@ -99,12 +97,19 @@ BasicTier |= grammar { include "xigt-tier.rnc" {
       Tier.type = "translations"
 }}
 
-BasicTier |= grammar { include "xigt-tier.rnc" {
-      Tier.type = "alignments"
-      Tier.attrs = attribute alignref { Ref }
-      Tier.content = (Item | parent Tier.content)*
-      Item.attrs = attribute alignref { AlgnExpr }
-}}
+# MWG 2014-01-06: removing alignments tier type for now. If it is re-added
+# in the future, consider redefining Tier.refs and Item.refs to prevent
+# the default refs as possibilities:
+#   Tier.refs = attribute source { Ref }, attribute target { Ref }
+# But the choice of ref names is somewhat problematic: 'source' and 'target'
+# imply directionality. Do we need separate tier types for directional and
+# non-directional alignments?
+#BasicTier |= grammar { include "xigt-tier.rnc" {
+#      Tier.type = "alignments"
+#      Tier.attrs = attribute alignref { Ref }
+#      Tier.content = (Item | parent Tier.content)*
+#      Item.attrs = attribute alignref { AlgnExpr }
+#}}
 
 BasicMetadata |= grammar { include "xigt-metadata.rnc" {
   Metadata.type = "xigt-meta"

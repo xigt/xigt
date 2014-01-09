@@ -2,15 +2,9 @@ import re
 from collections import OrderedDict
 
 # common strings
-_content_ref   = 'content-ref'
-_annotation_ref = 'annotation-ref'
-_ref           = 'ref'
-_alignref      = 'alignref'
-
-defaults = {
-    _content_ref: _ref,
-    _annotation_ref: _ref
-}
+_alignment    = 'alignment'
+_content      = 'content'
+_segmentation = 'segmentation'
 
 class XigtMixin(object):
     """
@@ -200,9 +194,12 @@ class Item(XigtInheritanceMixin):
     def content(self):
         if self._content is not None:
             return self._content
+        elif _content in self.attributes:
+            return self.resolve_ref(_content)
+        elif _segmentation in self.attributes:
+            return self.resolve_ref(_segmentation)
         else:
-            contentref = self.get_attribute(_content_ref, default=_ref)
-            return self.resolve_ref(contentref)
+            return None
 
     def resolve_ref(self, refattr):
         try:
