@@ -1,5 +1,5 @@
 
-from xigt.core import XigtCorpus, Igt, Tier, Item, Metadata, Meta
+from xigt import XigtCorpus, Igt, Tier, Item, Metadata, Meta
 from collections import OrderedDict
 
 # Import LXML if available, otherwise fall back to another etree implementation
@@ -203,7 +203,7 @@ def default_encode_meta(meta):
                                  'comment'):
         raise ValueError('Invalid subtype of Meta: {}'
                          .format(meta.type))
-    attributes = dict(type=meta.type, **meta.attributes)
+    attributes = OrderedDict(type=meta.type, **meta.attributes)
     e = etree.Element('meta', attrib=attributes)
     e.text = meta.content
     return e
