@@ -1,5 +1,5 @@
 import unittest
-from xigt.core import XigtCorpus, Igt, Tier, Item, Metadata
+from xigt import XigtCorpus, Igt, Tier, Item, Metadata
 
 class TestMetadata(unittest.TestCase):
     def test_empty(self):
