@@ -201,6 +201,10 @@ class Item(XigtInheritanceMixin):
         else:
             return None
 
+    @content.setter
+    def content(self, value):
+        self._content = value
+
     def resolve_ref(self, refattr):
         try:
             algnexpr = self.attributes[refattr]
