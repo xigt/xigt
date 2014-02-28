@@ -178,8 +178,8 @@ def default_encode_item(item):
     if item.id is not None:
         attributes['id'] = item.id
     e = etree.Element('item', attrib=attributes)
-    if item.content is not None:
-        e.text = item.content
+    if item._content is not None:
+        e.text = item._content
     return e
 
 def default_encode_metadata(metadata):

@@ -2,9 +2,9 @@ import re
 from collections import OrderedDict
 
 # common strings
-_alignment    = 'alignment'
-_content      = 'content'
-_segmentation = 'segmentation'
+ALIGNMENT    = 'alignment'
+CONTENT      = 'content'
+SEGMENTATION = 'segmentation'
 
 class XigtMixin(object):
     """
@@ -194,10 +194,10 @@ class Item(XigtInheritanceMixin):
     def content(self):
         if self._content is not None:
             return self._content
-        elif _content in self.attributes:
-            return self.resolve_ref(_content)
-        elif _segmentation in self.attributes:
-            return self.resolve_ref(_segmentation)
+        elif CONTENT in self.attributes:
+            return self.resolve_ref(CONTENT)
+        elif SEGMENTATION in self.attributes:
+            return self.resolve_ref(SEGMENTATION)
         else:
             return None
 
