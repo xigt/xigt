@@ -39,6 +39,6 @@ setup(
 	author='Michael Wayne Goodman',
 	author_email='goodman.m.w@gmail.com',
 	description='A library and schema for eXtensible Interlinear Glossed Text',
-	packages=['xigt'],
+	packages=['xigt','xigt.codecs'],
 	cmdclass={'test':TestCommand}
 )
