@@ -4,7 +4,7 @@
   <head>
     <meta charset='utf-8' />
     <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Xigt : XML format for Interlinear Glossed Text" />
+    <meta name="description" content="Xigt : eXtensible Interlinear Glossed Text" />
 
     <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
@@ -19,7 +19,7 @@
           <a id="forkme_banner" href="https://github.com/goodmami/xigt">View on GitHub</a>
 
           <h1 id="project_title">Xigt</h1>
-          <h2 id="project_tagline">XML format for Interlinear Glossed Text</h2>
+          <h2 id="project_tagline">eXtensible Interlinear Glossed Text</h2>
 
             <section id="downloads">
               <a class="zip_download_link" href="https://github.com/goodmami/xigt/zipball/master">Download this project as a .zip file</a>
@@ -44,28 +44,62 @@ A small example:</p>
   <span class="nt">&lt;tier</span> <span class="na">type=</span><span class="s">"words"</span> <span class="na">id=</span><span class="s">"w"</span><span class="nt">&gt;</span>
     <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"w1"</span><span class="nt">&gt;</span>cocinas<span class="nt">&lt;/item&gt;</span>
   <span class="nt">&lt;/tier&gt;</span>
-  <span class="nt">&lt;tier</span> <span class="na">type=</span><span class="s">"morphemes"</span> <span class="na">id=</span><span class="s">"m"</span> <span class="na">ref=</span><span class="s">"w"</span><span class="nt">&gt;</span>
-    <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"m1"</span> <span class="na">ref=</span><span class="s">"w1[0:5]"</span><span class="nt">/&gt;</span>
-    <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"m2"</span> <span class="na">ref=</span><span class="s">"w1[5:7]"</span><span class="nt">/&gt;</span>
+  <span class="nt">&lt;tier</span> <span class="na">type=</span><span class="s">"morphemes"</span> <span class="na">id=</span><span class="s">"m"</span> <span class="na">segmentation=</span><span class="s">"w"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"m1"</span> <span class="na">segmentation=</span><span class="s">"w1[0:5]"</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"m2"</span> <span class="na">segmentation=</span><span class="s">"w1[5:7]"</span><span class="nt">/&gt;</span>
   <span class="nt">&lt;/tier&gt;</span>
-  <span class="nt">&lt;tier</span> <span class="na">type=</span><span class="s">"glosses"</span> <span class="na">id=</span><span class="s">"g"</span> <span class="na">ref=</span><span class="s">"m"</span><span class="nt">&gt;</span>
-    <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"g1"</span> <span class="na">ref=</span><span class="s">"m1"</span><span class="nt">&gt;</span>cook<span class="nt">&lt;/item&gt;</span>
-    <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"g2"</span> <span class="na">ref=</span><span class="s">"m2"</span><span class="nt">&gt;</span>2<span class="nt">&lt;/item&gt;</span>
-    <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"g3"</span> <span class="na">ref=</span><span class="s">"m2"</span><span class="nt">&gt;</span>SG<span class="nt">&lt;/item&gt;</span>
-    <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"g4"</span> <span class="na">ref=</span><span class="s">"m2"</span><span class="nt">&gt;</span>PRS<span class="nt">&lt;/item&gt;</span>
-    <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"g5"</span> <span class="na">ref=</span><span class="s">"m2"</span><span class="nt">&gt;</span>IND<span class="nt">&lt;/item&gt;</span>
+  <span class="nt">&lt;tier</span> <span class="na">type=</span><span class="s">"glosses"</span> <span class="na">id=</span><span class="s">"g"</span> <span class="na">alignment=</span><span class="s">"m"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"g1"</span> <span class="na">alignment=</span><span class="s">"m1"</span><span class="nt">&gt;</span>cook<span class="nt">&lt;/item&gt;</span>
+    <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"g2"</span> <span class="na">alignment=</span><span class="s">"m2"</span><span class="nt">&gt;</span>2<span class="nt">&lt;/item&gt;</span>
+    <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"g3"</span> <span class="na">alignment=</span><span class="s">"m2"</span><span class="nt">&gt;</span>SG<span class="nt">&lt;/item&gt;</span>
+    <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"g4"</span> <span class="na">alignment=</span><span class="s">"m2"</span><span class="nt">&gt;</span>PRS<span class="nt">&lt;/item&gt;</span>
+    <span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"g5"</span> <span class="na">alignment=</span><span class="s">"m2"</span><span class="nt">&gt;</span>IND<span class="nt">&lt;/item&gt;</span>
   <span class="nt">&lt;/tier&gt;</span>
 <span class="nt">&lt;/igt&gt;</span>
 </pre></div>
 
 <h3>
-<a name="features" class="anchor" href="#features"><span class="octicon octicon-link"></span></a>Features</h3>
+<a name="user-content-installation-and-requirements" class="anchor" href="#installation-and-requirements"><span class="octicon octicon-link"></span></a>Installation and Requirements</h3>
+
+<p>Xigt requires the following:</p>
+
+<ul class="task-list">
+<li><a href="http://python.org/download/">Python3</a></li>
+</ul><p>For using Xigt's XML format, we recommend you also install:</p>
+
+<ul class="task-list">
+<li>A RelaxNG validator for compact schema, like
+<a href="http://www.thaiopensource.com/relaxng/jing.html">Jing</a>
+</li>
+<li>The <a href="http://lxml.de/">lxml</a> XML library for Python</li>
+</ul><p>Once it's downloaded, there's no need to install Xigt to your system. The
+provided Xigt scripts can be run from the directory they are in, and
+Python extensions can find Xigt's package by setting the <a href="https://docs.python.org/3.2/using/cmdline.html#envvar-PYTHONPATH"><code>PYTHONPATH</code></a>
+environment variable appropriately.</p>
+
+<p>If you wish to install it to the system, use the provided <code>setup.py</code>
+script:</p>
+
+<div class="highlight highlight-Bash"><pre><span class="nv">$ </span>./setup.py install
+</pre></div>
+
+<p>Note: To remove (uninstall) Xigt, remove its package directory. On a Linux
+system, this may somewhere like <code>/usr/lib/python3.X/site-packages/xigt/</code>.
+There may also be an Egg info file, such as
+<code>/usr/lib/python3.X/site-packages/Xigt-(version)-py3.X.egg-info</code>.</p>
+
+<p>Note 2: I've yet only tested the installation on Linux. If you are having
+trouble installing on Windows, Mac, or some other operating system, please
+contact me or file an <a href="https://github.com/goodmami/xigt/issues.">issue report</a>.</p>
+
+<h3>
+<a name="user-content-features" class="anchor" href="#features"><span class="octicon octicon-link"></span></a>Features</h3>
 
 <p>Xigt has several features that help enable complex alignments, and
 these features can be ignored for simpler IGT.</p>
 
 <h5>
-<a name="alignment-expressions" class="anchor" href="#alignment-expressions"><span class="octicon octicon-link"></span></a>Alignment Expressions</h5>
+<a name="user-content-alignment-expressions" class="anchor" href="#alignment-expressions"><span class="octicon octicon-link"></span></a>Alignment Expressions</h5>
 
 <p>Given:</p>
 
@@ -84,7 +118,7 @@ these features can be ignored for simpler IGT.</p>
 </pre></div>
 
 <h5>
-<a name="floating-alignments" class="anchor" href="#floating-alignments"><span class="octicon octicon-link"></span></a>Floating Alignments</h5>
+<a name="user-content-floating-alignments" class="anchor" href="#floating-alignments"><span class="octicon octicon-link"></span></a>Floating Alignments</h5>
 
 <p>When more than one item align to the same selection, they are in a floating alignment.
 That is, they are ordered (as in the XML), but have no definite subpartitioning among
@@ -95,9 +129,9 @@ them. For instance, given the following item:</p>
 
 <p>...and the following aligned items all aligned to the same item above:</p>
 
-<div class="highlight highlight-xml"><pre><span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"w1"</span> <span class="na">ref=</span><span class="s">"s1"</span><span class="nt">&gt;</span>A<span class="nt">&lt;/item&gt;</span>
-<span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"w2"</span> <span class="na">ref=</span><span class="s">"s1"</span><span class="nt">&gt;</span>dog<span class="nt">&lt;/item&gt;</span>
-<span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"w3"</span> <span class="na">ref=</span><span class="s">"s1"</span><span class="nt">&gt;</span>barks<span class="nt">&lt;/item&gt;</span>
+<div class="highlight highlight-xml"><pre><span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"w1"</span> <span class="na">alignment=</span><span class="s">"s1"</span><span class="nt">&gt;</span>A<span class="nt">&lt;/item&gt;</span>
+<span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"w2"</span> <span class="na">alignment=</span><span class="s">"s1"</span><span class="nt">&gt;</span>dog<span class="nt">&lt;/item&gt;</span>
+<span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"w3"</span> <span class="na">alignment=</span><span class="s">"s1"</span><span class="nt">&gt;</span>barks<span class="nt">&lt;/item&gt;</span>
 </pre></div>
 
 <p>Xigt will maintain the order ["A", "dog", "barks"] (i.e. not ["dog", "A", "barks"] and so on),
@@ -108,15 +142,16 @@ useful when one does not want to delimit items exactly, or when one cannot delim
 (e.g. glosses for portmanteau morphemes).</p>
 
 <h5>
-<a name="data-inheritance" class="anchor" href="#data-inheritance"><span class="octicon octicon-link"></span></a>Data Inheritance</h5>
+<a name="user-content-data-inheritance" class="anchor" href="#data-inheritance"><span class="octicon octicon-link"></span></a>Data Inheritance</h5>
 
-<p>Items can provide content, but if they don't, they inherit it from items they align to. For
-example, one can delimit the morphemes of the word in item <strong>w3</strong> above as follows:</p>
+<p>Items can provide content as text of the XML elements, but if they don't, they inherit it from other items using the <code>content</code> or <code>segmentation</code> reference attributes. The <code>content</code> attribute may be used when providing annotation and the annotation content comes from another source (e.g. a standoff annotation). The <code>segmentation</code> attribute is useful when merely breaking up sentences into words, words into morphemes, etc., as it accomplishes two things: pulling content from and aligning to a span. The alignment during segmentation is necessary to later find where the content came from.</p>
 
-<div class="highlight highlight-xml"><pre><span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"w3"</span> <span class="na">ref=</span><span class="s">"s1"</span><span class="nt">&gt;</span>barks<span class="nt">&lt;/item&gt;</span>
+<p>For example, one can delimit the morphemes of the word in item <strong>w3</strong> above as follows:</p>
+
+<div class="highlight highlight-xml"><pre><span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"w3"</span> <span class="na">alignment=</span><span class="s">"s1"</span><span class="nt">&gt;</span>barks<span class="nt">&lt;/item&gt;</span>
 ...
-<span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"m1"</span> <span class="na">ref=</span><span class="s">"w3[0:4]"</span><span class="nt">/&gt;</span>
-<span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"m2"</span> <span class="na">ref=</span><span class="s">"w3[4:5]"</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"m1"</span> <span class="na">segmentation=</span><span class="s">"w3[0:4]"</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"m2"</span> <span class="na">segmentation=</span><span class="s">"w3[4:5]"</span><span class="nt">/&gt;</span>
 </pre></div>
 
 <p>Items <strong>m1</strong> and <strong>m2</strong> do not provide their own content, so their content is inherited from the specified
@@ -125,8 +160,10 @@ Later items refer to the relative character positions of the inherited content. 
 referencing "m2[0:1]" is the character "s" (aside: since it's the entire content of <strong>m2</strong>, it's the same
 as referencing "m2").</p>
 
+<p>Also note that an item can specify both a <code>segmentation</code> attribute and provide content. This is useful when one wants the alignment of the segmentation to show where the content came from, but also want to provide different content. For example, one may use this to clean up OCR results or show the underlying form before phonological processes have occurred.</p>
+
 <h5>
-<a name="data-shadowing" class="anchor" href="#data-shadowing"><span class="octicon octicon-link"></span></a>Data Shadowing</h5>
+<a name="user-content-data-shadowing" class="anchor" href="#data-shadowing"><span class="octicon octicon-link"></span></a>Data Shadowing</h5>
 
 <p>When an item <strong>x</strong> provides content, later items referring to <strong>x</strong> can only select alignments to <strong>x</strong>'s
 content, and not that of any items <strong>x</strong> refers to. For example, in the following, the content of <strong>y</strong> is
@@ -134,10 +171,24 @@ content, and not that of any items <strong>x</strong> refers to. For example, in
 
 <div class="highlight highlight-xml"><pre><span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"w"</span><span class="nt">&gt;</span>one<span class="nt">&lt;/item&gt;</span>
 ...
-<span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"x"</span> <span class="na">ref=</span><span class="s">"w"</span><span class="nt">&gt;</span>two<span class="nt">&lt;/item&gt;</span>
+<span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"x"</span> <span class="na">segmentation=</span><span class="s">"w"</span><span class="nt">&gt;</span>two<span class="nt">&lt;/item&gt;</span>
 ...
-<span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"y"</span> <span class="na">ref=</span><span class="s">"x[0:1]"</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;item</span> <span class="na">id=</span><span class="s">"y"</span> <span class="na">segmentation=</span><span class="s">"x[0:1]"</span><span class="nt">/&gt;</span>
 </pre></div>
+
+<h3>
+<a name="user-content-acknowledgments" class="anchor" href="#acknowledgments"><span class="octicon octicon-link"></span></a>Acknowledgments</h3>
+
+<p>This material is based upon work supported by the National Science Foundation
+under Grant No.
+<a href="http://www.nsf.gov/awardsearch/showAward?AWD_ID=1160274">1160274</a>.Any opinions,
+findings, and conclusions or recommendations expressed in this material are
+those of the author(s) and do not necessarily reflect the views of the National
+Science Foundation.</p>
+
+<p>Xigt was developed under the AGGREGATION project
+(<a href="http://depts.washington.edu/uwcl/aggregation/">http://depts.washington.edu/uwcl/aggregation/</a>)</p>
+
       </section>
     </div>
 
