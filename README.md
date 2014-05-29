@@ -42,7 +42,14 @@ For using Xigt's XML format, we recommend you also install:
   [Jing](http://www.thaiopensource.com/relaxng/jing.html)
 * The [lxml](http://lxml.de/) XML library for Python
 
-After downloading Xigt, install it with the setup.py command:
+Once it's downloaded, there's no need to install Xigt to your system. The
+provided Xigt scripts can be run from the directory they are in, and
+Python extensions can find Xigt's package by setting the [`PYTHONPATH`](
+https://docs.python.org/3.2/using/cmdline.html#envvar-PYTHONPATH)
+environment variable appropriately.
+
+If you wish to install it to the system, use the provided `setup.py`
+script:
 
 ```Bash
 $ ./setup.py install
@@ -52,6 +59,10 @@ Note: To remove (uninstall) Xigt, remove its package directory. On a Linux
 system, this may somewhere like `/usr/lib/python3.X/site-packages/xigt/`.
 There may also be an Egg info file, such as
 `/usr/lib/python3.X/site-packages/Xigt-(version)-py3.X.egg-info`.
+
+Note 2: I've yet only tested the installation on Linux. If you are having
+trouble installing on Windows, Mac, or some other operating system, please
+contact me or file an [issue report](https://github.com/goodmami/xigt/issues.).
 
 ### Features ###
 
@@ -105,7 +116,7 @@ useful when one does not want to delimit items exactly, or when one cannot delim
 
 ##### Data Inheritance
 
-Items can provide content, but if they don't, they inherit it from other items using the `content` or `segmentation` reference attributes. The `content` attribute may be used when providing annotation and the annotation content comes from another source (e.g. a standoff annotation). The `segmentation` attribute is useful when merely breaking up sentences into words, words into morphemes, etc., as it accomplishes two things: pulling content from and aligning to a span. The alignment during segmentation is necessary to later find where the content came from.
+Items can provide content as text of the XML elements, but if they don't, they inherit it from other items using the `content` or `segmentation` reference attributes. The `content` attribute may be used when providing annotation and the annotation content comes from another source (e.g. a standoff annotation). The `segmentation` attribute is useful when merely breaking up sentences into words, words into morphemes, etc., as it accomplishes two things: pulling content from and aligning to a span. The alignment during segmentation is necessary to later find where the content came from.
 
 For example, one can delimit the morphemes of the word in item **w3** above as follows:
 
