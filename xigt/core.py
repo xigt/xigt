@@ -1,10 +1,33 @@
 import re
+import logging
 from collections import OrderedDict
 
 # common strings
-ALIGNMENT    = 'alignment'
-CONTENT      = 'content'
+ALIGNMENT = 'alignment'
+CONTENT = 'content'
 SEGMENTATION = 'segmentation'
+
+# for auto-alignment
+# this tuple is ordered, and inner tuples represent an equivalence
+# class. E.g. "one-two=three four~five-six" would be split as:
+# (('one', 'two', 'three'), ('four', 'five', 'six'))
+default_item_delimiters = (
+    (' ',),  # word-level tokens
+    ('-', '=', '~')  # morpheme-level-tokens
+)
+
+
+class XigtError(Exception):
+    pass
+
+
+class XigtAttributeError(XigtError):
+    pass
+
+
+class XigtAutoAlignmentError(XigtError):
+    pass
+
 
 class XigtMixin(object):
     """
@@ -18,6 +41,9 @@ class XigtMixin(object):
     def __iter__(self):
         return iter(self._list)
 
+    def __len__(self):
+        return len(self._list)
+
     def __getitem__(self, obj_id):
         try:
             # attempt list indexing
@@ -29,16 +55,15 @@ class XigtMixin(object):
     def get(self, obj_id, default=None):
         try:
             return self[obj_id]
-        except (KeyError, IndexError):
-            return default
+        except KeyError:
+            logging.debug('Object not found with id {}.'.format(obj_id))
+        except IndexError:
+            logging.debug('Object not found at position {}.'.format(obj_id))
+        return default
 
     def add(self, obj):
         obj._parent = self
-        if obj.id is not None:
-            if obj.id in self._dict:
-                raise ValueError('Id "{}" already exists in collection.'
-                                 .format(obj.id))
-            self._dict[obj.id] = obj
+        self._create_id_mapping(obj)
         self._list.append(obj)
 
     def add_list(self, objs):
@@ -46,36 +71,119 @@ class XigtMixin(object):
             for obj in objs:
                 self.add(obj)
 
+    def _create_id_mapping(self, obj):
+        if obj.id is not None:
+            if obj.id in self._dict:
+                raise ValueError('Id "{}" already exists in collection.'
+                                 .format(obj.id))
+            self._dict[obj.id] = obj
+
+    def refresh_index(self):
+        self._dict = OrderedDict()
+        for obj in self._list:
+            self._create_id_mapping(obj)
+
+
+def _has_parent(obj):
+    return hasattr(obj, '_parent') and obj._parent is not None
+
+
 class XigtInheritanceMixin(object):
     """
     Enables the inheritance of attributes and metadata.
     """
     def __init__(self):
-        self._local_attrs = set()
+        # _local_attrs are those that should not be inherited (only valid
+        # locally). By default include these pre-defined Xigt attributes.
+        self._local_attrs = set([
+            'id', 'type', ALIGNMENT, CONTENT, SEGMENTATION
+        ])
+
+    def __getattr__(self, key):
+        if key in self.__dict__:
+            return self.__dict__[key]
+        elif key in self.attributes:
+            return self.attributes[key]
+        elif key not in self._local_attrs and _has_parent(self):
+            return getattr(self._parent, key)
+        else:
+            raise XigtAttributeError('No attribute {}.'.format(key))
 
     def get_attribute(self, key, default=None, inherit=True):
-        if key in self.attributes:
-            return self.attributes[key]
-        elif inherit and hasattr(self, '_parent') and self._parent is not None:
-            return self._parent.get_attribute(key, inherit=inherit)
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            logging.debug('No attribute {}.'.format(key))
+            return default
+
+    def get_meta(self, key, conditions=None, default=None, inherit=True):
+        if conditions is None:
+            conditions = []
+        metas = []
+        for metadata in self.metadata:
+            if metadata.type != 'xigt-meta':
+                continue
+            for meta in metadata.content:
+                if meta.type == key and all(c(meta) for c in conditions):
+                    metas.append(meta)
+        if metas:
+            return metas
+        elif inherit and _has_parent(self):
+            return self._parent.get_meta(key, conditions, default, inherit)
         else:
             return default
 
-    def get_meta(self, key, inherit=True):
-        pass # what to do here?
 
-class XigtCorpus(XigtMixin,XigtInheritanceMixin):
+class XigtCorpus(XigtMixin, XigtInheritanceMixin):
     """
     A container of Igt objects, as well as corpus-level attributes and
     metadata. In serialization formats (e.g. XigtXML), XigtCorpus
     becomes the root element.
+
+    Args:
+        id: corpus identifier
+        attributes: corpus-level attributes
+        metadata: corpus-level |Metadata|
+        igts: iterator of |Igt|
+        mode: how to instantiate the corpus (default: `full`).
+            Possible values include:
+
+            =========== ================================================
+               Value        Description
+            =========== ================================================
+            full        Preload all |Igt| and store them in memory
+                        during initialization
+            incremental Load each |Igt| as needed, and keep them in
+                        memory
+            transient   Load each |Igt| as needed, but don't keep them
+                        in memory; useful for piped input processing
+            =========== ================================================
     """
-    def __init__(self, id=None, attributes=None, metadata=None, igts=None):
+    def __init__(self, id=None, attributes=None, metadata=None, igts=None,
+                 mode='full'):
         XigtMixin.__init__(self)
         self.id = id
-        self.attributes = attributes or OrderedDict()
-        self.metadata = metadata
-        self.add_list(igts)
+        self.attributes = OrderedDict(attributes or [])
+        self.metadata = list(metadata or [])
+        self.mode = mode
+        if mode == 'full':
+            self.add_list(igts)
+        else:
+            self._generator = igts
+            # we need a custom iterator so `for igt in xigtcorpus` works
+            self.__iter__ = self._generator_iterator
+
+    def _generator_iterator(self):
+        try:
+            igt = next(self._generator)
+            if self.mode == 'incremental':
+                self.add(igt)
+            yield igt
+        except StopIteration:
+            # reset the iterator to the default so built-up corpora
+            # (with mode='incremental') can be iterated over again
+            self.__iter__ = XigtMixin.__iter__
+            raise
 
     @property
     def igts(self):
@@ -85,7 +193,8 @@ class XigtCorpus(XigtMixin,XigtInheritanceMixin):
     def igts(self, value):
         self._list = value
 
-class Igt(XigtMixin,XigtInheritanceMixin):
+
+class Igt(XigtMixin, XigtInheritanceMixin):
     """
     An IGT (Interlinear Glossed Text) instance.
     """
@@ -94,8 +203,8 @@ class Igt(XigtMixin,XigtInheritanceMixin):
         XigtMixin.__init__(self)
         self.id = id
         self.type = type
-        self.attributes = attributes or OrderedDict()
-        self.metadata = metadata
+        self.attributes = OrderedDict(attributes or [])
+        self.metadata = list(metadata or [])
         self.add_list(tiers)
         self._parent = corpus
 
@@ -111,7 +220,42 @@ class Igt(XigtMixin,XigtInheritanceMixin):
     def tiers(self, value):
         self._list = value
 
-class Tier(XigtMixin,XigtInheritanceMixin):
+    def auto_align_tiers(self,
+                         tier_ids=None,
+                         delimiters=default_item_delimiters):
+        """
+        Attempt to align the contents of contained tiers automatically.
+
+        If a tier B aligns to tier A and A splits into the same number
+        of tokens as items in B, align the items one-to-one.
+
+        Args:
+            tier_ids: a list of tier identifiers of the tiers to align
+            delimiters: an ordered list of lists of item delimiters to
+                be applied in successive order to find items. The first
+                list represents levels of nesting, while the inner lists
+                represent equivalence classes of delimiters for a
+                nesting level.
+        """
+        delims = [map(re.compile, r'|'.join(eq_class))
+                  for eq_class in delimiters]
+        if tier_ids is None:
+            tier_ids = [t.id for t in self.tiers]
+        for tier_id in tier_ids:
+            try:
+                tier = self.get(tier_id)
+                tgt_tier = tier.get_aligned_tier('alignment')
+                # do something here
+            except XigtError as ex:
+                logging.debug('Could not align Tier {}.\n'
+                              '  Reason: {}'.format(tier_id, str(ex)))
+                continue
+
+    def _auto_align_items(self, tier):
+        pass
+
+
+class Tier(XigtMixin, XigtInheritanceMixin):
     """
     A tier of IGT data. A tier should contain homogenous Items of
     data, such as all words or all glosses.
@@ -121,15 +265,14 @@ class Tier(XigtMixin,XigtInheritanceMixin):
         XigtMixin.__init__(self)
         self.id = id
         self.type = type
-        self.attributes = attributes or OrderedDict()
-        self.metadata = metadata
+        self.attributes = OrderedDict(attributes or [])
+        self.metadata = list(metadata or [])
         self.add_list(items)
         self._parent = igt
 
     def __repr__(self):
-        return 'Tier({},{},{},[{}])'.format(
-            str(self.type), str(self.id), str(self.attributes),
-            ','.join(self.items)
+        return 'Tier({}, {}, {}, {} items)'.format(
+            str(self.type), str(self.id), str(self.attributes), len(self.items)
         )
 
     @property
@@ -151,6 +294,17 @@ class Tier(XigtMixin,XigtInheritanceMixin):
     def items(self, value):
         self._list = value
 
+    def get_aligned_tier(self, algnattr):
+        tgt_tier_id = self.get_attribute(algnattr)
+        if tgt_tier_id is None:
+            raise XigtAttributeError(
+                'Tier {} does not specify an alignment "{}".'
+                .format(tgt_tier_id, algnattr)
+            )
+        tgt_tier = self.igt.get(tgt_tier_id)
+        return tgt_tier
+
+
 class Item(XigtInheritanceMixin):
     """
     A single datum on a Tier. Often these are tokens, such as words
@@ -161,16 +315,20 @@ class Item(XigtInheritanceMixin):
                  content=None, tier=None):
         self.id = id
         self.type = type
-        self.attributes = attributes or OrderedDict()
-        self._content = content
+        self.attributes = OrderedDict(attributes or [])
+        self.content = content
         self._parent = tier # mainly used for alignment expressions
 
     def __repr__(self):
-        return 'Item({},{},{},{})'.format(
-            *map(str, [self.type, self.id, str(self.attributes), self.content]))
+        return 'Item({}, {}, {}, "{}")'.format(
+            *map(
+                str,
+                [self.type, self.id, self.attributes, self.get_content()]
+            )
+        )
 
     def __str__(self):
-        return str(self.content)
+        return str(self.get_content())
 
     @property
     def tier(self):
@@ -190,20 +348,16 @@ class Item(XigtInheritanceMixin):
         except AttributeError:
             return None
 
-    @property
-    def content(self):
-        if self._content is not None:
-            return self._content
-        elif CONTENT in self.attributes:
-            return self.resolve_ref(CONTENT)
-        elif SEGMENTATION in self.attributes:
-            return self.resolve_ref(SEGMENTATION)
-        else:
-            return None
-
-    @content.setter
-    def content(self, value):
-        self._content = value
+    def get_content(self, resolve=True):
+        if self.content is not None:
+            return self.content
+        elif resolve:
+            if CONTENT in self.attributes:
+                return self.resolve_ref(CONTENT)
+            elif SEGMENTATION in self.attributes:
+                return self.resolve_ref(SEGMENTATION)
+        # all other cases
+        return None
 
     def resolve_ref(self, refattr):
         try:
@@ -212,12 +366,14 @@ class Item(XigtInheritanceMixin):
             reftier = self.igt[reftier_id]
             return resolve_alignment_expression(algnexpr, reftier)
         except KeyError:
-            return None #TODO: log this
+            return None  # TODO: log this
 
     def span(self, start, end):
-        if self.content is None:
+        c = self.get_content()
+        if c is None:
             return None
-        return self.content[start:end]
+        return c[start:end]
+
 
 class Metadata(object):
     """
@@ -226,23 +382,27 @@ class Metadata(object):
     """
     def __init__(self, type=None, attributes=None, content=None):
         self.type = type
-        self.attributes = attributes or OrderedDict()
+        self.attributes = OrderedDict(attributes or [])
         self.content = content
 
     def __repr__(self):
         return 'Metadata({},"{}")'.format(str(self.type), self.content)
 
+
 class Meta(object):
     def __init__(self, type, attributes=None, content=None):
         self.type = type
-        self.attributes = attributes or OrderedDict()
+        self.attributes = OrderedDict(attributes or [])
         self.content = content
 
     def __repr__(self):
-        return 'Meta({},{},"{}")'.format(
-            str(self.type),
-            ','.join('='.join(k,v) for k,v in self.attributes.items()),
-            str(self.content))
+        parts = [str(self.type)]
+        parts.extend('{}="{}"'.format(k, v)
+                     for k, v in self.attributes.items())
+        if self.content is not None:
+            parts.extend('"{}"'.format(self.content))
+        return 'Meta({})'.format(', '.join(parts))
+
 
 ### Alignment Expressions ####################################################
 
@@ -253,6 +413,7 @@ selection_re = re.compile(r'(-?\d+:-?\d+|\+|,)')
 delim1 = ''
 delim2 = ' '
 
+
 def resolve_alignment_expression(expression, tier, plus=delim1, comma=delim2):
     alignments = algnexpr_re.findall(expression)
     parts = [plus if match == '+' else
@@ -261,10 +422,11 @@ def resolve_alignment_expression(expression, tier, plus=delim1, comma=delim2):
              for match, item_id, selection in alignments]
     return ''.join(parts)
 
+
 def resolve_alignment(tier, item_id, selection, plus=delim1, comma=delim2):
     item = tier.get(item_id)
     if selection == '':
-        return item.content
+        return item.get_content()
     spans = selection_re.findall(selection)
     parts = [plus if match == '+' else
              comma if match == ',' else

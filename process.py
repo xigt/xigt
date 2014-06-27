@@ -54,4 +54,4 @@ def merge_tiers(infile1, infile2, outfile, overwrite_tiers=False):
 if __name__ == '__main__':
     args = parser.parse_args()
     if args.cmd == 's':
-        separate_tiers(args.input, args.tiers, args.output, args.remainder)
+        separate_tiers(args.infile, args.tiers, args.outfile, args.remainder)

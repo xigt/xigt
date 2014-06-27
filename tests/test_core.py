@@ -55,7 +55,7 @@ class TestTier(unittest.TestCase):
         self.assertEqual(t.id, None)
         self.assertEqual(t.igt, None)
         self.assertEqual(t.corpus, None)
-        self.assertEqual(t.metadata, None)
+        self.assertEqual(len(t.metadata), 0)
         self.assertEqual(t.attributes, dict())
         self.assertEqual(len(t.items), 0)
         # empty properties
@@ -64,14 +64,14 @@ class TestTier(unittest.TestCase):
     def test_basic(self):
         t = Tier(id='t', type='basic',
                  attributes={'attr':'val'},
-                 metadata=Metadata(type='meta', content='metacontent'),
+                 metadata=[Metadata(type='meta', content='metacontent')],
                  items=[Item(), Item()])
         self.assertEqual(t.type, 'basic')
         self.assertEqual(t.id, 't')
         self.assertEqual(t.igt, None)
         self.assertEqual(t.corpus, None)
-        self.assertEqual(t.metadata.type, 'meta')
-        self.assertEqual(t.metadata.content, 'metacontent')
+        self.assertEqual(t.metadata[0].type, 'meta')
+        self.assertEqual(t.metadata[0].content, 'metacontent')
         self.assertEqual(t.attributes, {'attr':'val'})
         self.assertEqual(len(t.items), 2)
         # contained Items should now have their tier specified
@@ -90,18 +90,18 @@ class TestIgt(unittest.TestCase):
         self.assertEqual(i.id, None)
         self.assertEqual(i.attributes, dict())
         self.assertEqual(i.corpus, None)
-        self.assertEqual(i.metadata, None)
+        self.assertEqual(len(i.metadata), 0)
         self.assertEqual(len(i.tiers), 0)
 
     def test_basic(self):
         i = Igt(id='i1', type='basic', attributes={'attr':'val'},
-                metadata=Metadata(type='meta', content='metacontent'),
+                metadata=[Metadata(type='meta', content='metacontent')],
                 tiers=[Tier(id='a'), Tier(id='b')])
         self.assertEqual(i.id, 'i1')
         self.assertEqual(i.attributes, {'attr':'val'})
         self.assertEqual(i.corpus, None)
-        self.assertEqual(i.metadata.type, 'meta')
-        self.assertEqual(i.metadata.content, 'metacontent')
+        self.assertEqual(i.metadata[0].type, 'meta')
+        self.assertEqual(i.metadata[0].content, 'metacontent')
         self.assertEqual(len(i.tiers), 2)
         # contained Tiers should now have their igt specified
         for t in i.tiers:
@@ -118,17 +118,17 @@ class TestXigtCorpus(unittest.TestCase):
         c = XigtCorpus()
         self.assertEqual(c.id, None)
         self.assertEqual(c.attributes, dict())
-        self.assertEqual(c.metadata, None)
+        self.assertEqual(len(c.metadata), 0)
         self.assertEqual(len(c.igts), 0)
 
     def test_basic(self):
         c = XigtCorpus(id='xc1', attributes={'attr':'val'},
-                       metadata=Metadata(type='meta', content='metacontent'),
+                       metadata=[Metadata(type='meta', content='metacontent')],
                        igts=[Igt(id='i1'), Igt(id='i2')])
         self.assertEqual(c.id, 'xc1')
         self.assertEqual(c.attributes, {'attr':'val'})
-        self.assertEqual(c.metadata.type, 'meta')
-        self.assertEqual(c.metadata.content, 'metacontent')
+        self.assertEqual(c.metadata[0].type, 'meta')
+        self.assertEqual(c.metadata[0].content, 'metacontent')
         self.assertEqual(len(c.igts), 2)
         # contained Igts should now have their corpus specified
         for i in c.igts:
