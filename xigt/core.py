@@ -176,7 +176,8 @@ class XigtCorpus(XigtMixin, XigtInheritanceMixin):
 
     def __iter__(self):
         if self.mode == 'full':
-            return XigtMixin.__iter__(self)
+            for igt in XigtMixin.__iter__(self):
+                yield igt
         else:
             for igt in self._generator:
                 if self.mode == 'incremental':
