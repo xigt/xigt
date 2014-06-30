@@ -1,6 +1,7 @@
 
 from xigt import XigtCorpus, Igt, Tier, Item, Metadata, Meta
 from collections import OrderedDict
+from itertools import chain
 import logging
 import xml.etree.ElementTree as ET
 from xml.sax.saxutils import escape, quoteattr
@@ -23,7 +24,10 @@ def loads(s):
 def dump(fh, xc, encoding='utf-8', indent=2):
     # if encoding is 'unicode', dumps() will return a string, otherwise
     # a bytestring (which must be written to a buffer)
-    for s in encode(xc, encoding=encoding, indent=indent):
+    strings = encode(xc, encoding=encoding, indent=indent)
+    if indent:
+        strings = chain(strings, ['\n'])
+    for s in strings:
         try:
             fh.write(s)
         except TypeError:
