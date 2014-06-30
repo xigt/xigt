@@ -104,7 +104,7 @@ def default_decode_igt(elem):
         id=elem.get('id'),
         type=elem.get('type'),
         attributes=get_attributes(elem, ignore=('id', 'type')),
-        metadata=decode_metadata(elem.find('metadata')),
+        metadata=[decode_metadata(md) for md in elem.iter('metadata')],
         tiers=[decode_tier(tier) for tier in elem.iter('tier')]
     )
     elem.clear()
@@ -116,7 +116,7 @@ def default_decode_tier(elem):
         id=elem.get('id'),
         type=elem.get('type'),
         attributes=get_attributes(elem, ignore=('id','type')),
-        metadata=decode_metadata(elem.find('metadata')),
+        metadata=[decode_metadata(md) for md in elem.iter('metadata')],
         items=[decode_item(item) for item in elem.iter('item')]
     )
     elem.clear()

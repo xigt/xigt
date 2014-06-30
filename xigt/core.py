@@ -8,13 +8,11 @@ CONTENT = 'content'
 SEGMENTATION = 'segmentation'
 
 # for auto-alignment
-# this tuple is ordered, and inner tuples represent an equivalence
-# class. E.g. "one-two=three four~five-six" would be split as:
-# (('one', 'two', 'three'), ('four', 'five', 'six'))
-default_item_delimiters = (
-    (' ',),  # word-level tokens
-    ('-', '=', '~')  # morpheme-level-tokens
-)
+item_delimiters = {
+    'words': (' ',),
+    'morphemes': ('-', '=', '~'),
+    'glosses': ('-', '=', '~')
+}
 
 
 class XigtError(Exception):
@@ -83,6 +81,10 @@ class XigtMixin(object):
         for obj in self._list:
             self._create_id_mapping(obj)
 
+    def clear(self):
+        self._dict = OrderedDict()
+        self._list = []
+
 
 def _has_parent(obj):
     return hasattr(obj, '_parent') and obj._parent is not None
@@ -109,7 +111,7 @@ class XigtInheritanceMixin(object):
         else:
             raise XigtAttributeError('No attribute {}.'.format(key))
 
-    def get_attribute(self, key, default=None, inherit=True):
+    def get_attribute(self, key, default=None):
         try:
             return getattr(self, key)
         except AttributeError:
@@ -162,6 +164,7 @@ class XigtCorpus(XigtMixin, XigtInheritanceMixin):
     def __init__(self, id=None, attributes=None, metadata=None, igts=None,
                  mode='full'):
         XigtMixin.__init__(self)
+        XigtInheritanceMixin.__init__(self)
         self.id = id
         self.attributes = OrderedDict(attributes or [])
         self.metadata = list(metadata or [])
@@ -170,20 +173,16 @@ class XigtCorpus(XigtMixin, XigtInheritanceMixin):
             self.add_list(igts)
         else:
             self._generator = igts
-            # we need a custom iterator so `for igt in xigtcorpus` works
-            self.__iter__ = self._generator_iterator
 
-    def _generator_iterator(self):
-        try:
-            igt = next(self._generator)
-            if self.mode == 'incremental':
-                self.add(igt)
-            yield igt
-        except StopIteration:
-            # reset the iterator to the default so built-up corpora
-            # (with mode='incremental') can be iterated over again
-            self.__iter__ = XigtMixin.__iter__
-            raise
+    def __iter__(self):
+        if self.mode == 'full':
+            return XigtMixin.__iter__(self)
+        else:
+            for igt in self._generator:
+                if self.mode == 'incremental':
+                    self.add(igt)
+                yield igt
+            self.mode = 'full'
 
     @property
     def igts(self):
@@ -201,6 +200,7 @@ class Igt(XigtMixin, XigtInheritanceMixin):
     def __init__(self, id=None, type=None, attributes=None, metadata=None,
                  tiers=None, corpus=None):
         XigtMixin.__init__(self)
+        XigtInheritanceMixin.__init__(self)
         self.id = id
         self.type = type
         self.attributes = OrderedDict(attributes or [])
@@ -222,7 +222,7 @@ class Igt(XigtMixin, XigtInheritanceMixin):
 
     def auto_align_tiers(self,
                          tier_ids=None,
-                         delimiters=default_item_delimiters):
+                         delimiters=item_delimiters):
         """
         Attempt to align the contents of contained tiers automatically.
 
@@ -231,11 +231,7 @@ class Igt(XigtMixin, XigtInheritanceMixin):
 
         Args:
             tier_ids: a list of tier identifiers of the tiers to align
-            delimiters: an ordered list of lists of item delimiters to
-                be applied in successive order to find items. The first
-                list represents levels of nesting, while the inner lists
-                represent equivalence classes of delimiters for a
-                nesting level.
+            delimiters: 
         """
         delims = [map(re.compile, r'|'.join(eq_class))
                   for eq_class in delimiters]
@@ -263,6 +259,7 @@ class Tier(XigtMixin, XigtInheritanceMixin):
     def __init__(self, id=None, type=None, attributes=None,
                  metadata=None, items=None, igt=None):
         XigtMixin.__init__(self)
+        XigtInheritanceMixin.__init__(self)
         self.id = id
         self.type = type
         self.attributes = OrderedDict(attributes or [])
@@ -313,11 +310,12 @@ class Item(XigtInheritanceMixin):
     """
     def __init__(self, id=None, type=None, attributes=None,
                  content=None, tier=None):
+        XigtInheritanceMixin.__init__(self)
         self.id = id
         self.type = type
         self.attributes = OrderedDict(attributes or [])
         self.content = content
-        self._parent = tier # mainly used for alignment expressions
+        self._parent = tier  # mainly used for alignment expressions
 
     def __repr__(self):
         return 'Item({}, {}, {}, "{}")'.format(
@@ -433,3 +431,26 @@ def resolve_alignment(tier, item_id, selection, plus=delim1, comma=delim2):
              item.span(*map(int, match.split(':')))
              for match in spans]
     return ''.join(parts)
+
+
+# Auxiliary Functions ########################################################
+
+def segment_tier(tier, delimiters=None, keep_delimiters=True):
+    """
+    Attempt to automatically segment the items in a tier. The segmented
+    items are returned as a list, and the original tier is unchanged.
+
+    Args:
+        tier: A Tier object whose ietms will be used for segmentation.
+        delimiters: A list of strings to split on. If None, default
+            delimiters are used if they are defined for tier type in
+            the module-level dictionary `item_delimiters`.
+    Returns:
+        A list of Item objects.
+    """
+    if delimiters is None:
+        delimiters = item_delimiters.get(tier.type)
+
+    items = []
+    for item in tier:
+        item.get_content()
