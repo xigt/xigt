@@ -6,11 +6,11 @@ from xigt import XigtCorpus, Igt
 from xigt.codecs import xigtxml
 
 
-def summary(args):
+def print_stats(args):
     def new_stats():
         return {
             'languages': set(),
-            'iso-639-3': set(),
+            'iso-639-3': defaultdict(lambda: defaultdict(int)),
             'documents': 0,
             'igts': defaultdict(int),
             'tiers': defaultdict(int),
@@ -30,13 +30,13 @@ def summary(args):
                 # language is in a meta element
                 lgs = igt.get_meta('language', conditions=[lg_condition])
                 if lgs:
-                    lg_name = lgs[0].attributes.get('name', '').strip().lower()
-                    lg_iso = lgs[0].attributes.get('iso-639-3')
-                stats['languages'].add(lg_name)
-                cur_stats['languages'].add(lg_name)
-                stats['iso-639-3'].add(lg_iso)
-                cur_stats['iso-639-3'].add(lg_iso)
-                #
+                    lg_name = lgs[0].attributes.get('name', '???').strip()
+                    lg_iso = lgs[0].attributes.get('iso-639-3', '???').strip()
+                stats['languages'].add(lg_name.lower())
+                cur_stats['languages'].add(lg_name.lower())
+                stats['iso-639-3'][lg_iso][lg_name] += 1
+                cur_stats['iso-639-3'][lg_iso][lg_name] += 1
+                # count tiers and items by types, IGTs by tier types
                 all_tier_types = set()
                 for tier in igt:
                     stats['tiers'][tier.type] += 1
@@ -48,11 +48,16 @@ def summary(args):
                 stats['igts'][tuple(sorted(all_tier_types))] += 1
                 cur_stats['igts'][tuple(sorted(all_tier_types))] += 1
 
-        if args.summzarize_each:
-            print_summary(f, cur_stats)
-    print_summary('Overall ({} file{})'
-                  .format(num_files, 's' if num_files != 1 else ''),
-                  stats)
+        if args.summarize_each:
+            print_summary('{} summary:'.format(f), cur_stats)
+    if args.summarize:
+        print_summary('Overall summary ({} file{}):'
+                      .format(num_files, 's' if num_files != 1 else ''),
+                      stats)
+    if args.languages:
+        print_languages('Languages used overall ({} file{}):'
+                        .format(num_files, 's' if num_files != 1 else ''),
+                        stats['iso-639-3'])
 
 
 def print_summary(title, stats):
@@ -65,20 +70,34 @@ def print_summary(title, stats):
             list(st['tiers'].values()) +
             list(st['items'].values()))
     )
-    template = '{{:>{}}} {{}}'.format(maxlen + 1)
+    template = ' {{:>{}}} {{}}'.format(maxlen)
     print(template.format(st['documents'], 'source documents'))
     print(template.format(len(st['languages']), 'languages (by name)'))
     print(template.format(len(st['iso-639-3']),
                           'languages (by ISO-639-3 language code)'))
     for igt_type in st['igts']:
         print(template.format(st['igts'][igt_type],
-                              'IGTs with tiers {}'.format(str(igt_type))))
+                              'IGTs with tiers: {}'.format(
+                                  ', '.join(igt_type))))
     for tier_type in st['tiers']:
         print(template.format(st['tiers'][tier_type],
-                              'tiers of type {}'.format(str(tier_type))))
+                              'tiers of type: {}'.format(tier_type)))
     for item_type in st['items']:
         print(template.format(st['items'][item_type],
-                              'items of type {}'.format(str(item_type))))
+                              'items of type: {}'.format(
+                                  item_type or '(None)')))
+    print()  # just always put a blank line at the end
+
+
+def print_languages(title, lg_stats):
+    lgs = sorted(((code, name, count)
+                  for code in lg_stats
+                  for name, count in lg_stats[code].items()),
+                 key=lambda x: (-x[2], x[1]))
+    print(title)
+    for code, name, count in lgs:
+        print('  {}\t{}\t{}'.format(code, name, count))
+    print()
 
 
 if __name__ == '__main__':
@@ -89,12 +108,14 @@ if __name__ == '__main__':
         '-S', '--summarize', action='store_true',
         help='Produce a summary of all input files.')
     parser.add_argument(
-        '-s', '--summzarize-each', action='store_true',
+        '-s', '--summarize-each', action='store_true',
         help='Produce a summary for each input file.')
-    parser.add_argument('-l', '--languages', action='store_true')
-    parser.add_argument('-m' '--xigt-meta')
+    parser.add_argument(
+        '-l', '--languages', action='store_true',
+        help='List the languages used in the input files with their counts.')
+    #parser.add_argument('-m' '--xigt-meta')
     parser.add_argument('files', nargs='+')
     args = parser.parse_args()
 
-    if args.summarize:
-        summary(args)
+    if args.summarize or args.summarize_each or args.languages:
+        print_stats(args)
