@@ -12,7 +12,7 @@ from xml.sax.saxutils import escape, quoteattr
 
 
 def load(fh, mode='full'):
-    events = ET.iterparse(fh, events=('start', 'end'))
+    events = iter(ET.iterparse(fh, events=('start', 'end')))
     return decode(events, mode=mode)
 
 
@@ -56,15 +56,14 @@ def validate_event(event, elem, expected=None):
                         .format(given, expected))
 
 
-def generator_factory(tag, decode_method, events, root=None, break_on=None):
+def iter_elements(tag, events, root, break_on=None):
     if break_on is None:
         break_on = []
     event, elem = next(events)
     while (event, elem.tag) not in break_on:
         if event == 'end' and elem.tag == tag:
-            yield decode_method(elem)
-            if root is not None:
-                root.clear()  # save memory after we're done with an element
+            yield elem
+            root.clear()  # free memory after we're done with an element
         event, elem = next(events)
 
 
@@ -74,9 +73,13 @@ def default_decode(events, mode='full'):
     root = elem  # store root for later instantiation
     while (event, elem.tag) not in [('start', 'igt'), ('end', 'xigt-corpus')]:
         event, elem = next(events)
+    igts = None
     if event == 'start' and elem.tag == 'igt':
-        igts = generator_factory('igt', decode_igt, events,
-                                 root=root, break_on=[('end', 'xigt-corpus')])
+        igts = filter(bool, map(
+            decode_igt,
+            iter_elements('igt', events, root,
+                          break_on=[('end', 'xigt-corpus')])
+        ))
     xc = decode_xigtcorpus(root, igts=igts, mode=mode)
     return xc
 
@@ -93,8 +96,8 @@ def default_decode_xigtcorpus(elem, igts=None, mode='full'):
     return XigtCorpus(
         id=elem.get('id'),
         attributes=get_attributes(elem, ignore=('id',)),
-        metadata=[decode_metadata(md) for md in elem.iter('metadata')],
-        igts=igts or [decode_igt(igt) for igt in elem.iter('igt')],
+        metadata=[decode_metadata(md) for md in elem.findall('metadata')],
+        igts=igts or [decode_igt(igt) for igt in elem.findall('igt')],
         mode=mode
     )
 
@@ -104,8 +107,8 @@ def default_decode_igt(elem):
         id=elem.get('id'),
         type=elem.get('type'),
         attributes=get_attributes(elem, ignore=('id', 'type')),
-        metadata=[decode_metadata(md) for md in elem.iter('metadata')],
-        tiers=[decode_tier(tier) for tier in elem.iter('tier')]
+        metadata=[decode_metadata(md) for md in elem.findall('metadata')],
+        tiers=[decode_tier(tier) for tier in elem.findall('tier')]
     )
     elem.clear()
     return igt
@@ -116,8 +119,8 @@ def default_decode_tier(elem):
         id=elem.get('id'),
         type=elem.get('type'),
         attributes=get_attributes(elem, ignore=('id','type')),
-        metadata=[decode_metadata(md) for md in elem.iter('metadata')],
-        items=[decode_item(item) for item in elem.iter('item')]
+        metadata=[decode_metadata(md) for md in elem.findall('metadata')],
+        items=[decode_item(item) for item in elem.findall('item')]
     )
     elem.clear()
     return tier
@@ -150,40 +153,44 @@ def default_decode_metadata(elem):
         metadata = Metadata(
             type=elem.get('type'),
             attributes=get_attributes(elem, ignore=('type',)),
-            content=[decode_meta(meta) for meta in elem.iter('meta')]
+            content=[decode_meta(meta) for meta in elem.findall('meta')]
         )
     else:
         raise TypeError('Invalid subtype of Metadata: {}'
                         .format(elem.get('type')))
+    elem.clear()
     return metadata
 
 
 def default_decode_meta(elem):
+    meta = None
     metatype = elem.get('type').lower()
     metaattrs = get_attributes(elem, ignore=('type',))
     # language is easy---just attributes
     if metatype == 'language':
-        return Meta(type=metatype,
+        meta = Meta(type=metatype,
                     attributes=metaattrs)
     # and the following have basic content
     elif metatype in ('date', 'author', 'comment'):
-        return Meta(type=metatype,
+        meta = Meta(type=metatype,
                     attributes=metaattrs,
                     content=elem.text)
     # source has two alternatives
     elif metatype == 'source' and elem.get('id') is not None:
-        return Meta(type=metatype,
+        meta = Meta(type=metatype,
                     attributes=metaattrs,
                     content=elem.text)
     elif metatype == 'source' and elem.get('ref') is not None:
-        return Meta(type=metatype,
+        meta = Meta(type=metatype,
                     attributes=metaattrs)
     else:
-        return Meta(type=metatype,
+        meta = Meta(type=metatype,
                     attributes=metaattrs,
                     content=elem.text or None)
         # raise ValueError('Invalid subtype of Meta: {}'
         #                  .format(metatype))
+    elem.clear()
+    return meta
 
 
 ##############################################################################
@@ -219,7 +226,7 @@ def default_encode_xigtcorpus(xc, indent=2):
         yield encode_metadata(metadata, indent=indent, level=1)
         if indent:
             yield '\n'
-    for igt in xc.igts:
+    for igt in xc:
         yield encode_igt(igt, indent=indent)
         if indent:
             yield '\n'
