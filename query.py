@@ -50,6 +50,9 @@ def print_stats(args):
 
         if args.summarize_each:
             print_summary('{} summary:'.format(f), cur_stats)
+        if args.languages_each:
+            print_languages('Languages used in {}:'.format(f),
+                            cur_stats['iso-639-3'])
     if args.summarize:
         print_summary('Overall summary ({} file{}):'
                       .format(num_files, 's' if num_files != 1 else ''),
@@ -111,11 +114,15 @@ if __name__ == '__main__':
         '-s', '--summarize-each', action='store_true',
         help='Produce a summary for each input file.')
     parser.add_argument(
-        '-l', '--languages', action='store_true',
+        '-L', '--languages', action='store_true',
         help='List the languages used in the input files with their counts.')
+    parser.add_argument(
+        '-l', '--languages-each', action='store_true',
+        help='List the languages used in each input file with their counts.')
     #parser.add_argument('-m' '--xigt-meta')
     parser.add_argument('files', nargs='+')
     args = parser.parse_args()
 
-    if args.summarize or args.summarize_each or args.languages:
+    if args.summarize or args.summarize_each or \
+       args.languages or args.languages_each:
         print_stats(args)
