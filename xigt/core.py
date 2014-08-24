@@ -442,7 +442,7 @@ def segment_tier(tier, delimiters=None, keep_delimiters=True):
     items are returned as a list, and the original tier is unchanged.
 
     Args:
-        tier: A Tier object whose ietms will be used for segmentation.
+        tier: A Tier object whose items will be used for segmentation.
         delimiters: A list of strings to split on. If None, default
             delimiters are used if they are defined for tier type in
             the module-level dictionary `item_delimiters`.
