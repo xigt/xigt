@@ -451,7 +451,7 @@ delim2 = ' '
 
 
 def get_alignment_expression_ids(expression):
-    alignments = algnexpr_re.findall(expression)
+    alignments = algnexpr_re.findall(expression or '')
     return [item_id for _, item_id, _ in alignments if item_id]
 
 
