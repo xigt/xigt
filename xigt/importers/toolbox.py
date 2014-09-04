@@ -11,7 +11,7 @@ try:
 except ImportError:
     import sys
     print('Could not import Toolbox module. Get it from here:\n'
-          '  https://github.com/goodmami/toolbox',
+          '  https://github.com/goodmami/toolbox\n',
           file=sys.stderr)
 
 
@@ -93,34 +93,17 @@ def make_tier(tier_type, tier_id, aligned_tokens, algn_tier):
         algn_data = zip_longest(algn_tier.items, aligned_tokens)
         for tgt_item, src_data in algn_data:
             tgt_tok, src_toks = src_data
-            assert tgt_tok == tgt_item.content  # FIXME is this necessary?
+            assert tgt_tok == tgt_item.text  # FIXME is this necessary?
             for s in src_toks:
                 items.append(
                     Item(id='{}{}'.format(tier_id, i),
-                         content=s,
+                         text=s,
                          attributes={'alignment':tgt_item.id})
                 )
                 i += 1
     else:
         for tgt, src in aligned_tokens:
             for s in src:
-                items.append(Item(id='{}{}'.format(tier_id, i), content=s))
+                items.append(Item(id='{}{}'.format(tier_id, i), text=s))
                 i += 1
     return Tier(id=tier_id, type=tier_type, items=items, attributes=attrs)
-
-if __name__ == '__main__':
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-v', '--verbose',
-        action='count', dest='verbosity', default=2,
-        help='Increase the verbosity (can be repeated: -vvv).')
-    parser.add_argument('-i', '--input', metavar='PATH',
-        help='The input Toolbox corpus.')
-    parser.add_argument('-o', '--output', metavar='PATH',
-        help='The output Xigt corpus.')
-
-    args = parser.parse_args()
-    logging.basicConfig(level=50-(args.verbosity*10))
-
-    with open(args.input, 'r') as in_fh, open(args.output, 'w') as out_fh:
-        xigt_import(in_fh, out_fh)
