@@ -1,7 +1,7 @@
 
 import re
 import logging
-from itertools import groupby, takewhile, chain
+from itertools import groupby, chain, zip_longest
 from collections import deque
 from xigt.core import get_alignment_expression_ids
 
@@ -39,14 +39,14 @@ footer = '''
 # m1=w1 m2    m3=w3 m4=w3 m5=w4 m6=w5 m7
 # g1=m1 g2=m2 g3=m3 g4=m4 g5=m5:m6    g6=m7 g7=m7
 
-def xigt_export(xc, out_fh, strmap=None):
+def xigt_export(xc, out_fh, config=None):
     print(header, file=out_fh)
-    for s in export_corpus(xc, strmap=strmap):
+    for s in export_corpus(xc, config=config):
         print(s, file=out_fh)
         print('', file=out_fh)  # separate with a blank line
     print(footer, file=out_fh)
 
-def escape(s, strmap):
+def escape(s):
     # consider a re sub with a function. e.g.
     # _character_unescapes = {'\\s': _field_delimiter, '\\n': '\n', '\\\\': '\\'}
     # _unescape_func = lambda m: _character_unescapes[m.group(0)]
@@ -54,23 +54,30 @@ def escape(s, strmap):
     # _unescape_re.sub(_unescape_func, string, re.UNICODE)
     for c, r in LATEX_CHARMAP:
         s = s.replace(c, r)
-    for c in strmap:
-        pat = strmap[c]
-        if isinstance(pat, str):
-            s = re.sub(c, strmap[c], s)
-        elif len(pat) == 2:
-            f = eval('lambda {}: {}'.format(*pat))
-            s = re.sub(c, f, s)
     return s
 
-def export_corpus(xc, strmap=None):
+def sub(s, tier_type, subs):
+    for tier_regex, patterns in subs:
+        if not re.match(tier_regex, tier_type):
+            continue
+        for regex, sub_pattern in patterns:
+            if isinstance(sub_pattern, str):
+                s = re.sub(regex, sub_pattern, s)
+            elif len(sub_pattern) == 2:
+                f = eval('lambda {}: {}'.format(*sub_pattern))
+                s = re.sub(regex, f, s)
+    return s
+
+def export_corpus(xc, config=None):
     for igt in xc:
         logging.debug('Exporting {}'.format(str(igt.id)))
-        x = export_igt(igt, strmap=strmap)
+        x = export_igt(igt, config=config)
         yield x
 
-def export_igt(igt, strmap=None):
-    strmap = strmap or {}
+def export_igt(igt, config=None):
+    config = config or {}
+    item_subs = config.get('item_substitutions', [])
+    tier_subs = config.get('tier_substitutions', [])
     tiers = []
     for tier in igt.tiers:
         typ = tier.type
@@ -88,21 +95,26 @@ def export_igt(igt, strmap=None):
     depth = len(all_groups[0])
     for i in range(depth):
         toks = []
+        tier_type = tiers[i].type
         for col in all_groups:
             items = col[i]
             if len(items) == 1:
-                toks.append(escape(items[0].get_content(), strmap))
+                toks.append(
+                    sub(escape(items[0].get_content()), tier_type, item_subs)
+                )
             else:
                 toks.append('{{{}}}'.format(
-                    ' '.join(escape(item.get_content(), strmap)
-                             for item in items)
+                    ' '.join(
+                        sub(escape(item.get_content()), tier_type, item_subs)
+                        for item in items
+                    )
                 ))
-        lines.append(' '.join(toks) + '\\\\')
+        lines.append(sub(' '.join(toks) + '\\\\', tier_type, tier_subs))
     # add translation
     for tier in igt.tiers:
         if tier.type == 'translations':
             lines.append('\\trans {}'.format(
-                escape(tier[0].get_content(), strmap)
+                sub(escape(tier[0].get_content()), tier.type, tier_subs)
             ))
     lines.append('\\end{exe}')
     return '\n'.join(lines)
@@ -124,15 +136,14 @@ def group_alignments(tiers):
 
 def align_tier(trellis, tier):
     depth = len(trellis[0])
-    # get list of (aligned ids, item)
-    agenda = get_agenda(tier)
+    agenda = get_agenda(tier) # list of (aligned ids, item)
     delay = deque()  # when we need to postpone an agendum
     idx = -1  # current trellis position
-    # unfortunately need to regenerate this when size changes
-    idxmap = build_idxmap(trellis, depth - 1)
+    idxmap = build_idxmap(trellis, depth - 1) # regen when trellis size changes
     for agendum in agenda:
         ids, items = agendum
         logging.debug('Agendum: {} -> {}'.format([i.id for i in items], ids))
+        debug_display_trellis(trellis)
         # no alignment
         if not ids:
             logging.debug('Delay')
@@ -147,7 +158,7 @@ def align_tier(trellis, tier):
         while idx < start:
             idx += 1
             trellis[idx].append([])
-            logging.debug('Added row at {}'.format(idx))
+            logging.debug('Added row at idx {}'.format(idx))
         # now fill in from delayed agenda
         if delay:
             trellis, num = add_delayed(trellis, delay, start, depth)
@@ -161,9 +172,12 @@ def align_tier(trellis, tier):
             # end + 1 so the slice gets the last column
             trellis = merge_columns(trellis, start, end + 1)
             idxmap = build_idxmap(trellis, depth - 1)
+            debug_display_trellis(trellis)
+        trellis[idx]
+        trellis[idx][depth]
         trellis[idx][depth].extend(items)
-        logging.debug('Added items at {} depth {}: {}'
-                      .format(idx, depth - 1, items))
+        logging.debug('Added items at idx {} depth {}: {}'
+                      .format(idx, depth, items))
     # when agendum is done, just append any remaining delayed items
     trellis, _ = add_delayed(trellis, delay, len(trellis), depth)
     logging.debug('Agenda done.')
@@ -197,10 +211,26 @@ def add_delayed(trellis, delay, pos, depth):
     return trellis, num
 
 def merge_columns(trellis, start, end):
+    logging.debug('Merging columns {}:{}'.format(start, end-1))
     return (
         trellis[:start] +
         # too bad we need that ugly map(list...) in there :(
-        [list(map(list, map(chain.from_iterable,
-                            zip(*trellis[start:end]))))] +
+        [list(map(list,
+                  map(chain.from_iterable,
+                      zip_longest(*trellis[start:end], fillvalue=[]))))
+        ] +
         trellis[end:]
+    )
+
+def debug_display_trellis(trellis):
+    strs = []
+    for col in trellis:
+        toks = [' '.join(i.id for i in row) if row else '[]' for row in col]
+        maxlen = max(len(t) for t in toks)
+        toks = [t.ljust(maxlen) for t in toks]
+        strs.append(toks)
+    logging.debug(
+        'Trellis:\n' +
+        '\n'.join(' | '.join(toks)
+                  for toks in zip_longest(*strs, fillvalue='--'))
     )
