@@ -63,6 +63,17 @@ class XigtMixin(object):
             logging.debug('Object not found at position {}.'.format(obj_id))
         return default
 
+    def select(self, id=None, type=None,
+               alignment=None, content=None, segmentation=None):
+        match = lambda x: (
+            (id is None or x.id == id) and
+            (type is None or x.type == type) and
+            (alignment is None or x.alignment == alignment) and
+            (content is None or x.content == content) and
+            (segmentation is None or x.segmentation == segmentation)
+        )
+        return filter(match, self)
+
     def add(self, obj):
         obj._parent = self
         self._create_id_mapping(obj)
@@ -144,7 +155,7 @@ class XigtAttributeMixin(object):
     @segmentation.setter
     def segmentation(self, value):
         self.attributes[SEGMENTATION] = value
-    
+
 
 class XigtMetadataMixin(object):
     """
@@ -264,7 +275,7 @@ class Igt(XigtMixin, XigtAttributeMixin, XigtMetadataMixin):
 
         Args:
             tier_ids: a list of tier identifiers of the tiers to align
-            delimiters: 
+            delimiters:
         """
         delims = [map(re.compile, r'|'.join(eq_class))
                   for eq_class in delimiters]
