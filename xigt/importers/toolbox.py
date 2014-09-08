@@ -20,7 +20,7 @@ class XigtImportError(Exception):
 
 
 def xigt_import(in_fh, out_fh):
-    tb = toolbox.open_toolbox_file(in_fh)
+    tb = toolbox.read_toolbox_file(in_fh)
     igts = toolbox_igts(tb)  # TODO: include options, like mkrPriKey
     xc = XigtCorpus(igts=igts, mode='transient')
     xigtxml.dump(out_fh, xc)
