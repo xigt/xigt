@@ -4,6 +4,7 @@ import logging
 from itertools import groupby, chain, zip_longest
 from collections import deque
 from xigt.core import get_alignment_expression_ids
+from xigt.exporters.util import sub
 
 DEFAULT_TIER_TYPES = ('words', 'morphemes', 'glosses')
 # order matters here
@@ -30,21 +31,22 @@ footer = '''
 \\end{document}
 '''
 
-# \gll
-# one {} two three {four five}\\
-# {}  X  {two-a two-b} three four.five \\
-# \glt ``blah''
+def xigt_export(xc, outpath, config=None):
+    config = prepare_config(config)
+    with open(outpath, 'w') as out_fh:
+        print(header, file=out_fh)
+        for s in export_corpus(xc, config):
+            print(s, file=out_fh)
+            print('', file=out_fh)  # separate with a blank line
+        print(footer, file=out_fh)
 
-# w1    w2    w3          w4    w5
-# m1=w1 m2    m3=w3 m4=w3 m5=w4 m6=w5 m7
-# g1=m1 g2=m2 g3=m3 g4=m4 g5=m5:m6    g6=m7 g7=m7
-
-def xigt_export(xc, out_fh, config=None):
-    print(header, file=out_fh)
-    for s in export_corpus(xc, config=config):
-        print(s, file=out_fh)
-        print('', file=out_fh)  # separate with a blank line
-    print(footer, file=out_fh)
+def prepare_config(config):
+    if config is None:
+        config = {}
+    config.setdefault('tier_types', DEFAULT_TIER_TYPES)
+    config.setdefault('item_substitutions', [])
+    config.setdefault('tier_substitutions', [])
+    return config
 
 def escape(s):
     # consider a re sub with a function. e.g.
@@ -56,32 +58,20 @@ def escape(s):
         s = s.replace(c, r)
     return s
 
-def sub(s, tier_type, subs):
-    for tier_regex, patterns in subs:
-        if not re.match(tier_regex, tier_type):
-            continue
-        for regex, sub_pattern in patterns:
-            if isinstance(sub_pattern, str):
-                s = re.sub(regex, sub_pattern, s)
-            elif len(sub_pattern) == 2:
-                f = eval('lambda {}: {}'.format(*sub_pattern))
-                s = re.sub(regex, f, s)
-    return s
-
-def export_corpus(xc, config=None):
+def export_corpus(xc, config):
     for igt in xc:
         logging.debug('Exporting {}'.format(str(igt.id)))
-        x = export_igt(igt, config=config)
+        x = export_igt(igt, config)
         yield x
 
-def export_igt(igt, config=None):
-    config = config or {}
-    item_subs = config.get('item_substitutions', [])
-    tier_subs = config.get('tier_substitutions', [])
+def export_igt(igt, config):
+    tier_types = config['tier_types']
+    item_subs = config['item_substitutions']
+    tier_subs = config['tier_substitutions']
     tiers = []
     for tier in igt.tiers:
         typ = tier.type
-        if typ is not None and typ.lower() in DEFAULT_TIER_TYPES:
+        if typ is not None and typ.lower() in tier_types:
             tiers.append(tier)
     if len(tiers) < 2:
         return '%\n% cannot export IGT {}\n%'.format(igt.id)
