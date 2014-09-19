@@ -1,7 +1,12 @@
 
+from __future__ import print_function
 import re
 import logging
-from itertools import groupby, chain, zip_longest
+from itertools import groupby, chain
+try:
+    from itertools import zip_longest
+except ImportError:
+    from itertools import izip_longest as zip_longest
 from collections import deque
 from xigt.core import get_alignment_expression_ids
 from xigt.exporters.util import sub

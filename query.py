@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from __future__ import print_function
 import argparse
 from collections import defaultdict
 from xigt import XigtCorpus, Igt
@@ -32,6 +33,9 @@ def print_stats(args):
                 if lgs:
                     lg_name = lgs[0].attributes.get('name', '???').strip()
                     lg_iso = lgs[0].attributes.get('iso-639-3', '???').strip()
+                else:
+                    lg_name = ''
+                    lg_iso = ''
                 stats['languages'].add(lg_name.lower())
                 cur_stats['languages'].add(lg_name.lower())
                 stats['iso-639-3'][lg_iso][lg_name] += 1
