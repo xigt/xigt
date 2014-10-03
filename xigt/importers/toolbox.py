@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 from collections import OrderedDict
-from itertools import zip_longest
 import logging
+from itertools import zip_longest
+
 from xigt import (XigtCorpus, Igt, Tier, Item, Metadata, Meta)
 from xigt.codecs import xigtxml
 
@@ -29,7 +30,7 @@ def xigt_import(in_fh, out_fh):
 def toolbox_igts(tb):
     cps_id = None
     ref = None
-    for event, result in toolbox.item_iter(tb, keys=set(['\\id', '\\ref'])):
+    for event, result in toolbox.record_iter(tb, keys=set(['\\id', '\\ref'])):
         if event == 'key':
             mkr, val = result
             if mkr == '\\ref':
@@ -37,13 +38,15 @@ def toolbox_igts(tb):
             elif mkr == '\\id':
                 cps_id = val
                 ref = None
-        elif event == 'item':
+        elif event == 'record':
             if ref is None:
-                # don't yet know what to do with header info
+                # probably header info for a text (after \\id, before \\ref)
                 continue
             igt = make_igt(cps_id, ref, result)
             if igt is not None:
                 yield igt
+        elif event == 'header':
+            pass  # don't know what to do yet
 
 
 def make_igt(cps_id, ref, data,
@@ -68,9 +71,10 @@ def make_igt(cps_id, ref, data,
 
 def make_all_tiers(item_data, tier_types, alignments):
     aligned_tiers = set(alignments.keys()).union(alignments.values())
-    tier_data = toolbox.normalize_item(item_data, aligned_tiers)
+    # use strip=False because we want same-length strings
+    tier_data = toolbox.normalize_record(item_data, aligned_tiers, strip=False)
     prev = {}
-    for mkr, aligned_tokens in toolbox.align_tiers(tier_data, alignments):
+    for mkr, aligned_tokens in toolbox.align_fields(tier_data, alignments):
         tier_type = tier_types.get(mkr)
         tier_id = mkr.lstrip('\\')
         algn_tier = prev.get(alignments.get(mkr))  # could be None
