@@ -30,24 +30,12 @@ def xigt_import(in_fh, out_fh):
 def toolbox_igts(tb):
     cps_id = None
     ref = None
-    for event, result in toolbox.record_iter(tb, keys=set(['\\id', '\\ref'])):
-        if event == 'key':
-            mkr, val = result
-            if mkr == '\\ref':
-                ref = val
-            elif mkr == '\\id':
-                cps_id = val
-                ref = None
-        elif event == 'record':
-            if ref is None:
-                # probably header info for a text (after \\id, before \\ref)
-                continue
-            igt = make_igt(cps_id, ref, result)
-            if igt is not None:
-                yield igt
-        elif event == 'header':
-            pass  # don't know what to do yet
-
+    for context, data in toolbox.records(tb, ['\\id', '\\ref']):
+        if context.get('\\ref') is None:
+            continue  # header info
+        igt = make_igt(context.get('\\id'), context.get('\\ref'), data)
+        if igt is not None:
+            yield igt
 
 def make_igt(cps_id, ref, data,
              tier_types={'\\t': 'words', '\\m': 'morphemes',

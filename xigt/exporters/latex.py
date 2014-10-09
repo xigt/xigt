@@ -107,7 +107,7 @@ def export_igt(igt, config):
         lines.append(sub(' '.join(toks) + '\\\\', tier_type, tier_subs))
     # add translation
     for tier in igt.tiers:
-        if tier.type == 'translations':
+        if tier.type == 'translations' and len(tier) > 0:
             lines.append('\\trans {}'.format(
                 sub(escape(tier[0].get_content()), tier.type, tier_subs)
             ))
