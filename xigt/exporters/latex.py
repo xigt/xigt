@@ -168,13 +168,19 @@ def align_tier(trellis, tier):
             trellis = merge_columns(trellis, start, end + 1)
             idxmap = build_idxmap(trellis, depth - 1)
             debug_display_trellis(trellis)
-        trellis[idx]
-        trellis[idx][depth]
+        #trellis[idx]
+        #trellis[idx][depth]
         trellis[idx][depth].extend(items)
         logging.debug('Added items at idx {} depth {}: {}'
                       .format(idx, depth, items))
     # when agendum is done, just append any remaining delayed items
     trellis, _ = add_delayed(trellis, delay, len(trellis), depth)
+    # if the agenda was shorter than the prev tier, fill in empty values
+    idx += 1
+    while idx < len(trellis):
+        logging.debug('Filling in empty slot at idx {}'.format(idx))
+        trellis[idx].append([])
+        idx += 1
     logging.debug('Agenda done.')
     for col in trellis:
         logging.debug('Col {}'.format(col))

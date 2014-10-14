@@ -15,7 +15,6 @@ except ImportError:
           '  https://github.com/goodmami/toolbox\n',
           file=sys.stderr)
 
-
 class XigtImportError(Exception):
     pass
 
@@ -49,7 +48,7 @@ def make_igt(cps_id, ref, data,
     try:
         tiers = make_all_tiers(data, tier_types, alignments)
         igt = Igt(id=ref, attributes=attrs, metadata=metadata, tiers=tiers)
-    except XigtImportError as ex:
+    except (toolbox.ToolboxError, XigtImportError) as ex:
         logging.error('Error during import of item {}:\n  {}'
                       .format(ref, str(ex)))
         igt = None
