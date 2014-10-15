@@ -93,23 +93,22 @@ def export_igt(igt, config):
         tier_type = tiers[i].type
         for col in all_groups:
             items = col[i]
-            if len(items) == 1:
-                toks.append(
-                    sub(escape(items[0].get_content()), tier_type, item_subs)
+            toks.append('{{{}}}'.format(
+                ' '.join(
+                    sub(escape(item.get_content() or '{}'),
+                        tier_type,
+                        item_subs)
+                    for item in items
                 )
-            else:
-                toks.append('{{{}}}'.format(
-                    ' '.join(
-                        sub(escape(item.get_content()), tier_type, item_subs)
-                        for item in items
-                    )
-                ))
+            ))
         lines.append(sub(' '.join(toks) + '\\\\', tier_type, tier_subs))
     # add translation
     for tier in igt.tiers:
         if tier.type == 'translations' and len(tier) > 0:
             lines.append('\\trans {}'.format(
-                sub(escape(tier[0].get_content()), tier.type, tier_subs)
+                sub(escape(tier[0].get_content() or '{}'),
+                    tier.type,
+                    tier_subs)
             ))
     lines.append('\\end{exe}')
     return '\n'.join(lines)

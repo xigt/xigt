@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 
 import logging
+import json
 
-def main(infile, outfile, inp_format):
+def main(args):
+    infile = args.input
+    outfile = args.output
+    inp_format = args.format
+    config = args.config
     if inp_format == 'toolbox':
         import xigt.importers.toolbox as importer
     # elif ...
+    if config is not None:
+        config = json.load(open(config, 'r'))
     with open(infile, 'r') as in_fh, open(outfile, 'w') as out_fh:
-        importer.xigt_import(in_fh, out_fh)
+        importer.xigt_import(in_fh, out_fh, options=config)
 
 if __name__ == '__main__':
     import argparse
@@ -22,6 +29,9 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--format', metavar='FMT',
         choices=['toolbox'], default='toolbox',
         help='The format of the input corpus (default: toolbox).')
+    parser.add_argument('-c', '--config', metavar='PATH',
+        help='A JSON-formatted configurationp file for '
+             'format-specific options.')
     args = parser.parse_args()
     logging.basicConfig(level=50-(args.verbosity*10))
-    main(args.input, args.output, args.format)
+    main(args)

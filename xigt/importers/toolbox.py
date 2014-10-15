@@ -2,7 +2,8 @@
 
 from collections import OrderedDict
 import logging
-from itertools import zip_longest
+import warnings
+from itertools import chain, zip_longest
 
 from xigt import (XigtCorpus, Igt, Tier, Item, Metadata, Meta)
 from xigt.codecs import xigtxml
@@ -15,45 +16,104 @@ except ImportError:
           '  https://github.com/goodmami/toolbox\n',
           file=sys.stderr)
 
+default_tier_types = {
+    '\\t': 'words',
+    '\\m': 'morphemes',
+    '\\g': 'glosses',
+    '\\p': 'pos',
+    '\\f': 'translations'
+}
+
+default_alignments = {
+    '\\m': '\\t',
+    '\\g': '\\m',
+    '\\p': '\\m'
+}
+
+default_record_markers = [
+    '\\id',
+    '\\ref'
+]
+
+default_attribute_map = {
+    '\\id': 'corpus-id'
+}
+
 class XigtImportError(Exception):
     pass
 
 
-def xigt_import(in_fh, out_fh):
+def xigt_import(in_fh, out_fh, options=None):
+    if options is None:
+        options = {}
+    options.setdefault('tier_types', default_tier_types)
+    options.setdefault('alignments', default_alignments)
+    options.setdefault('record_markers', default_record_markers)
+    options.setdefault('attribute_map', default_attribute_map)
+
     tb = toolbox.read_toolbox_file(in_fh)
-    igts = toolbox_igts(tb)  # TODO: include options, like mkrPriKey
+    igts = toolbox_igts(tb, options)
     xc = XigtCorpus(igts=igts, mode='transient')
     xigtxml.dump(out_fh, xc)
 
 
-def toolbox_igts(tb):
-    cps_id = None
-    ref = None
-    for context, data in toolbox.records(tb, ['\\id', '\\ref']):
-        if context.get('\\ref') is None:
+def toolbox_igts(tb, options):
+    record_markers = options['record_markers']
+    assert len(record_markers) > 0
+    mkrPriKey = record_markers[-1]
+    for context, data in toolbox.records(tb, record_markers):
+        data = list(data)  # run the generator
+        if context.get(mkrPriKey) is None:
             continue  # header info
-        igt = make_igt(context.get('\\id'), context.get('\\ref'), data)
+        igt = make_igt(
+            context[mkrPriKey],
+            data,
+            context=context,
+            tier_types=options['tier_types'],
+            alignments=options['alignments'],
+            attribute_map=options['attribute_map']
+        )
         if igt is not None:
             yield igt
 
-def make_igt(cps_id, ref, data,
-             tier_types={'\\t': 'words', '\\m': 'morphemes',
-                         '\\g': 'glosses', '\\p': 'pos',
-                         '\\f': 'translations'},
-             alignments={'\\m': '\\t', '\\g': '\\m', '\\p': '\\m'}):
+def make_igt(key, data, context=None,
+             tier_types=default_tier_types,
+             alignments=default_alignments,
+             attribute_map=default_attribute_map):
+    if context is None:
+        context = {}
     attrs = {}
-    if cps_id is not None:
-        attrs['corpus-id'] = cps_id
+    for (mkr, val) in chain(data, context.items()):
+        if mkr in attribute_map:
+            attrs[attribute_map[mkr]] = val
     metadata = None
-    try:
-        tiers = make_all_tiers(data, tier_types, alignments)
-        igt = Igt(id=ref, attributes=attrs, metadata=metadata, tiers=tiers)
-    except (toolbox.ToolboxError, XigtImportError) as ex:
-        logging.error('Error during import of item {}:\n  {}'
-                      .format(ref, str(ex)))
-        igt = None
-    finally:
-        return igt
+
+    w = None
+    with warnings.catch_warnings(record=True) as ws:
+        warnings.simplefilter('always')
+
+        try:
+            tiers = make_all_tiers(data, tier_types, alignments)
+            igt = Igt(
+                id=key,
+                attributes=attrs,
+                metadata=metadata,
+                tiers=tiers
+            )
+        except (toolbox.ToolboxError, XigtImportError) as ex:
+            logging.error('Error during import of item {}:\n  {}'
+                          .format(key, str(ex)))
+            igt = None
+        if len(ws) > 0:
+            w = ws[0]
+
+    if w is not None:
+        if issubclass(w.category, toolbox.ToolboxWarning):
+            warnings.warn('{}: {}'.format(key, w.message), w.category)
+        else:
+            warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)
+
+    return igt
 
 
 def make_all_tiers(item_data, tier_types, alignments):
@@ -61,7 +121,10 @@ def make_all_tiers(item_data, tier_types, alignments):
     # use strip=False because we want same-length strings
     tier_data = toolbox.normalize_record(item_data, aligned_tiers, strip=False)
     prev = {}
-    for mkr, aligned_tokens in toolbox.align_fields(tier_data, alignments):
+    aligned_fields = toolbox.align_fields(
+        tier_data, alignments, errors='ratio'
+    )
+    for mkr, aligned_tokens in aligned_fields:
         tier_type = tier_types.get(mkr)
         tier_id = mkr.lstrip('\\')
         algn_tier = prev.get(alignments.get(mkr))  # could be None
