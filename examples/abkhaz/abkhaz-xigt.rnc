@@ -21,7 +21,7 @@ include "xigt.rnc" {
     Item = grammar { include "xigt-item.rnc" }
          | grammar { include "xigt-item.rnc" {
       Item.refs = empty
-      Item.attrs = attribute synref { AlgnExpr }
+      Item.attrs = attribute children { AlgnExpr }
       Item.content = text
     }}
   }}
