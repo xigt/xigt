@@ -8,8 +8,8 @@ Item.id = parent Item.id
 # There are three default ref types, but 'segmentation' cannot cooccur with
 # 'alignment' and/or 'content'.
 Item.refs = ( attribute alignment { Item.alnref }?,
-              attribute content { Item.cntref }?
-            | attribute segmentation { Item.segref }? )
+              attribute content { Item.cntref }? )
+            | attribute segmentation { Item.segref }?
 Item.alnref = parent Item.alnref
 Item.cntref = parent Item.cntref
 Item.segref = parent Item.segref

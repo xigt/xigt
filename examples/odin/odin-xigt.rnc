@@ -1,7 +1,11 @@
 include "xigt.rnc" {
     Tier |= grammar { include "xigt-tier.rnc" {
-      Tier.type = "odin-txt"
-      # setting attrs to empty blocks txtref on this tier
+      Tier.type = "odin-raw"
+      # setting refs to empty blocks content/alignment/segmentation
+      Tier.refs = empty
+    }}
+    Tier |= grammar { include "xigt-tier.rnc" {
+      Tier.type = "odin-clean"
       Tier.attrs = empty
       Item = grammar { include "xigt-item.rnc" {
         Item.attrs = attribute line { xsd:int }?

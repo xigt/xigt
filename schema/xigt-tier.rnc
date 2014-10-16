@@ -8,8 +8,8 @@ Tier.id = parent Tier.id
 # There are three default ref types, but 'segmentation' cannot cooccur with
 # 'alignment' and/or 'content'.
 Tier.refs = ( attribute alignment { Tier.alnref }?,
-              attribute content { Tier.cntref }?
-            | attribute segmentation { Tier.segref }? )
+              attribute content { Tier.cntref }? )
+            | attribute segmentation { Tier.segref }?
 Tier.alnref = parent Tier.alnref
 Tier.cntref = parent Tier.cntref
 Tier.segref = parent Tier.segref
@@ -29,7 +29,9 @@ Item |= grammar { include "xigt-item.rnc" }
 
 # Copy up Item definitions or establish Tier-relevant ones
 Item.id = parent Item.id
-Item.ref = parent Item.ref
+Item.alnref = parent Item.alnref
+Item.cntref = parent Item.cntref
+Item.segref = parent Item.segref
 Item.type = notAllowed
 Item.attrs = parent Item.attrs
 Item.content = parent Item.content
