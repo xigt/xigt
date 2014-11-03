@@ -1,0 +1,12 @@
+include "xigt.rnc" {
+    Tier |= grammar { include "xigt-tier.rnc" {
+      Tier.type = "syntax"
+      # setting refs to empty blocks content/alignment/segmentation
+      Tier.refs = attribute lex { Ref }
+                , attribute nodes { Ref }
+      Item = grammar { include "xigt-item.rnc" {
+        Item.refs = attribute lex { AlgnExpr }
+                  | attribute nodes { list { Ref* } }
+      }}
+    }}
+} 
