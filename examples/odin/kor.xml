@@ -36,7 +36,7 @@ line=961 tag=T:     `I made the child eat rice.'
       <item id="w3" segmentation="p1[16:22]"/>
       <item id="w4" segmentation="p1[23:35]"/>
     </tier>
-    <tier type="morphemes" id="m" segmentation="p">
+    <tier type="morphemes" id="m" segmentation="w">
       <item id="w1.m1" segmentation="w1[0:3]"/>
       <item id="w1.m2" segmentation="w1[4:6]"/>
       <item id="w2.m1" segmentation="w2[0:2]"/>

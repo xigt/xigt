@@ -1,5 +1,6 @@
 import re
 import logging
+import warnings
 from collections import OrderedDict
 
 # common strings
@@ -15,17 +16,12 @@ item_delimiters = {
 }
 
 
-class XigtError(Exception):
-    pass
+class XigtError(Exception): pass
+class XigtStructureError(XigtError): pass
+class XigtAttributeError(XigtError): pass
+class XigtAutoAlignmentError(XigtError): pass
 
-
-class XigtAttributeError(XigtError):
-    pass
-
-
-class XigtAutoAlignmentError(XigtError):
-    pass
-
+class XigtWarning(Warning): pass
 
 def _has_parent(obj):
     return hasattr(obj, '_parent') and obj._parent is not None
@@ -87,8 +83,10 @@ class XigtMixin(object):
     def _create_id_mapping(self, obj):
         if obj.id is not None:
             if obj.id in self._dict:
-                raise ValueError('Id "{}" already exists in collection.'
-                                 .format(obj.id))
+                warnings.warn(
+                    'Id "{}" already exists in collection.'.format(obj.id),
+                    XigtWarning
+                )
             self._dict[obj.id] = obj
 
     def refresh_index(self):
