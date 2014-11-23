@@ -22,12 +22,10 @@ def validate_corpus(xc):
     ids = set()
     for i, igt in enumerate(xc):
         igtreport = validate_igt(igt, xc)
+        igtreport['index'] = i
         test_unique_id(igt, ids, 'corpus', igtreport)
 
-        # don't include empty reports
-        if not report_is_empty(igtreport):
-            igtreport['index'] = i
-            children.append(igtreport)
+        report['children'].append(igtreport)
 
     return report
 
@@ -41,16 +39,18 @@ def validate_igt(igt, xc):
 
     # validate igt metadata
 
-    ids = set()
+    tier_ids = set()
+    item_ids = set()
     for i, tier in enumerate(igt):
         tierreport = validate_tier(tier, igt, xc)
+        tierreport['index'] = i
 
-        test_unique_id(tier, ids, '<igt>', tierreport)
+        # tier and item IDs must be unique within an IGT
+        test_unique_id(tier, tier_ids, '<igt>', tierreport)
+        for itm, itmrep in zip(tier.items, tierreport.get('children', [])):
+            test_unique_id(itm, item_ids, '<igt>', itmrep)
 
-        # don't include empty reports
-        if not report_is_empty(tierreport):
-            tierreport['index'] = i
-            children.append(tierreport)
+        report['children'].append(tierreport)
 
     return report
 
@@ -70,14 +70,11 @@ def validate_tier(tier, igt, xc):
     ids = set()
     for i, item in enumerate(tier):
         itemreport = validate_item(item, tier, igt, xc)
+        itemreport['index'] = i
 
-        # TODO: move this to IGT level
-        test_unique_id(item, ids, '<igt>', itemreport)
+        test_unique_id(item, ids, '<tier>', itemreport)
 
-        # don't include empty reports
-        if not report_is_empty(itemreport):
-            itemreport['index'] = i
-            children.append(itemreport)
+        report['children'].append(itemreport)
 
     return report
 
@@ -96,9 +93,6 @@ def validate_item(item, tier, igt, xc):
 def must(msg): return {'level': logging.ERROR, 'message': msg}
 def should(msg): return {'level': logging.WARNING, 'message': msg}
 def may(msg): return {'level': logging.INFO, 'message': msg}
-
-def report_is_empty(report):
-    return len(report.get('records', []) + report.get('children', [])) == 0
 
 
 # TEST FUNCTIONS
@@ -153,11 +147,25 @@ def test_overlapping_ae(item, report):
     for ref in reference_attributes:
         if ref not in item.attributes:
             continue
-        
+
+
+# FILTERING
+
+def report_is_empty(report):
+    return not any(report.get('records', []) + report.get('children', []))
+
+def filter_empty_reports(report):
+    report['children'] = [filter_empty_reports(child)
+                          for child in report.get('children', [])]
+    if report_is_empty(report):
+        report = {}
+    return report
 
 # FORMATTING AND PRINTING
 
 def print_report(report, args, nestlevel=0):
+    if report_is_empty(report):
+        return
     print(format_heading(report, nestlevel, args))
     for record in report.get('records', []):
         msg = format_message(record, nestlevel, args)
@@ -208,13 +216,23 @@ def format_message(record, nestlevel, args):
             RESET=RESET_SEQ
         )
 
+# COMMANDLINE USE
+
 def main(args):
+    from xml.etree import ElementTree as ET
     for i, f in enumerate(args.files):
         with open(f, 'r') as fh:
-            xc = xigtxml.load(fh, mode='transient')
-            report = validate_corpus(xc)
-            report['index'] = i
-            print_report(report, args)
+            try:
+                xc = xigtxml.load(fh, mode='transient')
+            except ET.ParseError:
+                print('Corpus {} ({}) failed to load. First verify '
+                      'that the XML file is valid by doing a schema '
+                      'validation.'
+                      .format(i, f))
+            else:
+                report = filter_empty_reports(validate_corpus(xc))
+                report['index'] = i
+                print_report(report, args)
 
 if __name__ == '__main__':
     import argparse
