@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from collections import Counter
+from collections import Counter, defaultdict
 import logging
 import warnings
 warnings.simplefilter('ignore')
@@ -8,14 +8,16 @@ warnings.simplefilter('ignore')
 from xigt.codecs import xigtxml
 from xigt.core import (
     get_alignment_expression_ids as get_ae_ids,
+    get_alignment_expression_spans as get_ae_spans,
     XigtAttributeError
 )
 
 datalevels = ['corpus', 'igt', 'tier', 'item']
 reference_attributes = ['alignment', 'segmentation', 'content']
+alignment_expression_delimiters = ['+', ',']
 
 
-# VALIDATORS
+# VALIDATION FUNCTIONS
 
 def make_context(obj, index, name, scope, **kwargs):
     context = {
@@ -49,6 +51,8 @@ def validate(obj, context, conditions):
     report = {'records': records, 'children': children,
               'id': obj.id, 'index': context.get('index')}
     return report
+
+# DATA VALIDATORS
 
 def validate_corpus(xc, context):
     report = validate(
@@ -150,7 +154,9 @@ def validate_item(item, context):
         (should, has_id),
     ]
     for refattr in reference_attributes:
-        conditions.append((must, refattr_in_aligned_tier, refattr))
+        conditions.append((must, algnexpr_ids_in_referred_tier, refattr))
+        conditions.append((should, algnexpr_spans_in_aligned_item, refattr))
+        conditions.append((should, algnexpr_spans_do_not_overlap, refattr))
     report = validate(
         item,
         context=context,
@@ -176,6 +182,13 @@ def may(msg):
 def add_id(ids, obj):
     if getattr(obj, 'id', None) is not None:
         ids[obj.id] += 1
+
+def get_referred_tier(item, refattr):
+    tierref = item.tier.attributes.get(refattr)
+    if not tierref:
+        return None
+    return item.igt.get(tierref)
+
 
 # TEST FUNCTIONS
 
@@ -210,13 +223,10 @@ def refattr_in_igt(tier, refattr):
         return ('The reference attribute "{}" {{modal}} select an '
                 'available <tier> id.'.format(refattr))
 
-def refattr_in_aligned_tier(item, refattr):
+def algnexpr_ids_in_referred_tier(item, refattr):
     itemref = item.attributes.get(refattr)
-    tierref = item.tier.attributes.get(refattr)
-    if not itemref or not tierref:
-        return
-    reftier = item.igt.get(tierref)
-    if not reftier:
+    reftier = get_referred_tier(item, refattr)
+    if not itemref or not reftier:
         return
     missing = []
     for ae_id in get_ae_ids(itemref):
@@ -224,16 +234,67 @@ def refattr_in_aligned_tier(item, refattr):
             missing.append(ae_id)
     if missing:
         return (
-            'The alignment expression "{}" {{modal}} select available '
+            'The "{}" alignment expression {{modal}} select available '
             '<item> ids from the aligned <tier> ("{}"). The following are '
-            'unavailable: {}'.format(refattr, tierref, ', '.join(missing))
+            'unavailable: {}'
+            .format(refattr, str(reftier.id), ', '.join(missing))
         )
 
+def algnexpr_spans_in_aligned_item(item, refattr):
+    itemref = item.attributes.get(refattr)
+    reftier = get_referred_tier(item, refattr)
+    if not itemref or not reftier:
+        return
+    error_spans = []
+    for span in get_ae_spans(itemref):
+        if span in alignment_expression_delimiters:
+            continue  # schema validator should catch bad algnexprs like '+w3'
+        if isinstance(span, str):
+            continue  # just an id (like "w3"), which means the full span
+        item_id, start, end = span
+        tgt_item = reftier.get(item_id)
+        if tgt_item is None:
+            continue  # this should be caught by algnexpr_ids_in_referred_tier
+        item_len = len(tgt_item.get_content())
+        if start > item_len or end > item_len:
+            error_spans.append(span)
+    if error_spans:
+        return (
+            'Alignment expressions {{modal}} select spans within '
+            'the aligned <item> elements. The following spans are not '
+            'valid: {}'.format(', '.join(
+                '{}[{}:{}]'.format(*span) for span in error_spans
+             ))
+        )
 
-def test_overlapping_ae(item, report):
-    for ref in reference_attributes:
-        if ref not in item.attributes:
-            continue
+def algnexpr_spans_do_not_overlap(item, refattr):
+    itemref = item.attributes.get(refattr)
+    reftier = get_referred_tier(item, refattr)
+    if not itemref or not reftier:
+        return
+    spans_by_id = defaultdict(Counter)
+    for span in get_ae_spans(itemref):
+        if span in alignment_expression_delimiters:
+            continue  # schema validator should catch bad algnexprs like '+w3'
+        if isinstance(span, str):
+            tgt_item = reftier.get(span)
+            if tgt_item is None:
+                continue  # this should be caught by algnexpr_ids_in_referred_tier
+            item_len = len(tgt_item.get_content())
+            spans_by_id[span].update(range(0, item_len))
+        else:
+            item_id, start, end = span
+            spans_by_id[item_id].update(range(start, end))
+    error_spans = [
+        item_id for item_id, count in spans_by_id.items()
+        if any(count[c] > 1 for c in count)
+    ]
+    if error_spans:
+        return (
+            'Alignment expression spans {{modal}} NOT overlap. Spans '
+            'for the following <item> elements overlap: {}'
+            .format(', '.join(error_spans))
+        )
 
 
 # FILTERING
