@@ -122,10 +122,11 @@ def validate_igt(igt, context):
 def validate_tier(tier, context):
     conditions = [
         (should, has_id),
-        (should, has_type)
+        (should, has_type),
+        (must, item_refattrs_specified_on_tier)
     ]
     for refattr in reference_attributes:
-        conditions.append((must, refattr_in_igt, refattr))
+        conditions.append((must, reference_id_in_igt, refattr))
 
     report = validate(tier, context=context, conditions=conditions)
 
@@ -217,11 +218,22 @@ def has_type(obj):
     if not bool(getattr(obj, 'type', None)):
         return "Each {name} {modal} specify a type."
 
-def refattr_in_igt(tier, refattr):
+def reference_id_in_igt(tier, refattr):
     refid = tier.attributes.get(refattr)
     if refid and tier.igt.get(refid) is None:
         return ('The reference attribute "{}" {{modal}} select an '
                 'available <tier> id.'.format(refattr))
+
+def item_refattrs_specified_on_tier(tier):
+    missing_refattrs = set(
+        refattr for item in tier
+        for refattr in reference_attributes
+        if refattr in item.attributes and refattr not in tier.attributes
+    )
+    if missing_refattrs:
+        return ('Reference attributes on <item> elements {{modal}} be '
+                'specified on their <tier> as well. The following are not: {}'
+                .format(', '.join(sorted(missing_refattrs))))
 
 def algnexpr_ids_in_referred_tier(item, refattr):
     itemref = item.attributes.get(refattr)
