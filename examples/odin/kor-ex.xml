@@ -32,9 +32,9 @@ line=961 tag=T:     `I made the child eat rice.'
       <item id="c5" content="o5"/>
     </tier>
     <tier type="odin-norm" id="n">
-      <item id="n1" alignment="o3" line="959" tag="L">Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
-      <item id="n2" alignment="o4" line="960" tag="G">I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
-      <item id="n3" alignment="o5" line="961" tag="T">I made the child eat rice.</item>
+      <item id="n1" alignment="c3" line="959" tag="L">Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="n2" alignment="c4" line="960" tag="G">I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="n3" alignment="c5" line="961" tag="T">I made the child eat rice.</item>
     </tier>
     <tier type="phrases" id="p" content="n">
       <item id="p1" content="n1"/>
