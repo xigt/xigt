@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+stage3_lang_chosen: korean (kor)
+lang_code: korean (kor) || seoul (kor) || japanese (jpn) || inuit (ike) || french (fra) || malayalam (mal)
+note: lang_chosen_idx=0
+line=959 tag=L:   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta
+line=960 tag=G:     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec
+line=961 tag=T:     `I made the child eat rice.'
+-->
+<xigt-corpus>
+  <metadata type="xigt-meta">
+    <meta type="language" name="korean" iso-639-3="kor"
+          tiers="phrases words[alignment=phrases] morphemes"/>
+    <meta type="language" name="english" iso-639-3="eng"
+          tiers="glosses translations"/>
+  </metadata>
+  <igt id="i1">
+    <tier type="odin-raw" id="o">
+      <item id="o1">doc id=397 959 961 L G T</item>
+      <item id="o2">language: korean (kor)</item>
+      <item id="o3">line=959 tag=L:   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="o4">line=960 tag=G:     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="o5">line=961 tag=T:     `I made the child eat rice.'</item>
+    </tier>
+    <!-- if there's nothing to fix for odin-clean, we could just copy the
+         odin-raw data with a content attribute, or just skip it entirely. -->
+    <tier type="odin-clean" id="c" content="o">
+      <item id="c1" content="o1"/>
+      <item id="c2" content="o2"/>
+      <item id="c3" content="o3"/>
+      <item id="c4" content="o4"/>
+      <item id="c5" content="o5"/>
+    </tier>
+    <tier type="odin-norm" id="n">
+      <item id="n1" alignment="o3" line="959" tag="L">Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="n2" alignment="o4" line="960" tag="G">I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="n3" alignment="o5" line="961" tag="T">I made the child eat rice.</item>
+    </tier>
+    <tier type="phrases" id="p" content="n">
+      <item id="p1" content="n1"/>
+    </tier>
+    <tier type="words" id="w" segmentation="p">
+      <item id="w1" segmentation="p1[0:6]"/>
+      <item id="w2" segmentation="p1[7:15]"/>
+      <item id="w3" segmentation="p1[16:22]"/>
+      <item id="w4" segmentation="p1[23:35]"/>
+    </tier>
+    <tier type="morphemes" id="m" segmentation="w">
+      <item id="m1.1" segmentation="w1[0:3]"/>
+      <item id="m1.2" segmentation="w1[4:6]"/>
+      <item id="m2.1" segmentation="w2[0:2]"/>
+      <item id="m2.2" segmentation="w2[3:8]"/>
+      <item id="m3.1" segmentation="w3[0:3]"/>
+      <item id="m3.2" segmentation="w3[4:6]"/>
+      <item id="m4.1" segmentation="w4[0:3]"/>
+      <item id="m4.2" segmentation="w4[4:5]"/>
+      <item id="m4.3" segmentation="w4[6:9]"/>
+      <item id="m4.4" segmentation="w4[10:12]"/>
+    </tier>
+    <tier type="glosses" id="g" alignment="m" content="n">
+      <item id="g1.1" alignment="m1.1" content="n2[0:1]"/>
+      <item id="g1.2" alignment="m1.2" content="n2[2:5]"/>
+      <item id="g2.1" alignment="m2.1" content="n2[6:11]"/>
+      <item id="g2.2" alignment="m2.2" content="n2[12:15]"/>
+      <item id="g3.1" alignment="m3.1" content="n2[16:20]"/>
+      <item id="g3.2" alignment="m3.2" content="n2[21:24]"/>
+      <item id="g4.1" alignment="m4.1" content="n2[25:28]"/>
+      <item id="g4.2" alignment="m4.2" content="n2[29:33]"/>
+      <item id="g4.3" alignment="m4.3" content="n2[34:37]"/>
+      <item id="g4.4" alignment="m4.4" content="n2[38:41]"/>
+    </tier>
+    <tier type="translations" id="t" alignment="p" content="n">
+      <item id="t1" alignment="p1" content="n3"/>
+    </tier>
+    <tier type="translation-words" id="tw" segmentation="t">
+      <item id="tw1" segmentation="t1[0:1]"/>
+      <item id="tw2" segmentation="t1[2:6]"/>
+      <item id="tw3" segmentation="t1[7:10]"/>
+      <item id="tw4" segmentation="t1[11:16]"/>
+      <item id="tw5" segmentation="t1[17:20]"/>
+      <item id="tw6" segmentation="t1[21:25]"/>
+    </tier>
+    <tier type="bilingual-alignments" id="a" source="tw" target="g">
+      <item id="a1" source="tw1" target="g1.1"/>
+      <item id="a2" source="tw2" target="g4.2,g4.3"/>
+      <!-- not having a target means the target is null, but why is this
+           item here at all? -->
+      <item id="a3" source="tw3" />
+      <item id="a4" source="tw4" target="g2.1"/>
+      <item id="a3" source="tw5" target="g4.1"/>
+      <item id="a3" source="tw6" target="g3.1"/>
+    </tier>
+    <tier type="pos" id="tw-pos" alignment="tw">
+      <item id="tw-pos1" alignment="tw1">PRP</item>
+      <item id="tw-pos2" alignment="tw2">VBD</item>
+      <item id="tw-pos3" alignment="tw3">DT</item>
+      <item id="tw-pos4" alignment="tw4">NN</item>
+      <item id="tw-pos5" alignment="tw5">VBP</item>
+      <item id="tw-pos6" alignment="tw6">NN</item>
+    </tier>
+    <tier type="pos" id="w-pos" alignment="w">
+      <item id="w-pos1" alignment="w1">PRP</item>
+      <item id="w-pos2" alignment="w2">NN</item>
+      <item id="w-pos3" alignment="w3">NN</item>
+      <item id="w-pos4" alignment="w4">V</item>
+    </tier>
+    <!-- The following parse is from the Stanford Parser:
+      (ROOT
+        (S
+          (NP (PRP I))
+          (VP (VBD made)
+            (SBAR
+              (S
+                (NP (DT the) (NN child))
+                (VP (VBP eat)
+                  (NP (NN rice))))))))
+      I adapt it as follows to show null elements:
+      (S
+        (NP (PRP I))
+        (VP (VBD made)
+          (NP-1 (DT the) (NN child))
+          (SBAR
+            (S
+              (NP *-1)
+              (VP (VBP eat)
+                (NP (NN rice)))))))
+    -->
+    <!-- I'm still not sure why we don't just use the alignment attribute
+         instead of the lex attribute below. -->
+    <!-- And I wonder if we get much by using the content attribute to
+         get the POS tags for the terminal nodes. It only works if the
+         parts of speech match those from the parser identically. -->
+    <tier type="phrase-structure" id="ps" lex="tw" children="ps" content="tw-pos">
+      <item id="ps1" lex="tw1" content="tw-pos1"/>
+      <item id="ps2" lex="tw2" content="tw-pos2"/>
+      <item id="ps3" lex="tw3" content="tw-pos3"/>
+      <item id="ps4" lex="tw4" content="tw-pos4"/>
+      <item id="ps5" type="null" ec-type="*" index="1">NP</item>
+      <item id="ps6" lex="tw5" content="tw-pos5"/>
+      <item id="ps7" lex="tw6" content="tw-pos6"/>
+      <item id="ps8" children="ps1">NP</item>
+      <item id="ps9" children="ps3 ps4" index="1">NP</item>
+      <item id="ps10" children="ps7">NP</item>
+      <item id="ps11" children="ps6 ps10">VP</item>
+      <item id="ps12" children="ps5 ps11">S</item>
+      <item id="ps13" children="ps12">SBAR</item>
+      <item id="ps14" children="ps2 ps9 ps13">VP</item>
+      <item id="ps15" children="ps8 ps14">S</item>
+    </tier>
+  </igt>
+</xigt-corpus>
