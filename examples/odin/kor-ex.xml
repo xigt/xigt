@@ -10,7 +10,7 @@ line=961 tag=T:     `I made the child eat rice.'
 <xigt-corpus>
   <metadata type="xigt-meta">
     <meta type="language" name="korean" iso-639-3="kor"
-          tiers="phrases words[alignment=phrases] morphemes"/>
+          tiers="phrases words morphemes"/>
     <meta type="language" name="english" iso-639-3="eng"
           tiers="glosses translations"/>
   </metadata>
