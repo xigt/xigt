@@ -63,6 +63,12 @@ line=961 tag=T:     `I made the child eat rice.'
       <item id="g4.3" alignment="m4.3" content="n2[34:37]"/>
       <item id="g4.4" alignment="m4.4" content="n2[38:41]"/>
     </tier>
+    <tier type="pos" id="w-pos" alignment="w">
+      <item id="w-pos1" alignment="w1">PRP</item>
+      <item id="w-pos2" alignment="w2">NN</item>
+      <item id="w-pos3" alignment="w3">NN</item>
+      <item id="w-pos4" alignment="w4">V</item>
+    </tier>
     <tier type="translations" id="t" alignment="p" content="n">
       <item id="t1" alignment="p1" content="n3"/>
     </tier>
@@ -73,15 +79,7 @@ line=961 tag=T:     `I made the child eat rice.'
       <item id="tw4" segmentation="t1[11:16]"/>
       <item id="tw5" segmentation="t1[17:20]"/>
       <item id="tw6" segmentation="t1[21:25]"/>
-      <item id="tw6" segmentation="t1[26:27]"/>
-    </tier>
-    <tier type="bilingual-alignments" id="a" source="tw" target="g">
-      <item id="a1" source="tw1" target="g1.1"/>
-      <item id="a2" source="tw2" target="g4.2,g4.3"/>
-      <item id="a3" source="tw3" />
-      <item id="a4" source="tw4" target="g2.1"/>
-      <item id="a3" source="tw5" target="g4.1"/>
-      <item id="a3" source="tw6" target="g3.1"/>
+      <item id="tw7" segmentation="t1[25:26]"/>
     </tier>
     <tier type="pos" id="tw-pos" alignment="tw">
       <item id="tw-pos1" alignment="tw1">PRP</item>
@@ -92,11 +90,13 @@ line=961 tag=T:     `I made the child eat rice.'
       <item id="tw-pos6" alignment="tw6">NN</item>
       <item id="tw-pos7" alignment="tw7">PUNC</item>
     </tier>
-    <tier type="pos" id="w-pos" alignment="w">
-      <item id="w-pos1" alignment="w1">PRP</item>
-      <item id="w-pos2" alignment="w2">NN</item>
-      <item id="w-pos3" alignment="w3">NN</item>
-      <item id="w-pos4" alignment="w4">V</item>
+    <tier type="bilingual-alignments" id="a" source="tw" target="g">
+      <item id="a1" source="tw1" target="g1.1"/>
+      <item id="a2" source="tw2" target="g4.2,g4.3"/>
+      <item id="a3" source="tw3" />
+      <item id="a4" source="tw4" target="g2.1"/>
+      <item id="a5" source="tw5" target="g4.1"/>
+      <item id="a6" source="tw6" target="g3.1"/>
     </tier>
     <!-- The following parse is from the Stanford Parser:
       (ROOT
