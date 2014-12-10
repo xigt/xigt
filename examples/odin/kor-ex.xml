@@ -14,30 +14,24 @@ line=961 tag=T:     `I made the child eat rice.'
     <meta type="language" name="english" iso-639-3="eng"
           tiers="glosses translations"/>
   </metadata>
-  <igt id="i1">
-    <tier type="odin-raw" id="o">
-      <item id="o1">doc id=397 959 961 L G T</item>
-      <item id="o2">language: korean (kor)</item>
-      <item id="o3">line=959 tag=L:   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
-      <item id="o4">line=960 tag=G:     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
-      <item id="o5">line=961 tag=T:     `I made the child eat rice.'</item>
+  <igt id="i1" doc-id="397" line-range="959 961" tag-types="L G T">
+    <tier type="odin" id="o" state="raw">
+      <item id="o1" line="959" tag="L">   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="o2" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="o3" line="961" tag="T">     `I made the child eat rice.'</item>
     </tier>
-    <!-- if there's nothing to fix for odin-clean, we could just copy the
-         odin-raw data with a content attribute, or just skip it entirely. -->
-    <tier type="odin-clean" id="c" content="o">
-      <item id="c1" content="o1"/>
-      <item id="c2" content="o2"/>
-      <item id="c3" content="o3"/>
-      <item id="c4" content="o4"/>
-      <item id="c5" content="o5"/>
+    <tier type="odin" id="c" state="cleaned" alignment="o">
+      <item id="c1" alignment="o1" line="959" tag="L">   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="c2" alignment="o2" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="c3" alignment="o3" line="961" tag="T">     `I made the child eat rice.'</item>
     </tier>
-    <tier type="odin-norm" id="n" alignment="c">
-      <item id="n1" alignment="c3" line="959" tag="L">Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
-      <item id="n2" alignment="c4" line="960" tag="G">I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
-      <item id="n3" alignment="c5" line="961" tag="T">I made the child eat rice.</item>
+    <tier type="odin" id="n" state="normalized" alignment="c">
+      <item id="n1" alignment="c1" line="959" tag="L">Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="n2" alignment="c2" line="960" tag="G">I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="n3" alignment="c3" line="961" tag="T">I made the child eat rice.</item>
     </tier>
     <tier type="phrases" id="p" content="n">
-      <item id="p1" content="n1"/>
+      <item type="transliteration" id="p1" content="n1"/>
     </tier>
     <tier type="words" id="w" segmentation="p">
       <item id="w1" segmentation="p1[0:6]"/>
@@ -79,12 +73,11 @@ line=961 tag=T:     `I made the child eat rice.'
       <item id="tw4" segmentation="t1[11:16]"/>
       <item id="tw5" segmentation="t1[17:20]"/>
       <item id="tw6" segmentation="t1[21:25]"/>
+      <item id="tw6" segmentation="t1[26:27]"/>
     </tier>
     <tier type="bilingual-alignments" id="a" source="tw" target="g">
       <item id="a1" source="tw1" target="g1.1"/>
       <item id="a2" source="tw2" target="g4.2,g4.3"/>
-      <!-- not having a target means the target is null, but why is this
-           item here at all? -->
       <item id="a3" source="tw3" />
       <item id="a4" source="tw4" target="g2.1"/>
       <item id="a3" source="tw5" target="g4.1"/>
@@ -97,6 +90,7 @@ line=961 tag=T:     `I made the child eat rice.'
       <item id="tw-pos4" alignment="tw4">NN</item>
       <item id="tw-pos5" alignment="tw5">VBP</item>
       <item id="tw-pos6" alignment="tw6">NN</item>
+      <item id="tw-pos7" alignment="tw7">PUNC</item>
     </tier>
     <tier type="pos" id="w-pos" alignment="w">
       <item id="w-pos1" alignment="w1">PRP</item>
@@ -130,22 +124,50 @@ line=961 tag=T:     `I made the child eat rice.'
     <!-- And I wonder if we get much by using the content attribute to
          get the POS tags for the terminal nodes. It only works if the
          parts of speech match those from the parser identically. -->
-    <tier type="phrase-structure" id="ps" lex="tw" children="ps" content="tw-pos">
-      <item id="ps1" lex="tw1" content="tw-pos1"/>
-      <item id="ps2" lex="tw2" content="tw-pos2"/>
-      <item id="ps3" lex="tw3" content="tw-pos3"/>
-      <item id="ps4" lex="tw4" content="tw-pos4"/>
-      <item id="ps5" type="null" ec-type="*" index="1">NP</item>
-      <item id="ps6" lex="tw5" content="tw-pos5"/>
-      <item id="ps7" lex="tw6" content="tw-pos6"/>
+    <tier type="phrase-structure" id="ps" alignment="tw" children="ps" content="tw-pos">
+      <item id="ps1" alignment="tw1" content="tw-pos1"/>
+      <item id="ps2" alignment="tw2" content="tw-pos2"/>
+      <item id="ps3" alignment="tw3" content="tw-pos3"/>
+      <item id="ps4" alignment="tw4" content="tw-pos4"/>
+      <item id="ps4-1" type="null" ec-type="*" index="1">NP</item>
+      <item id="ps5" alignment="tw5" content="tw-pos5"/>
+      <item id="ps6" alignment="tw6" content="tw-pos6"/>
+      <item id="ps7" alignment="tw7" content="tw-pos7"/>
       <item id="ps8" children="ps1">NP</item>
       <item id="ps9" children="ps3 ps4" index="1">NP</item>
-      <item id="ps10" children="ps7">NP</item>
-      <item id="ps11" children="ps6 ps10">VP</item>
-      <item id="ps12" children="ps5 ps11">S</item>
+      <item id="ps10" children="ps6">NP</item>
+      <item id="ps11" children="ps5 ps10">VP</item>
+      <item id="ps12" children="ps4-1 ps11">S</item>
       <item id="ps13" children="ps12">SBAR</item>
       <item id="ps14" children="ps2 ps9 ps13">VP</item>
       <item id="ps15" children="ps8 ps14">S</item>
+    </tier>
+
+    <!-- note that we have deps here for both made-child and eat-child,
+         which makes it a non-tree graph. Depending on the parser, one of
+         these may not be used. -->
+    <tier type="dependencies" id="dt" dep="tw" head="tw">
+      <item id="dt1" dep="tw1" head="tw2" />
+      <item id="dt2" dep="tw2" />
+      <item id="dt3" dep="tw3" head="tw4" />
+      <item id="dt4" dep="tw4" head="tw2" /> <!-- made -> child -->
+      <item id="dt5" dep="tw5" head="tw2" />
+      <item id="dt6" dep="tw6" head="tw5" />
+      <item id="dt7" dep="tw4" head="tw5" /> <!-- eat -> child -->
+      <item id="dt8" dep="tw7" head="tw2" /> <!-- eat -> . (punctuation) -->
+    </tier>
+
+    <!-- the same sentence, but using a null element for the second verb -->
+    <tier type="dependencies" id="dtb" dep="tw" head="tw" ec-dep="dt" ec-head="dt">
+      <item id="dtb1" dep="tw1" head="tw2" />
+      <item id="dtb2" dep="tw2" />
+      <item id="dtb3" dep="tw3" head="tw4" />
+      <item id="dtb4" dep="tw4" head="tw2" /> <!-- made -> child -->
+      <item id="dtb5" dep="tw5" head="tw2" />
+      <item id="dtb6" dep="tw6" head="tw5" />
+      <item id="dtb-ec1" type="null" ec-pos="NP" />
+      <item id="dtb7" ec-dep="dtb-ec1" head="tw5" /> <!-- eat -> (null) -->
+      <item id="dtb8" dep="tw7" head="tw2" /> <!-- eat -> . (punctuation) -->
     </tier>
   </igt>
 </xigt-corpus>
