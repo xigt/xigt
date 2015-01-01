@@ -35,16 +35,16 @@ line=961 tag=T:     `I made the child eat rice.'
       <item id="n2" alignment="r2" line="960" tag="G">I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
       <item id="n3" alignment="r3" line="961" tag="T">I made the child eat rice.</item>
     </tier>
-    <tier type="phrases" id="p" content="n">
+    <tier type="phrases" id="p" content="n" xml:lang="ko">
       <item type="transliteration" id="p1" content="n1"/>
     </tier>
-    <tier type="words" id="w" segmentation="p">
+    <tier type="words" id="w" segmentation="p" xml:lang="ko">
       <item id="w1" segmentation="p1[0:6]"/>
       <item id="w2" segmentation="p1[7:15]"/>
       <item id="w3" segmentation="p1[16:22]"/>
       <item id="w4" segmentation="p1[23:35]"/>
     </tier>
-    <tier type="morphemes" id="m" segmentation="w">
+    <tier type="morphemes" id="m" segmentation="w" xml:lang="ko">
       <item id="m1.1" segmentation="w1[0:3]"/>
       <item id="m1.2" segmentation="w1[4:6]"/>
       <item id="m2.1" segmentation="w2[0:2]"/>
