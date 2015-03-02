@@ -1,0 +1,70 @@
+
+# Common patterns
+
+Id = xsd:NCName
+Ref = xsd:NCName
+AlgnExpr = xsd:string {
+	pattern="\i\c*(\[\d+:\d+([,+]\d+:\d+)*\])?([,+]\i\c*(\[\d+:\d+([,+]\d+:\d+)*\])?)*"
+}
+
+
+# Common attributes
+
+IdAttr = attribute id { Id }
+TypeAttr = attribute type { text }
+RefAttrs = ( attribute alignment { AlgnExpr }?,
+             attribute content { AlgnExpr }? )
+           | attribute segmentation { AlgnExpr }?
+AnyAttr = attribute * - (id | type | alignment | content | segmentation) { text }
+
+
+# Document structure
+
+start = XigtCorpus
+XigtCorpus = element xigt-corpus {
+	IdAttr?,
+	TypeAttr?,
+	Metadata*,
+	Igt*
+}
+
+Metadata = element metadata {
+	IdAttr?,
+	TypeAttr?,
+	AnyAttr*,
+	Meta*
+}
+
+Meta = element meta {
+	IdAttr?,
+	TypeAttr?,
+	AnyAttr*,
+	Meta.content
+}
+# should Meta allow sub-elements? If so, replace text with something else
+Meta.content = text
+
+Igt = element igt {
+	IdAttr,
+	TypeAttr?,
+	AnyAttr*,
+	Metadata*,
+	Tier*
+}
+
+Tier = element tier {
+	IdAttr,
+	TypeAttr,
+	RefAttrs,
+	AnyAttr*,
+	Metadata*,
+	Item*
+}
+
+Item = element item {
+	IdAttr,
+	TypeAttr?,
+	RefAttrs,
+	AnyAttr*,
+	text
+}
