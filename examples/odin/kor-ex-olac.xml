@@ -10,9 +10,7 @@ line=961 tag=T:     `I made the child eat rice.'
 <xigt-corpus>
   <metadata xmlns:olac="http://www.language-archives.org/OLAC/1.1/"
             xmlns:dc="http://purl.org/dc/elements/1.1/"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://www.language-archives.org/OLAC/1.1/
-              http://www.language-archives.org/OLAC/1.1/olac.xsd">
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <meta id="md1">
       <dc:subject xsi:type="olac:language" olac:code="ko"/>
       <dc:language xsi:type="olac:language" olac:code="en"/>

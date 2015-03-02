@@ -41,8 +41,12 @@ Meta = element meta {
 	AnyAttr*,
 	Meta.content
 }
-# should Meta allow sub-elements? If so, replace text with something else
-Meta.content = text
+Meta.content = text | AnyElement*
+AnyElement = element * {
+	(attribute * { text }
+	 | text
+	 | AnyElement)*
+}
 
 Igt = element igt {
 	IdAttr,
