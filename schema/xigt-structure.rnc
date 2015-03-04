@@ -1,10 +1,10 @@
 
 # Common patterns
 
-Id = xsd:NCName
-Ref = xsd:NCName
+Id = xsd:string { pattern="[a-zA-Z][\-.\w]*" }
+Ref = xsd:string { pattern="[a-zA-Z][\-.\w]*" }
 AlgnExpr = xsd:string {
-	pattern="\i\c*(\[\d+:\d+([,+]\d+:\d+)*\])?([,+]\i\c*(\[\d+:\d+([,+]\d+:\d+)*\])?)*"
+	pattern="[a-zA-Z][\-.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?([,+][a-zA-Z][\-.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?)*"
 }
 
 

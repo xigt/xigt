@@ -4,6 +4,13 @@ import warnings
 from collections import OrderedDict
 from itertools import chain
 
+from xigt.errors import (
+    XigtError,
+    XigtStructureError,
+    XigtAttributeError,
+    XigtWarning
+)
+
 # common strings
 ALIGNMENT = 'alignment'
 CONTENT = 'content'
@@ -16,13 +23,6 @@ item_delimiters = {
     'glosses': ('-', '=', '~')
 }
 
-
-class XigtError(Exception): pass
-class XigtStructureError(XigtError): pass
-class XigtAttributeError(XigtError): pass
-class XigtAutoAlignmentError(XigtError): pass
-
-class XigtWarning(Warning): pass
 
 def _has_parent(obj):
     return hasattr(obj, '_parent') and obj._parent is not None
@@ -263,36 +263,6 @@ class Igt(XigtMixin, XigtAttributeMixin, XigtMetadataMixin):
     def tiers(self, value):
         self._list = value
 
-    def auto_align_tiers(self,
-                         tier_ids=None,
-                         delimiters=item_delimiters):
-        """
-        Attempt to align the contents of contained tiers automatically.
-
-        If a tier B aligns to tier A and A splits into the same number
-        of tokens as items in B, align the items one-to-one.
-
-        Args:
-            tier_ids: a list of tier identifiers of the tiers to align
-            delimiters:
-        """
-        delims = [map(re.compile, r'|'.join(eq_class))
-                  for eq_class in delimiters]
-        if tier_ids is None:
-            tier_ids = [t.id for t in self.tiers]
-        for tier_id in tier_ids:
-            try:
-                tier = self.get(tier_id)
-                tgt_tier = tier.get_aligned_tier('alignment')
-                # do something here
-            except XigtError as ex:
-                logging.debug('Could not align Tier {}.\n'
-                              '  Reason: {}'.format(tier_id, str(ex)))
-                continue
-
-    def _auto_align_items(self, tier):
-        pass
-
 
 class Tier(XigtMixin, XigtAttributeMixin, XigtMetadataMixin):
     """
@@ -421,18 +391,42 @@ class Item(XigtAttributeMixin):
         return c[start:end]
 
 
+def metadata_text_warning():
+    warnings.warn(
+        'Metadata.text is deprecated; use Metadata.metas instead.',
+        DeprecationWarning
+    )
+
 class Metadata(object):
     """
     A container for metadata on XigtCorpus, Igt, or Tier objects.
     Extensions may place constraints on the allowable metadata.
     """
-    def __init__(self, type=None, attributes=None, text=None):
+    def __init__(self, type=None, attributes=None, text=None, metas=None):
         self.type = type
         self.attributes = OrderedDict(attributes or [])
-        self.text = text
+        if text is not None:
+            metadata_text_warning()
+            if metas is not None:
+                raise XigtError(
+                    'text and metas cannot both be specified.'
+                )
+            metas = text
+        self.metas = metas or []
 
     def __repr__(self):
         return 'Metadata({},"{}")'.format(str(self.type), self.text)
+
+    # the text property should be removed in some later version
+    @property
+    def text(self):
+        metadata_text_warning()
+        return self.metas
+
+    @text.setter
+    def text(self, value):
+        metadata_text_warning()
+        self.metas = value
 
 
 class Meta(object):
@@ -448,83 +442,3 @@ class Meta(object):
         if self.text is not None:
             parts.extend('"{}"'.format(self.text))
         return 'Meta({})'.format(', '.join(parts))
-
-
-### Alignment Expressions ####################################################
-
-# Module variables
-algnexpr_re = re.compile(r'(([a-zA-Z][\-.\w]*)(\[[^\]]*\])?|\+|,)')
-selection_re = re.compile(r'(-?\d+:-?\d+|\+|,)')
-
-delim1 = ''
-delim2 = ' '
-
-
-def get_alignment_expression_ids(expression):
-    alignments = algnexpr_re.findall(expression or '')
-    return [item_id for _, item_id, _ in alignments if item_id]
-
-
-def get_alignment_expression_spans(expression):
-    alignments = algnexpr_re.findall(expression or '')
-    spans = list(chain.from_iterable(
-        [match] if not item_id else
-        [item_id] if not selection else
-        [selmatch if ':' not in selmatch else
-         tuple([item_id] + list(map(int, selmatch.split(':'))))
-         for selmatch in selection_re.findall(selection)
-        ]
-        for match, item_id, selection in alignments
-    ))
-    return spans
-
-
-def resolve_alignment_expression(expression, tier, plus=delim1, comma=delim2):
-    alignments = algnexpr_re.findall(expression)
-    parts = [plus if match == '+' else
-             comma if match == ',' else
-             resolve_alignment(tier, item_id, selection)
-             for match, item_id, selection in alignments]
-    return ''.join(parts)
-
-
-def resolve_alignment(tier, item_id, selection, plus=delim1, comma=delim2):
-    item = tier.get(item_id)
-    if item is None:
-        warnings.warn(
-            'Item "{}" not found in tier "{}"'.format(item_id, tier.id),
-            XigtWarning
-        )
-        return ''
-    else:
-        if selection == '':
-            return item.get_content()
-        spans = selection_re.findall(selection)
-        parts = [plus if match == '+' else
-                 comma if match == ',' else
-                 item.span(*map(int, match.split(':')))
-                 for match in spans]
-        return ''.join(parts)
-
-
-# Auxiliary Functions ########################################################
-
-def segment_tier(tier, delimiters=None, keep_delimiters=True):
-    """
-    Attempt to automatically segment the items in a tier. The segmented
-    items are returned as a list, and the original tier is unchanged.
-
-    Args:
-        tier: A Tier object whose items will be used for segmentation.
-        delimiters: A list of strings to split on. If None, default
-            delimiters are used if they are defined for tier type in
-            the module-level dictionary `item_delimiters`.
-    Returns:
-        A list of Item objects.
-    """
-    if delimiters is None:
-        delimiters = item_delimiters.get(tier.type)
-
-    items = []
-    for item in tier:
-        item.get_content()
