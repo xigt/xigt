@@ -1,7 +1,25 @@
 
+def span(item, idx1, idx2):
+    val = item.value()
+    if val is None:
+        return None
+    return val[idx1:idx2]
+
+def get_aligned_tier(tier, algnattr):
+    tgt_tier_id = tier.get_attribute(algnattr)
+    if tgt_tier_id is None:
+        raise XigtAttributeError(
+            'Tier {} does not specify an alignment "{}".'
+            .format(tgt_tier_id, algnattr)
+        )
+    tgt_tier = tier.igt.get(tgt_tier_id)
+    return tgt_tier
+
 ### Alignment Expressions ####################################################
 
 # Module variables
+id_re = re.compile(r'[a-zA-Z][-.\w]*')
+reflist_re = re.compile(r'^\s*([a-zA-Z][-.\w]*)(\s+[a-zA-Z][-.\w]*)*\s*$')
 algnexpr_re = re.compile(r'(([a-zA-Z][\-.\w]*)(\[[^\]]*\])?|\+|,)')
 selection_re = re.compile(r'(-?\d+:-?\d+|\+|,)')
 
