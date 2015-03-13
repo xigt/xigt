@@ -1,4 +1,7 @@
 
+import re
+
+
 def span(item, idx1, idx2):
     val = item.value()
     if val is None:

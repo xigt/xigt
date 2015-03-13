@@ -1,4 +1,10 @@
-import re
+
+#
+# This module contains classes implementing the Xigt data model.
+# Common members and methods may be found in the xigt.mixins module,
+# so take note of the class inheritance below.
+#
+
 import logging
 import warnings
 from collections import OrderedDict
@@ -56,6 +62,11 @@ class XigtCorpus(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
         else:
             self._generator = igts
 
+    def __repr__(self):
+        return '<XigtCorpus object (id: {}) with {} Igts at {}>'.format(
+            str(self.id or '--'), len(self), str(id(self))
+        )
+
     def __iter__(self):
         if self.mode == 'full':
             for igt in XigtContainerMixin.__iter__(self):
@@ -86,8 +97,13 @@ class Igt(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
             self, id=id, type=type, attributes=attributes
         )
         XigtMetadataMixin.__init__(self, metadata)
-        self.extend(tiers)
+        self.extend(tiers or [])
         self._parent = corpus
+
+    def __repr__(self):
+        return '<Igt object (id: {}) with {} Tiers at {}>'.format(
+            str(self.id or '--'), len(self), str(id(self))
+        )
 
     @property
     def corpus(self):
@@ -120,12 +136,12 @@ class Tier(XigtContainerMixin, XigtAttributeMixin,
         self.content = content
         self.segmentation = segmentation
 
-        self.extend(items)
+        self.extend(items or [])
         self._parent = igt
 
     def __repr__(self):
-        return 'Tier({}, {}, {}, {} items)'.format(
-            str(self.type), str(self.id), str(self.attributes), len(self.items)
+        return '<Tier object (id: {}; type: {}) with {} Items at {}>'.format(
+            str(self.id or '--'), self.type, len(self), str(id(self))
         )
 
     @property
@@ -167,11 +183,8 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
         self._parent = tier  # mainly used for alignment expressions
 
     def __repr__(self):
-        return 'Item({}, {}, {}, "{}")'.format(
-            *map(
-                str,
-                [self.type, self.id, self.attributes, self.get_content()]
-            )
+        return '<Item object (id: {}) with value "{}" at {}>'.format(
+            str(self.id or '--'), self.value(), str(id(self))
         )
 
     def __str__(self):
@@ -219,7 +232,7 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
 
     def get_content(self, resolve=True):
         warnings.warn(
-            'Item.get_content() is deprecated; use Item.value() instead.'
+            'Item.get_content() is deprecated; use Item.value() instead.',
             DeprecationWarning
         )
         return self.value(resolve=resolve)
@@ -227,7 +240,7 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
     def span(self, start, end):
         warnings.warn(
             'Item.span(i1, i2) is deprecated; '
-            'use Item.value()[i1:i2] instead.'
+            'use Item.value()[i1:i2] instead.',
             DeprecationWarning
         )
 
@@ -248,9 +261,13 @@ class Metadata(XigtContainerMixin, XigtAttributeMixin):
     A container for metadata on XigtCorpus, Igt, or Tier objects.
     Extensions may place constraints on the allowable metadata.
     """
-    def __init__(self, type=None, attributes=None, text=None, metas=None):
-        self.type = type
-        self.attributes = OrderedDict(attributes or [])
+    def __init__(self, id=None, type=None, attributes=None,
+                 text=None, metas=None):
+        XigtContainerMixin.__init__(self)
+        XigtAttributeMixin.__init__(
+            self, id=id, type=type, attributes=attributes
+        )
+
         if text is not None:
             metadata_text_warning()
             if metas is not None:
@@ -265,10 +282,20 @@ class Metadata(XigtContainerMixin, XigtAttributeMixin):
                 )
                 text = [Meta(text=text)]
             metas = text
+
         self.extend(metas or [])
 
     def __repr__(self):
-        return 'Metadata({},"{}")'.format(str(self.type), self.text)
+        return '<Metadata object (id: {}) with {} Metas at {}>'.format(
+            str(self.id or '--'), len(self), str(id(self))
+        )
+
+    @property
+    def metas(self):
+        return self._list
+    @metas.setter
+    def metas(self, value):
+            self._list = value
 
     # deprecated properties
 
@@ -283,15 +310,14 @@ class Metadata(XigtContainerMixin, XigtAttributeMixin):
 
 
 class Meta(XigtAttributeMixin):
-    def __init__(self, type, attributes=None, text=None):
-        self.type = type
-        self.attributes = OrderedDict(attributes or [])
+    def __init__(self, id=None, type=None, attributes=None, text=None):
+        XigtAttributeMixin.__init__(
+            self, id=id, type=type, attributes=attributes
+        )
+
         self.text = text
 
     def __repr__(self):
-        parts = [str(self.type)]
-        parts.extend('{}="{}"'.format(k, v)
-                     for k, v in self.attributes.items())
-        if self.text is not None:
-            parts.extend('"{}"'.format(self.text))
-        return 'Meta({})'.format(', '.join(parts))
+        return '<Meta object (id: {}) at {}>'.format(
+            str(self.id or '--'), str(id(self))
+        )

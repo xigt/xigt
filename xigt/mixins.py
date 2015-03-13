@@ -39,10 +39,8 @@ class XigtContainerMixin(object):
     def get(self, obj_id, default=None):
         try:
             return self[obj_id]
-        except KeyError:
-            logging.debug('Object not found with id {}.'.format(obj_id))
-        except IndexError:
-            logging.debug('Object not found at position {}.'.format(obj_id))
+        except (KeyError, IndexError):
+            pass
         return default
 
     def select(self, id=None, type=None,
@@ -108,11 +106,13 @@ class XigtContainerMixin(object):
 class XigtAttributeMixin(object):
 
     def __init__(self, id=None, type=None, attributes=None):
+        self.id = id
+        self.type = type
         self.attributes = dict(attributes or [])
-        if id is not None or ID not in self.attributes:
-            self.attributes[ID] = id
-        if type is not None or TYPE not in self.attributes:
-            self.attributes[TYPE] = type
+        # if id is not None or ID not in self.attributes:
+        #     self.attributes[ID] = id
+        # if type is not None or TYPE not in self.attributes:
+        #     self.attributes[TYPE] = type
 
     def get_attribute(self, key, default=None, inherit=False):
         try:
@@ -121,23 +121,23 @@ class XigtAttributeMixin(object):
             if not inherit or not _has_parent(self) or key:
                 raise
                 # raise XigtAttributeError('No attribute {}.'.format(key))
-            # if key in self._local_attrs:
-            #     return None  # don't inherit local-only attributes
+            if key in (ID, TYPE):
+                return None  # don't inherit local-only attributes
             return self._parent.get_attribute(key, default, inherit)
 
-    @property
-    def id(self):
-        return self.attributes[ID]
-    @id.setter
-    def id(self, value):
-        self.attributes[ID] = value
+    # @property
+    # def id(self):
+    #     return self.attributes[ID]
+    # @id.setter
+    # def id(self, value):
+    #     self.attributes[ID] = value
     
-    @property
-    def type(self):
-        return self.attributes[TYPE]
-    @type.setter
-    def type(self, value):
-        self.attributes[TYPE] = value
+    # @property
+    # def type(self):
+    #     return self.attributes[TYPE]
+    # @type.setter
+    # def type(self, value):
+    #     self.attributes[TYPE] = value
 
 
 class XigtReferenceAttributeMixin(object):
