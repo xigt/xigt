@@ -17,6 +17,10 @@ from xigt.mixins import (
     XigtMetadataMixin  # XigtCorpus, Igt, Tier
 )
 
+from xigt.ref import (
+    resolve
+)
+
 from xigt.errors import (
     XigtError,
     XigtStructureError,
@@ -99,6 +103,7 @@ class Igt(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
         XigtMetadataMixin.__init__(self, metadata)
         self.extend(tiers or [])
         self._parent = corpus
+        self._itemdict = {}
 
     def __repr__(self):
         return '<Igt object (id: {}) with {} Tiers at {}>'.format(
@@ -115,6 +120,9 @@ class Igt(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
     @tiers.setter
     def tiers(self, value):
         self._list = value
+
+    def get_item(self, item_id, default=None):
+        return self._itemdict.get(item_id, default=default)
 
 
 class Tier(XigtContainerMixin, XigtAttributeMixin,
@@ -143,6 +151,22 @@ class Tier(XigtContainerMixin, XigtAttributeMixin,
         return '<Tier object (id: {}; type: {}) with {} Items at {}>'.format(
             str(self.id or '--'), self.type, len(self), str(id(self))
         )
+
+    def _create_id_mapping(self, item):
+        """
+        Igts also maintain a dictionary of items, so index the item in
+        both places.
+        """
+        XigtContainerMixin._create_id_mapping(self, item)
+        igt = self.igt
+        item_id = item.id
+        if igt is not None and item_id is not None:
+            if item_id in igt._itemdict and igt._itemdict[item_id] != item:
+                warnings.warn(
+                    'Item "{}" already exists in Igt.'.format(item_id),
+                    XigtWarning
+                )
+            igt._itemdict[item_id] = item
 
     @property
     def igt(self):
@@ -208,14 +232,12 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
         except AttributeError:
             return None
 
-    def value(self, resolve=True):
+    def value(self, refattrs=(CONTENT, SEGMENTATION)):
         if self.text is not None:
             return self.text
-        elif resolve:
-            if self.content is not None:
-                return self.resolve_ref(CONTENT)
-            elif self.segmentation is not None:
-                return self.resolve_ref(SEGMENTATION)
+        for refattr in (refattrs or []):
+            if refattr in self.attributes:
+                return self.resolve_ref(refattr)
         # all other cases
         return None
 
@@ -224,7 +246,7 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
             algnexpr = self.attributes[refattr]
             reftier_id = self.tier.attributes[refattr]
             reftier = self.igt[reftier_id]
-            return resolve_alignment_expression(algnexpr, reftier)
+            return resolve(algnexpr, reftier)
         except KeyError:
             return None  # TODO: log this
 
@@ -235,7 +257,7 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
             'Item.get_content() is deprecated; use Item.value() instead.',
             DeprecationWarning
         )
-        return self.value(resolve=resolve)
+        return self.value(refattrs=(CONTENT, SEGMENTATION))
 
     def span(self, start, end):
         warnings.warn(

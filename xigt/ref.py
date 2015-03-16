@@ -1,5 +1,6 @@
 
 import re
+from collections import namedtuple
 
 
 def span(item, idx1, idx2):
@@ -7,6 +8,9 @@ def span(item, idx1, idx2):
     if val is None:
         return None
     return val[idx1:idx2]
+
+def targets(ids, igt):
+    pass
 
 def get_aligned_tier(tier, algnattr):
     tgt_tier_id = tier.get_attribute(algnattr)
@@ -26,14 +30,43 @@ reflist_re = re.compile(r'^\s*([a-zA-Z][-.\w]*)(\s+[a-zA-Z][-.\w]*)*\s*$')
 algnexpr_re = re.compile(r'(([a-zA-Z][\-.\w]*)(\[[^\]]*\])?|\+|,)')
 selection_re = re.compile(r'(-?\d+:-?\d+|\+|,)')
 
+delimiters = {
+    ',': ' ',
+    '+': ''
+}
+
 delim1 = ''
 delim2 = ' '
 
 
-def get_alignment_expression_ids(expression):
+def ids(expression):
     alignments = algnexpr_re.findall(expression or '')
     return [item_id for _, item_id, _ in alignments if item_id]
 
+
+def selections(expression):
+    pass
+
+def spans(expression):
+    pass
+
+
+def resolve(expression, container):
+    itemgetter = getattr(container, 'get_item', container.get)
+    return ''.join(
+        '{}{}'.format(
+            delimiters.get(delim, ''),
+            itemgetter(item_id)
+    )
+
+
+def _enumerate_spans(expression, container):
+    
+
+# deprecated methods
+
+def get_aligment_expression_ids(expression):
+    return ids(expression)
 
 def get_alignment_expression_spans(expression):
     alignments = algnexpr_re.findall(expression or '')
