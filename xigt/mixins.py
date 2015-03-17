@@ -118,12 +118,10 @@ class XigtAttributeMixin(object):
         try:
             return self.attributes[key]
         except KeyError:
-            if not inherit or not _has_parent(self) or key:
-                raise
-                # raise XigtAttributeError('No attribute {}.'.format(key))
-            if key in (ID, TYPE):
-                return None  # don't inherit local-only attributes
-            return self._parent.get_attribute(key, default, inherit)
+            if inherit and _has_parent(self):
+                return self._parent.get_attribute(key, default, inherit)
+            else:
+                return default
 
     # @property
     # def id(self):
