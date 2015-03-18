@@ -250,6 +250,12 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
         except KeyError:
             return None  # TODO: log this
 
+    def span(self, start, end):
+        c = self.value()
+        if c is None:
+            return None
+        return c[start:end]
+
     # deprecated methods
 
     def get_content(self, resolve=True):
@@ -258,18 +264,6 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
             DeprecationWarning
         )
         return self.value(refattrs=(CONTENT, SEGMENTATION))
-
-    def span(self, start, end):
-        warnings.warn(
-            'Item.span(i1, i2) is deprecated; '
-            'use Item.value()[i1:i2] instead.',
-            DeprecationWarning
-        )
-
-        c = self.value()
-        if c is None:
-            return None
-        return c[start:end]
 
 
 def metadata_text_warning():

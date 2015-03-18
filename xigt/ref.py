@@ -53,8 +53,8 @@ delim2 = ' '
 def expand(expression):
     """
     Expand a reference expression to individual spans.
-    Also works on space-separated ID lists, although the space character
-    will be considered a delimiter.
+    Also works on space-separated ID lists, although a sequence of space
+    characters will be considered a delimiter.
 
     >>> expand('a1')
     'a1'
@@ -82,8 +82,8 @@ def expand(expression):
 def compress(expression):
     """
     Compress a reference expression to group spans on the same id.
-    Also works on space-separated ID lists, although the space character
-    will be considered a delimiter.
+    Also works on space-separated ID lists, although a sequence of space
+    characters will be considered a delimiter.
 
     >>> compress('a1')
     'a1'
@@ -101,26 +101,30 @@ def compress(expression):
     selection = []
     last_id = None
     for (pre, _id, _range) in robust_ref_re.findall(expression):
-        if not _id:
-            tokens.append(pre)
-        elif _range and _id == last_id:
-            selection.extend('{}{}'.format(pre, _range))
-        else:
-            tokens.append(''.join(selection + [']']))
-            tokens.append(pre)
-            selection = ['{}[{}'.format(_id, _range)]
+        if _range and _id == last_id:
+            selection.extend([pre, _range])
+            continue
+        if selection:
+            tokens.extend(selection + [']'])
+            selection = []
+        tokens.extend([pre, _id])
+        if _range:
+            selection = ['[', _range]
             last_id = _id
-    tokens.append(''.join(selection))
+        else:
+            last_id = None
+    if selection:
+        tokens.extend(selection + [']'])
     return ''.join(tokens)
 
 
 
-def selection_split(expression, keep_delimiters=True):
+def selections(expression, keep_delimiters=True):
     """
     Split the expression into individual selection expressions. The
     delimiters will be kept as separate items if keep_delimters=True.
-    Also works on space-separated ID lists, although the space character
-    will be considered a delimiter.
+    Also works on space-separated ID lists, although a sequence of space
+    characters will be considered a delimiter.
 
     >>> selection_split('a1')
     ['a1']
@@ -133,18 +137,28 @@ def selection_split(expression, keep_delimiters=True):
     >>> selection_split('a1[3:5+6:7]+a2[1:4]', keep_delimiters=False)
     ['a1[3:5+6:7]', 'a2[1:4]']
     >>> selection_split('a1 a2  a3')
-    ['a1', ' ', 'a2', ' ', ' ', 'a3']
+    ['a1', ' ', 'a2', '  ', 'a3']
 
     """
-    pass
+    tokens = []
+    for (pre, _id, _range) in robust_ref_re.findall(expression):
+        if keep_delimiters and pre:
+            tokens.append(pre)
+        if _id:
+            if _range:
+                tokens.append('{}[{}]'.format(_id, _range))
+            else:
+                tokens.append(_id)
+    return tokens
 
 
-def span_split(expression, keep_delimiters=True):
+
+def spans(expression, keep_delimiters=True):
     """
     Split the expression into individual span expressions. The
     delimiters will be kept as separate items if keep_delimters=True.
-    Also works on space-separated ID lists, although the space character
-    will be considered a delimiter.
+    Also works on space-separated ID lists, although a sequence of space
+    characters will be considered a delimiter.
 
     >>> span_split('a1')
     ['a1']
@@ -157,10 +171,10 @@ def span_split(expression, keep_delimiters=True):
     >>> span_split('a1[3:5+6:7]+a2[1:4]')
     ['a1[3:5]', '+', 'a1[6:7]', '+', 'a2[1:4]']
     >>> span_split('a1 a2  a3')
-    ['a1', ' ', 'a2', ' ', ' ', 'a3']
+    ['a1', ' ', 'a2', '  ', 'a3']
 
     """
-    pass
+    return selection_split(expand(expression), keep_delimiters=keep_delimiters)
 
 def ids(expression):
     """
@@ -176,29 +190,27 @@ def ids(expression):
     ['a1', 'a2', 'a3']
 
     """
+    return [_id for _, _id, _ in robust_ref_re.findall(expression) if _id]
 
-    alignments = algnexpr_re.findall(expression or '')
-    return [item_id for _, item_id, _ in alignments if item_id]
 
 # operations with interpretation
 
+#def selections(expression):
+#    pass
 
 
-def selections(expression):
-    pass
-
-
-def spans(expression):
-    pass
+#def spans(expression):
+#    pass
 
 
 def resolve(expression, container):
     itemgetter = getattr(container, 'get_item', container.get)
     return ''.join(
         '{}{}'.format(
-            delimiters.get(delim, ''),
-            itemgetter(item_id)
+            delimiters.get(pre, ''),
+            itemgetter(_id).span(start, end)
         )
+        for pre, _id, _range
     )
 
 
