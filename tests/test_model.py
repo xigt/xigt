@@ -1,5 +1,6 @@
 import unittest
 from xigt import XigtCorpus, Igt, Tier, Item, Metadata, Meta
+from xigt.errors import XigtError
 
 class TestMetadata(unittest.TestCase):
     def test_empty(self):
@@ -11,10 +12,11 @@ class TestMetadata(unittest.TestCase):
     def test_full(self):
         m = Metadata(type='basic',
                      attributes={'attr':'val'},
-                     metas=[Meta(text='text')])
+                     metas=[Meta(text='meta')])
         self.assertEqual(m.type, 'basic')
         self.assertEqual(m.attributes, {'attr':'val'})
-        self.assertEqual(m.metas, [Meta(text='text')])
+        self.assertEqual(len(m.metas), 1)
+        self.assertEqual(m[0].text, 'meta')
 
 class TestItem(unittest.TestCase):
     def test_empty(self):
@@ -71,15 +73,16 @@ class TestTier(unittest.TestCase):
         self.assertEqual(t.igt, None)
         self.assertEqual(t.corpus, None)
         self.assertEqual(t.metadata[0].type, 'meta')
-        self.assertEqual(t.metadata[0].metas, [Meta(text='meta')])
+        self.assertEqual(len(t.metadata[0].metas), 1)
+        self.assertEqual(t.metadata[0][0].text, 'meta')
         self.assertEqual(t.attributes, {'attr':'val'})
         self.assertEqual(len(t.items), 2)
         # contained Items should now have their tier specified
         for i in t.items:
             self.assertEqual(i.tier, t)
         # don't allow multiple items with the same ID
-        self.assertRaises(ValueError, Tier, items=[Item(id='i1'),
-                                                   Item(id='i1')])
+        self.assertRaises(XigtError, Tier, items=[Item(id='i1'),
+                                                  Item(id='i1')])
 
     def test_linked(self):
         pass
@@ -95,20 +98,21 @@ class TestIgt(unittest.TestCase):
 
     def test_basic(self):
         i = Igt(id='i1', type='basic', attributes={'attr':'val'},
-                metadata=[Metadata(type='meta', text='metacontent')],
+                metadata=[Metadata(type='meta', metas=[Meta(text='meta')])],
                 tiers=[Tier(id='a'), Tier(id='b')])
         self.assertEqual(i.id, 'i1')
         self.assertEqual(i.attributes, {'attr':'val'})
         self.assertEqual(i.corpus, None)
         self.assertEqual(i.metadata[0].type, 'meta')
-        self.assertEqual(i.metadata[0].text, 'metacontent')
+        self.assertEqual(len(i.metadata[0].metas), 1)
+        self.assertEqual(i.metadata[0][0].text, 'meta')
         self.assertEqual(len(i.tiers), 2)
         # contained Tiers should now have their igt specified
         for t in i.tiers:
             self.assertEqual(t.igt, i)
         # don't allow multiple tiers with the same ID
-        self.assertRaises(ValueError, Igt, tiers=[Tier(id='a'),
-                                                  Tier(id='a')])
+        self.assertRaises(XigtError, Igt, tiers=[Tier(id='a'),
+                                                 Tier(id='a')])
 
     def test_linked(self):
         pass
@@ -123,19 +127,20 @@ class TestXigtCorpus(unittest.TestCase):
 
     def test_basic(self):
         c = XigtCorpus(id='xc1', attributes={'attr':'val'},
-                       metadata=[Metadata(type='meta', text='metacontent')],
+                       metadata=[Metadata(type='meta', metas=[Meta(text='meta')])],
                        igts=[Igt(id='i1'), Igt(id='i2')])
         self.assertEqual(c.id, 'xc1')
         self.assertEqual(c.attributes, {'attr':'val'})
         self.assertEqual(c.metadata[0].type, 'meta')
-        self.assertEqual(c.metadata[0].text, 'metacontent')
+        self.assertEqual(len(c.metadata[0].metas), 1)
+        self.assertEqual(c.metadata[0][0].text, 'meta')
         self.assertEqual(len(c.igts), 2)
         # contained Igts should now have their corpus specified
         for i in c.igts:
             self.assertEqual(i.corpus, c)
         # don't allow multiple igts with the same ID
-        self.assertRaises(ValueError, XigtCorpus, igts=[Igt(id='i1'),
-                                                        Igt(id='i1')])
+        self.assertRaises(XigtError, XigtCorpus, igts=[Igt(id='i1'),
+                                                       Igt(id='i1')])
 
     def test_linked(self):
         pass

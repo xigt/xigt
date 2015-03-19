@@ -3,41 +3,28 @@ import re
 from collections import namedtuple
 
 
-def span(item, idx1, idx2):
-    val = item.value()
-    if val is None:
-        return None
-    return val[idx1:idx2]
-
-def targets(ids, igt):
-    pass
-
-def get_aligned_tier(tier, algnattr):
-    tgt_tier_id = tier.get_attribute(algnattr)
-    if tgt_tier_id is None:
-        raise XigtAttributeError(
-            'Tier {} does not specify an alignment "{}".'
-            .format(tgt_tier_id, algnattr)
-        )
-    tgt_tier = tier.igt.get(tgt_tier_id)
-    return tgt_tier
-
 ### Alignment Expressions ####################################################
 
-Span = namedtuple('Span', ('delimiter', 'id', 'start', 'end'))
-Selection = namedtuple('Selection', ('id', 'spans'))
+#Span = namedtuple('Span', ('delimiter', 'id', 'start', 'end'))
+#Selection = namedtuple('Selection', ('id', 'spans'))
 
 # Module variables
 id_re = re.compile(r'[a-zA-Z][-.\w]*')
 reflist_re = re.compile(r'^\s*([a-zA-Z][-.\w]*)(\s+[a-zA-Z][-.\w]*)*\s*$')
 algnexpr_re = re.compile(r'(([a-zA-Z][\-.\w]*)(\[[^\]]*\])?|\+|,)')
-selection_re = re.compile(r'(-?\d+:-?\d+|\+|,)')
-span_re = re.compile(r'([^-.:\d])?(-?[.\d]+):(-?[.\d]+)')
+sel_re = re.compile(r'(-?\d+:-?\d+|\+|,)')
+
 robust_ref_re = re.compile(
     r'(^|.+?)'  # anything not an id (maybe space, maybe a delimiter)
     r'($|[a-zA-Z][\-.\w]*)'  # id
     r'(?:$|\[((?:[^-.:\d]?-?[.\d]+:-?[.\d]+)+)\])?'  # range
 )
+selection_re = re.compile(
+    r'(^|[^-a-zA-Z:.])'  # start of string or delimiter
+    r'([a-zA-Z][-.\w]*)' # id
+    r'(?:\[([^\]]*)\])?'  # range (underspecified because span_re will check)
+)
+span_re = re.compile(r'([^-.:\d])?(-?[.\d]+):(-?[.\d]+)')
 
 delimiters = {
     ',': ' ',
@@ -118,7 +105,6 @@ def compress(expression):
     return ''.join(tokens)
 
 
-
 def selections(expression, keep_delimiters=True):
     """
     Split the expression into individual selection expressions. The
@@ -176,6 +162,7 @@ def spans(expression, keep_delimiters=True):
     """
     return selection_split(expand(expression), keep_delimiters=keep_delimiters)
 
+
 def ids(expression):
     """
     Return the list of ids in the expression.
@@ -195,32 +182,46 @@ def ids(expression):
 
 # operations with interpretation
 
-#def selections(expression):
-#    pass
-
-
-#def spans(expression):
-#    pass
-
-
 def resolve(expression, container):
     itemgetter = getattr(container, 'get_item', container.get)
-    return ''.join(
-        '{}{}'.format(
-            delimiters.get(pre, ''),
-            itemgetter(_id).span(start, end)
-        )
-        for pre, _id, _range
-    )
+    tokens = []
+    expression = expression.strip()
+    for sel_delim, _id, _range in selection_re.findall(expression):
+        tokens.append(delimiters.get(sel_delim, ''))
+        item = itemgetter(_id)
+        if _range:
+            for spn_delim, start, end in span_re.findall(_range):
+                start = int(start) if start else None
+                end = int(end) if end else None
+                tokens.extend([
+                    delimiters.get(spn_delim, ''),
+                    item.span(start, end)
+                ])
+        else:
+            tokens.append(item.value())
+    return ''.join(tokens)
 
 
-def _enumerate_spans(expression, container):
-    pass
+def targets(ids, igt):
+    return [igt.get_item(_id, default=igt.get(_id)) for _id in ids]
+
 
 # deprecated methods
 
+def get_aligned_tier(tier, algnattr):
+    tgt_tier_id = tier.get_attribute(algnattr)
+    if tgt_tier_id is None:
+        raise XigtAttributeError(
+            'Tier {} does not specify an alignment "{}".'
+            .format(tgt_tier_id, algnattr)
+        )
+    tgt_tier = tier.igt.get(tgt_tier_id)
+    return tgt_tier
+
+
 def get_aligment_expression_ids(expression):
     return ids(expression)
+
 
 def get_alignment_expression_spans(expression):
     alignments = algnexpr_re.findall(expression or '')
@@ -229,7 +230,7 @@ def get_alignment_expression_spans(expression):
         [item_id] if not selection else
         [selmatch if ':' not in selmatch else
          tuple([item_id] + list(map(int, selmatch.split(':'))))
-         for selmatch in selection_re.findall(selection)
+         for selmatch in sel_re.findall(selection)
         ]
         for match, item_id, selection in alignments
     ))
@@ -256,7 +257,7 @@ def resolve_alignment(tier, item_id, selection, plus=delim1, comma=delim2):
     else:
         if selection == '':
             return item.get_content()
-        spans = selection_re.findall(selection)
+        spans = sel_re.findall(selection)
         parts = [plus if match == '+' else
                  comma if match == ',' else
                  item.span(*map(int, match.split(':')))

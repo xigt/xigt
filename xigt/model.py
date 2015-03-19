@@ -10,6 +10,14 @@ import warnings
 from collections import OrderedDict
 from itertools import chain
 
+from xigt.consts import (
+    CONTENT,
+    SEGMENTATION,
+    FULL,
+    INCREMENTAL,
+    TRANSIENT
+)
+
 from xigt.mixins import (
     XigtContainerMixin,  # XigtCorpus, Igt, Tier, Metadata
     XigtAttributeMixin,  # XigtCorpus, Igt, Tier, Item, Metadata, Meta
@@ -55,13 +63,14 @@ class XigtCorpus(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
                         input processing
             =========== ================================================
     """
+
     def __init__(self, id=None, attributes=None, metadata=None, igts=None,
-                 mode='full'):
+                 mode=FULL):
         XigtContainerMixin.__init__(self)
         XigtAttributeMixin.__init__(self, id=id, attributes=attributes)
         XigtMetadataMixin.__init__(self, metadata)
         self.mode = mode
-        if mode == 'full':
+        if mode == FULL:
             self.extend(igts or [])
         else:
             self._generator = igts
@@ -72,15 +81,15 @@ class XigtCorpus(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
         )
 
     def __iter__(self):
-        if self.mode == 'full':
+        if self.mode == FULL:
             for igt in XigtContainerMixin.__iter__(self):
                 yield igt
         else:
             for igt in self._generator:
-                if self.mode == 'incremental':
+                if self.mode == INCREMENTAL:
                     self.add(igt)
                 yield igt
-            self.mode = 'full'
+            self.mode = FULL
 
     @property
     def igts(self):
@@ -101,9 +110,10 @@ class Igt(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
             self, id=id, type=type, attributes=attributes
         )
         XigtMetadataMixin.__init__(self, metadata)
-        self.extend(tiers or [])
+
         self._parent = corpus
         self._itemdict = {}
+        self.extend(tiers or [])
 
     def __repr__(self):
         return '<Igt object (id: {}) with {} Tiers at {}>'.format(
@@ -139,13 +149,14 @@ class Tier(XigtContainerMixin, XigtAttributeMixin,
         XigtAttributeMixin.__init__(
             self, id=id, type=type, attributes=attributes
         )
+        XigtReferenceAttributeMixin.__init__(
+            self, alignment=alignment, content=content,
+            segmentation=segmentation
+        )
         XigtMetadataMixin.__init__(self, metadata)
-        self.alignment = alignment
-        self.content = content
-        self.segmentation = segmentation
 
-        self.extend(items or [])
         self._parent = igt
+        self.extend(items or [])
 
     def __repr__(self):
         return '<Tier object (id: {}; type: {}) with {} Items at {}>'.format(
@@ -199,12 +210,13 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
         XigtAttributeMixin.__init__(
             self, id=id, type=type, attributes=attributes
         )
-        self.alignment = alignment
-        self.content = content
-        self.segmentation = segmentation
+        XigtReferenceAttributeMixin.__init__(
+            self, alignment=alignment, content=content,
+            segmentation=segmentation
+        )
 
-        self.text = text
         self._parent = tier  # mainly used for alignment expressions
+        self.text = text
 
     def __repr__(self):
         return '<Item object (id: {}) with value "{}" at {}>'.format(
@@ -326,11 +338,13 @@ class Metadata(XigtContainerMixin, XigtAttributeMixin):
 
 
 class Meta(XigtAttributeMixin):
-    def __init__(self, id=None, type=None, attributes=None, text=None):
+    def __init__(self, id=None, type=None, attributes=None, text=None,
+                 metadata=None):
         XigtAttributeMixin.__init__(
             self, id=id, type=type, attributes=attributes
         )
 
+        self._parent = metadata
         self.text = text
 
     def __repr__(self):

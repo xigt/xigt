@@ -1,13 +1,16 @@
 
 import warnings
 
-# common strings
-ID = 'id'
-TYPE = 'type'
-ALIGNMENT = 'alignment'
-CONTENT = 'content'
-SEGMENTATION = 'segmentation'
-
+from xigt.consts import (
+    ID,
+    TYPE,
+    ALIGNMENT,
+    CONTENT,
+    SEGMENTATION
+)
+from xigt.errors import (
+    XigtError
+)
 
 def _has_parent(obj):
     return hasattr(obj, '_parent') and obj._parent is not None
@@ -71,9 +74,8 @@ class XigtContainerMixin(object):
     def _create_id_mapping(self, obj):
         if obj.id is not None:
             if obj.id in self._dict:
-                warnings.warn(
+                raise XigtError(
                     'Id "{}" already exists in collection.'.format(obj.id),
-                    XigtWarning
                 )
             self._dict[obj.id] = obj
 
@@ -139,6 +141,14 @@ class XigtAttributeMixin(object):
 
 
 class XigtReferenceAttributeMixin(object):
+
+    def __init__(self, alignment=None, content=None, segmentation=None):
+        if alignment is not None:
+            self.attributes[ALIGNMENT] = alignment
+        if content is not None:
+            self.attributes[CONTENT] = content
+        if segmentation is not None:
+            self.attributes[SEGMENTATION] = segmentation
 
     @property
     def alignment(self):
