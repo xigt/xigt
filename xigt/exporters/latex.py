@@ -8,7 +8,7 @@ try:
 except ImportError:
     from itertools import izip_longest as zip_longest
 from collections import deque
-from xigt.core import get_alignment_expression_ids
+from xigt import ref
 from xigt.exporters.util import sub
 
 DEFAULT_TIER_TYPES = ('words', 'morphemes', 'glosses')
@@ -186,7 +186,7 @@ def align_tier(trellis, tier):
     return trellis
 
 def get_agenda(tier):
-    agenda = [(get_alignment_expression_ids(item.alignment), item)
+    agenda = [(ref.ids(item.alignment or item.segmentation), item)
               for item in tier.items]
     # then group those with the same alignment (still a list [(ids, item)])
     agenda = deque(tuple([k, [g[1] for g in gs]])
