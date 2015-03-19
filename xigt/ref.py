@@ -183,6 +183,10 @@ def ids(expression):
 # operations with interpretation
 
 def resolve(expression, container):
+    """
+    Return the string that is the resolution of the alignment expression
+    `expression`, which selects ids from `container`.
+    """
     itemgetter = getattr(container, 'get_item', container.get)
     tokens = []
     expression = expression.strip()
@@ -202,7 +206,11 @@ def resolve(expression, container):
     return ''.join(tokens)
 
 
-def targets(ids, igt):
+def referents(ids, igt):
+    """
+    Return a list of references for each id in `ids`. Each id must
+    belong to a Tier or Item in `igt`.
+    """
     return [igt.get_item(_id, default=igt.get(_id)) for _id in ids]
 
 
