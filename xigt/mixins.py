@@ -11,6 +11,7 @@ from xigt.consts import (
 from xigt.errors import (
     XigtError
 )
+from xigt.ref import id_re
 
 def _has_parent(obj):
     return hasattr(obj, '_parent') and obj._parent is not None
@@ -125,20 +126,23 @@ class XigtAttributeMixin(object):
             else:
                 return default
 
-    # @property
-    # def id(self):
-    #     return self.attributes[ID]
-    # @id.setter
-    # def id(self, value):
-    #     self.attributes[ID] = value
-    
+    @property
+    def id(self):
+        return self._id
+    @id.setter
+    def id(self, value):
+        if value is not None and not id_re.match(value):
+            raise ValueError('Invalid ID: {}'.format(value))
+        self._id = value
+
+    # no validation for type yet, so the property isn't necessary    
     # @property
     # def type(self):
-    #     return self.attributes[TYPE]
+    #     return self._type
     # @type.setter
     # def type(self, value):
-    #     self.attributes[TYPE] = value
-
+    #     self._type = value
+    
 
 class XigtReferenceAttributeMixin(object):
 
