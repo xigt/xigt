@@ -33,13 +33,13 @@ class TestCommand(Command):
         t.run(tests)
 
 setup(
-	name='Xigt',
-    version='0.1',
+    name='Xigt',
+    version='0.9',
     url='https://github.com/goodmami/xigt',
-	author='Michael Wayne Goodman',
-	author_email='goodman.m.w@gmail.com',
-	description='A library and schema for eXtensible Interlinear Glossed Text',
-	packages=['xigt','xigt.codecs'],
+    author='Michael Wayne Goodman',
+    author_email='goodman.m.w@gmail.com',
+    description='A library and schema for eXtensible Interlinear Glossed Text',
+    packages=['xigt','xigt.codecs'],
     scripts=[
         'bin/xigt-import',
         'bin/xigt-export',
@@ -47,5 +47,5 @@ setup(
         'bin/xigt-query',
         'bin/xigt-validate'
     ],
-	cmdclass={'test':TestCommand}
+    cmdclass={'test':TestCommand}
 )
