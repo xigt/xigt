@@ -40,5 +40,12 @@ setup(
 	author_email='goodman.m.w@gmail.com',
 	description='A library and schema for eXtensible Interlinear Glossed Text',
 	packages=['xigt','xigt.codecs'],
+    scripts=[
+        'bin/xigt-import',
+        'bin/xigt-export',
+        'bin/xigt-process',
+        'bin/xigt-query',
+        'bin/xigt-validate'
+    ],
 	cmdclass={'test':TestCommand}
 )
