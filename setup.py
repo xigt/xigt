@@ -34,7 +34,7 @@ class TestCommand(Command):
 
 setup(
 	name='Xigt',
-    version='0.1',
+    version='0.9',
     url='https://github.com/goodmami/xigt',
 	author='Michael Wayne Goodman',
 	author_email='goodman.m.w@gmail.com',
