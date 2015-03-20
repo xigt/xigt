@@ -64,7 +64,7 @@ def separate_tiers(args):
             sep_xc.add(Igt(id=igt.id, type=igt.type,
                            attributes=igt.attributes, metadata=igt.metadata,
                            tiers=[t for t in igt.tiers if t.type in tiers]))
-        xigtxml.dump(open(args.outfile, 'w'), sep_xc, pretty_print=True)
+        xigtxml.dump(open(args.outfile, 'w'), sep_xc)
 
     if not args.remainder: return
     with open(args.infile,'r') as instream:
@@ -76,7 +76,7 @@ def separate_tiers(args):
                            attributes=igt.attributes, metadata=igt.metadata,
                            tiers=[t for t in igt.tiers
                                   if t.type not in tiers]))
-        xigtxml.dump(open(args.remainder, 'w'), rem_xc, pretty_print=True)
+        xigtxml.dump(open(args.remainder, 'w'), rem_xc)
 
 
 def merge_tiers(infile1, infile2, outfile, overwrite_tiers=False):
