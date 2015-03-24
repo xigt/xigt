@@ -147,12 +147,28 @@ class XigtAttributeMixin(object):
 class XigtReferenceAttributeMixin(object):
 
     def __init__(self, alignment=None, content=None, segmentation=None):
+
+        self._refattrs = [ALIGNMENT, CONTENT, SEGMENTATION]
+
+        self.igt._referent_cache = {
+            ALIGNMENT: defaultdict(list),
+            CONTENT: defaultdict(list),
+            SEGMENTATION: defaultdict(list)
+        }
+        self.igt._referrer_cache = {
+            ALIGNMENT: defaultdict(list),
+            CONTENT: defaultdict(list),
+            SEGMENTATION: defaultdict(list)
+        }
+
         if alignment is not None:
             self.attributes[ALIGNMENT] = alignment
         if content is not None:
             self.attributes[CONTENT] = content
         if segmentation is not None:
             self.attributes[SEGMENTATION] = segmentation
+
+
 
     @property
     def alignment(self):

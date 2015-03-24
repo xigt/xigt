@@ -11,8 +11,6 @@ from collections import namedtuple
 # Module variables
 id_re = re.compile(r'[a-zA-Z][-.\w]*')
 reflist_re = re.compile(r'^\s*([a-zA-Z][-.\w]*)(\s+[a-zA-Z][-.\w]*)*\s*$')
-algnexpr_re = re.compile(r'(([a-zA-Z][\-.\w]*)(\[[^\]]*\])?|\+|,)')
-sel_re = re.compile(r'(-?\d+:-?\d+|\+|,)')
 
 robust_ref_re = re.compile(
     r'(^|.+?)'  # anything not an id (maybe space, maybe a delimiter)
@@ -30,9 +28,6 @@ delimiters = {
     ',': ' ',
     '+': ''
 }
-
-delim1 = ''
-delim2 = ' '
 
 
 # string-only operations
@@ -182,7 +177,7 @@ def ids(expression):
 
 # operations with interpretation
 
-def resolve(expression, container):
+def resolve(container, expression):
     """
     Return the string that is the resolution of the alignment expression
     `expression`, which selects ids from `container`.
@@ -206,15 +201,36 @@ def resolve(expression, container):
     return ''.join(tokens)
 
 
-def referents(ids, igt):
+def referents(igt, id, refattrs=None):
     """
-    Return a list of references for each id in `ids`. Each id must
-    belong to a Tier or Item in `igt`.
+    Return a list of ids denoting objects (tiers or items) in `igt` that
+    are referred by the object denoted by `id` using a reference
+    attribute in `refattrs`. If `refattrs` is None, then consider all
+    known reference attributes. In other words, if 'b1' refers to 'a1'
+    using 'alignment', then `referents(igt, 'b1', ['alignment'])`
+    returns `['a1']`.
     """
+
+
+def referrers(igt, id, refattrs=None):
+    """
+    Return a list of ids denoting objects (tiers or items) in `igt` that
+    refer to the given `id`. In other words, if 'b1' refers to 'a1',
+    then `referrers(igt, 'a1')` returns `['b1']`.
+    """
+
+
+def resolve_ids(igt, ids):
     return [igt.get_item(_id, default=igt.get(_id)) for _id in ids]
 
 
-# deprecated methods
+# deprecated
+
+algnexpr_re = re.compile(r'(([a-zA-Z][\-.\w]*)(\[[^\]]*\])?|\+|,)')
+sel_re = re.compile(r'(-?\d+:-?\d+|\+|,)')
+
+delim1 = ''
+delim2 = ' '
 
 def get_aligned_tier(tier, algnattr):
     tgt_tier_id = tier.get_attribute(algnattr)
