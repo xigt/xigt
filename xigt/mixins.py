@@ -146,20 +146,16 @@ class XigtAttributeMixin(object):
 
 class XigtReferenceAttributeMixin(object):
 
+    _tier_refattrs = {
+        None: (ALIGNMENT, CONTENT, SEGMENTATION)
+    }
+    _item_refattrs = {
+        None: {
+            None: (ALIGNMENT, CONTENT, SEGMENTATION)
+        }
+    }
+
     def __init__(self, alignment=None, content=None, segmentation=None):
-
-        self._refattrs = [ALIGNMENT, CONTENT, SEGMENTATION]
-
-        self.igt._referent_cache = {
-            ALIGNMENT: defaultdict(list),
-            CONTENT: defaultdict(list),
-            SEGMENTATION: defaultdict(list)
-        }
-        self.igt._referrer_cache = {
-            ALIGNMENT: defaultdict(list),
-            CONTENT: defaultdict(list),
-            SEGMENTATION: defaultdict(list)
-        }
 
         if alignment is not None:
             self.attributes[ALIGNMENT] = alignment
@@ -168,7 +164,19 @@ class XigtReferenceAttributeMixin(object):
         if segmentation is not None:
             self.attributes[SEGMENTATION] = segmentation
 
+    def referents(self, refattrs=None):
+        if not getattr(self, 'igt'):
+            raise XigtError('Cannot retrieve referents; unspecified IGT.')
+        if not getattr(self, 'id'):
+            raise XigtError('Cannot retrieve referents; unspecified id.')
+        return self.igt.referents(self.id, refattrs=refattrs)
 
+    def referrers(self, refattrs=None):
+        if not getattr(self, 'igt'):
+            raise XigtError('Cannot retrieve referrers; unspecified IGT.')
+        if not getattr(self, 'id'):
+            raise XigtError('Cannot retrieve referrers; unspecified id.')
+        return self.igt.referrers(self.id, refattrs=refattrs)
 
     @property
     def alignment(self):
@@ -190,6 +198,18 @@ class XigtReferenceAttributeMixin(object):
     @segmentation.setter
     def segmentation(self, value):
         self.attributes[SEGMENTATION] = value
+
+    def allowed_reference_attributes(self):
+        # tiers just get _tier_refattrs[tier.type], items get
+        # _item_refattrs[tier.type][item.type]. If a type is not
+        # specified, it defaults to None.
+        try:
+            tier_type = self.tier.type
+        except AttributeError:
+            return self._tier_refattrs.get(self.type, self._tier_refattrs[None])
+        else:
+            ras = self._item_refattrs.get(tier_type, self._item_refattrs[None])
+            return ras.get(self.type, ras[None])
 
 
 class XigtMetadataMixin(object):

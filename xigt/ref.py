@@ -2,6 +2,7 @@
 import re
 from collections import namedtuple
 
+from xigt.errors import XigtLookupError
 
 ### Alignment Expressions ####################################################
 
@@ -206,10 +207,16 @@ def referents(igt, id, refattrs=None):
     Return a list of ids denoting objects (tiers or items) in `igt` that
     are referred by the object denoted by `id` using a reference
     attribute in `refattrs`. If `refattrs` is None, then consider all
-    known reference attributes. In other words, if 'b1' refers to 'a1'
-    using 'alignment', then `referents(igt, 'b1', ['alignment'])`
-    returns `['a1']`.
+    known reference attributes for the type of object denoted by _id_.
+    In other words, if 'b1' refers to 'a1' using 'alignment', then
+    `referents(igt, 'b1', ['alignment'])` returns `['a1']`.
     """
+    obj = igt.get_any(id)
+    if obj is None:
+        raise XigtLookupError(id)
+    if refattrs is None:
+        refattrs = obj.allowed_reference_attributes()
+    return {ra: ids(obj.attributes.get(ra, '')) for ra in refattrs}
 
 
 def referrers(igt, id, refattrs=None):
@@ -218,10 +225,35 @@ def referrers(igt, id, refattrs=None):
     refer to the given `id`. In other words, if 'b1' refers to 'a1',
     then `referrers(igt, 'a1')` returns `['b1']`.
     """
+    if refattrs is None:
+        result = {}
+    else:
+        result = {ra: [] for ra in refattrs}
 
+    # if the id is a tier, only look at tiers; otherwise only look at items
+    try:
+        obj = igt[id]
+        others = igt.tiers
+    except KeyError:
+        obj = igt.get_item(id)
+        others = [i for t in igt.tiers for i in t.items]
 
-def resolve_ids(igt, ids):
-    return [igt.get_item(_id, default=igt.get(_id)) for _id in ids]
+    if obj is None:
+        raise XigtLookupError(id)
+
+    for other in others:
+        if other.id is None:
+            continue  # raise a warning?
+
+        _refattrs = refattrs
+        if _refattrs is None:
+            _refattrs = other.allowed_reference_attributes()
+
+        attrget = other.attributes.get  # just loop optimization
+        for ra in _refattrs:
+            if id in ids(attrget(ra, '')):
+                result.setdefault(ra, []).append(other.id)
+    return result
 
 
 # deprecated

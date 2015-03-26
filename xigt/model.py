@@ -7,7 +7,6 @@
 
 import logging
 import warnings
-from collections import OrderedDict
 from itertools import chain
 
 from xigt.consts import (
@@ -25,9 +24,7 @@ from xigt.mixins import (
     XigtMetadataMixin  # XigtCorpus, Igt, Tier
 )
 
-from xigt.ref import (
-    resolve
-)
+from xigt import ref
 
 from xigt.errors import (
     XigtError,
@@ -111,14 +108,77 @@ class Igt(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
         )
         XigtMetadataMixin.__init__(self, metadata)
 
+        self._referent_cache = {}
+        self._referrer_cache = {}
         self._parent = corpus
         self._itemdict = {}
+
         self.extend(tiers or [])
+        self.refresh_indices()
 
     def __repr__(self):
         return '<Igt object (id: {}) with {} Tiers at {}>'.format(
             str(self.id or '--'), len(self), str(id(self))
         )
+
+    def refresh_indices(self, tiers=False, items=True,
+                        referents=True, referrers=True):
+        if tiers:
+            self.refresh_index()  # from XigtContainerMxin
+
+        if items is True:
+            items = [i for t in self.tiers for i in t.items]
+        up = self._update_item_index
+        for item in items:
+            up(item)
+
+        if referents is True:
+            referents = self.tiers + [i for t in self.tiers for i in t.items]
+        up = self._update_referent_index
+        for r in referents:
+            up(r)
+
+        if referrers is True:
+            referrers = self.tiers + [i for t in self.tiers for i in t.items]
+        up = self._update_referrer_index
+        for r in referrers:
+            up(r)
+
+    def _update_item_index(self, item):
+        idict = self._itemdict
+        i_id = item.id
+        if i_id in idict and idict[i_id] != item:
+            warnings.warn(
+                'Item "{}" already exists in Igt.'.format(i_id),
+                XigtWarning
+            )
+        idict[i_id] = item
+
+    def _update_referent_index(self, obj):
+        if obj.id is None:
+            warnings.warn(
+                'Cannot cache referents for an object with no id.',
+                XigtWarning
+            )
+            return
+        rdict = self._referent_cache.setdefault(obj.id, {})
+        for refattr in obj.allowed_reference_attributes():
+            rdict[refattr] = ref.ids(obj.attributes.get(refattr, ''))
+
+    def _update_referrer_index(self, obj):
+        o_id = obj.id
+        if o_id is None:
+            warnings.warn(
+                'Cannot cache referrers for an object with no id.',
+                XigtWarning
+            )
+            return
+        rdict = self._referrer_cache
+        attrget = obj.attributes.get  # just loop optimization
+        for refattr in obj.allowed_reference_attributes():
+            ids = ref.ids(attrget(refattr, ''))
+            for id in ids:
+                rdict.setdefault(id, {}).setdefault(refattr, []).append(o_id)
 
     @property
     def corpus(self):
@@ -132,7 +192,22 @@ class Igt(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
         self._list = value
 
     def get_item(self, item_id, default=None):
-        return self._itemdict.get(item_id, default=default)
+        return self._itemdict.get(item_id, default)
+
+    def get_any(self, _id, default=None):
+        return self.get(_id, self._itemdict.get(_id, default))
+
+    def referents(self, id, refattrs=None):
+        if refattrs is None:
+            return self._referent_cache.get(id, {})
+        else:
+            return ref.referents(self, id, refattrs=refattrs)
+
+    def referrers(self, id, refattrs=None):
+        if refattrs is None:
+            return self._referrer_cache.get(id, {})
+        else:
+            return ref.referrers(self, id, refattrs=refattrs)
 
 
 class Tier(XigtContainerMixin, XigtAttributeMixin,
@@ -162,22 +237,6 @@ class Tier(XigtContainerMixin, XigtAttributeMixin,
         return '<Tier object (id: {}; type: {}) with {} Items at {}>'.format(
             str(self.id or '--'), self.type, len(self), str(id(self))
         )
-
-    def _create_id_mapping(self, item):
-        """
-        Igts also maintain a dictionary of items, so index the item in
-        both places.
-        """
-        XigtContainerMixin._create_id_mapping(self, item)
-        igt = self.igt
-        item_id = item.id
-        if igt is not None and item_id is not None:
-            if item_id in igt._itemdict and igt._itemdict[item_id] != item:
-                warnings.warn(
-                    'Item "{}" already exists in Igt.'.format(item_id),
-                    XigtWarning
-                )
-            igt._itemdict[item_id] = item
 
     @property
     def igt(self):
@@ -223,9 +282,6 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
             str(self.id or '--'), self.value(), str(id(self))
         )
 
-    def __str__(self):
-        return str(self.get_content())
-
     @property
     def tier(self):
         return self._parent
@@ -258,7 +314,7 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
             algnexpr = self.attributes[refattr]
             reftier_id = self.tier.attributes[refattr]
             reftier = self.igt[reftier_id]
-            return resolve(algnexpr, reftier)
+            return ref.resolve(reftier, algnexpr)
         except KeyError:
             return None  # TODO: log this
 
