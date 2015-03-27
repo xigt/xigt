@@ -256,6 +256,26 @@ def referrers(igt, id, refattrs=None):
     return result
 
 
+def dereference(obj, refattr):
+    if hasattr(obj, 'igt'):
+        id = ids(obj.attributes[refattr])[0]
+        return obj.igt.get_any(id)
+    else:
+        raise XigtLookupError(
+            'Cannot dereference from non-Tier, non-Item objects.'
+        )
+
+
+def dereference_all(obj, refattr):
+    if hasattr(obj, 'igt'):
+        ids = ids(obj.attributes[refattr])
+        return [obj.igt.get_any(id) for id in ids]
+    else:
+        raise XigtLookupError(
+            'Cannot dereference from non-Tier, non-Item objects.'
+        )
+
+
 # deprecated
 
 algnexpr_re = re.compile(r'(([a-zA-Z][\-.\w]*)(\[[^\]]*\])?|\+|,)')
