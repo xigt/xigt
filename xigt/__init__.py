@@ -8,6 +8,5 @@ from xigt.model import (
     Meta
 )
 from xigt.ref import (
-    resolve_alignment_expression,
-    resolve_alignment
+    resolve
 )

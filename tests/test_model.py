@@ -18,104 +18,187 @@ class TestMetadata(unittest.TestCase):
         self.assertEqual(len(m.metas), 1)
         self.assertEqual(m[0].text, 'meta')
 
+
 class TestItem(unittest.TestCase):
-    def test_empty(self):
-        i = Item()
-        # empty members
-        self.assertEqual(i.type, None)
-        self.assertEqual(i.id, None)
-        self.assertEqual(i.tier, None)
-        self.assertEqual(i.igt, None)
-        self.assertEqual(i.corpus, None)
-        self.assertEqual(i.attributes, dict())
-        self.assertEqual(i.text, None)
-        # sub-spans of null content is also null content
-        #self.assertEqual(i.span(0,1), None)
+    def setUp(self):
+        self.i1 = Item()
 
-    def test_basic(self):
-        i = Item(id='i1', type='basic', attributes={'attr':'val'},
-                 text='text')
-        self.assertEqual(i.type, 'basic')
-        self.assertEqual(i.id, 'i1')
-        self.assertEqual(i.tier, None)
-        self.assertEqual(i.igt, None)
-        self.assertEqual(i.corpus, None)
-        self.assertEqual(i.attributes, {'attr':'val'})
-        self.assertEqual(i.text, 'text')
-        # sub-spans of null content is also null content
-        #self.assertEqual(i.span(0,1), 't')
+        self.i2 = Item(
+            id='i2',
+            type='basic',
+            attributes={'attr':'val'},
+            text='text'
+        )
 
-    def test_linked(self):
-        #t = Tier(id='t', items=[Item(id='t1',text='text')])
-        pass
+    def test_id(self):
+        self.assertEqual(self.i1.id, None)
+
+        self.assertEqual(self.i2.id, 'i2')
+
+    def test_type(self):
+        self.assertEqual(self.i1.type, None)
+
+        self.assertEqual(self.i2.type, 'basic')
+
+    def test_parents(self):
+        self.assertEqual(self.i1.tier, None)
+        self.assertEqual(self.i1.igt, None)
+        self.assertEqual(self.i1.corpus, None)
+
+        self.assertEqual(self.i2.tier, None)
+        self.assertEqual(self.i2.igt, None)
+        self.assertEqual(self.i2.corpus, None)
+
+    def test_attributes(self):
+        self.assertEqual(self.i1.attributes, dict())
+
+        self.assertEqual(self.i2.attributes, {'attr':'val'})
+
+    def test_reference_attributes(self):
+        self.assertEqual(self.i1.alignment, None)
+        self.assertEqual(self.i1.content, None)
+        self.assertEqual(self.i1.segmentation, None)
+
+        self.assertEqual(self.i2.alignment, None)
+        self.assertEqual(self.i2.content, None)
+        self.assertEqual(self.i2.segmentation, None)
+
+    def test_text(self):
+        self.assertEqual(self.i1.text, None)
+
+        self.assertEqual(self.i2.text, 'text')
+
+    def test_value(self):
+        self.assertEqual(self.i1.value(), None)
+
+        self.assertEqual(self.i2.value(), 'text')
+
+    def test_span(self):
+        # sub-spans of null content is also null content
+        self.assertEqual(self.i1.span(0,1), None)
+
+        self.assertEqual(self.i2.span(0,1), 't')
+
 
 class TestTier(unittest.TestCase):
-    def test_empty(self):
-        t = Tier()
-        # empty members
-        self.assertEqual(t.type, None)
-        self.assertEqual(t.id, None)
-        self.assertEqual(t.igt, None)
-        self.assertEqual(t.corpus, None)
-        self.assertEqual(len(t.metadata), 0)
-        self.assertEqual(t.attributes, dict())
-        self.assertEqual(len(t.items), 0)
-        # empty properties
-        self.assertEqual(t.items, [])
+    def setUp(self):
+        self.t1 = Tier()
 
-    def test_basic(self):
-        t = Tier(id='t', type='basic',
-                 attributes={'attr':'val'},
-                 metadata=[Metadata(type='meta', metas=[Meta(text='meta')])],
-                 items=[Item(), Item()])
-        self.assertEqual(t.type, 'basic')
-        self.assertEqual(t.id, 't')
-        self.assertEqual(t.igt, None)
-        self.assertEqual(t.corpus, None)
-        self.assertEqual(t.metadata[0].type, 'meta')
-        self.assertEqual(len(t.metadata[0].metas), 1)
-        self.assertEqual(t.metadata[0][0].text, 'meta')
-        self.assertEqual(t.attributes, {'attr':'val'})
-        self.assertEqual(len(t.items), 2)
-        # contained Items should now have their tier specified
-        for i in t.items:
-            self.assertEqual(i.tier, t)
+        self.t2 = Tier(
+            id='t',
+            type='basic',
+            attributes={'attr':'val'},
+            metadata=[Metadata(type='meta', metas=[Meta(text='meta')])],
+            items=[Item(), Item()]
+        )
+
+    def test_init(self):
         # don't allow multiple items with the same ID
         self.assertRaises(XigtError, Tier, items=[Item(id='i1'),
                                                   Item(id='i1')])
 
-    def test_linked(self):
-        pass
+    def test_id(self):
+        self.assertEqual(self.t1.id, None)
+
+        self.assertEqual(self.t2.id, 't')
+
+    def test_type(self):
+        self.assertEqual(self.t1.type, None)
+
+        self.assertEqual(self.t2.type, 'basic')
+
+    def test_parents(self):
+        self.assertEqual(self.t1.igt, None)
+        self.assertEqual(self.t1.corpus, None)
+
+        self.assertEqual(self.t2.igt, None)
+        self.assertEqual(self.t2.corpus, None)
+
+    def test_metadata(self):
+        self.assertEqual(len(self.t1.metadata), 0)
+
+        self.assertEqual(self.t2.metadata[0].type, 'meta')
+        self.assertEqual(len(self.t2.metadata[0].metas), 1)
+        self.assertEqual(self.t2.metadata[0][0].text, 'meta')
+
+    def test_attributes(self):
+        self.assertEqual(self.t1.attributes, dict())
+
+        self.assertEqual(self.t2.attributes, {'attr':'val'})
+
+    def test_reference_attributes(self):
+        self.assertEqual(self.t1.alignment, None)
+        self.assertEqual(self.t1.content, None)
+        self.assertEqual(self.t1.segmentation, None)
+
+        self.assertEqual(self.t2.alignment, None)
+        self.assertEqual(self.t2.content, None)
+        self.assertEqual(self.t2.segmentation, None)
+
+    def test_items(self):
+        self.assertEqual(len(self.t1._list), 0)
+        self.assertEqual(self.t1.items, [])
+
+        self.assertEqual(len(self.t2.items), 2)
+        # contained Items should now have their tier specified
+        for i in self.t2.items:
+            self.assertEqual(i.tier, self.t2)
+
 
 class TestIgt(unittest.TestCase):
-    def test_empty(self):
-        i = Igt()
-        self.assertEqual(i.id, None)
-        self.assertEqual(i.attributes, dict())
-        self.assertEqual(i.corpus, None)
-        self.assertEqual(len(i.metadata), 0)
-        self.assertEqual(len(i.tiers), 0)
+    def setUp(self):
+        self.i1 = Igt()
 
-    def test_basic(self):
-        i = Igt(id='i1', type='basic', attributes={'attr':'val'},
-                metadata=[Metadata(type='meta', metas=[Meta(text='meta')])],
-                tiers=[Tier(id='a'), Tier(id='b')])
-        self.assertEqual(i.id, 'i1')
-        self.assertEqual(i.attributes, {'attr':'val'})
-        self.assertEqual(i.corpus, None)
-        self.assertEqual(i.metadata[0].type, 'meta')
-        self.assertEqual(len(i.metadata[0].metas), 1)
-        self.assertEqual(i.metadata[0][0].text, 'meta')
-        self.assertEqual(len(i.tiers), 2)
-        # contained Tiers should now have their igt specified
-        for t in i.tiers:
-            self.assertEqual(t.igt, i)
+        self.i2 = Igt(
+            id='i1',
+            type='basic',
+            attributes={'attr':'val'},
+            metadata=[Metadata(type='meta',
+                               metas=[Meta(text='meta')])],
+            tiers=[Tier(id='a'),
+                   Tier(id='b')]
+        )
+
+    def test_init(self):
         # don't allow multiple tiers with the same ID
         self.assertRaises(XigtError, Igt, tiers=[Tier(id='a'),
                                                  Tier(id='a')])
 
-    def test_linked(self):
-        pass
+    def test_id(self):
+        self.assertEqual(self.i1.id, None)
+
+        self.assertEqual(self.i2.id, 'i1')
+
+    def test_type(self):
+        self.assertEqual(self.i1.type, None)
+
+        self.assertEqual(self.i2.type, 'basic')
+
+    def test_parents(self):
+        self.assertEqual(self.i1.corpus, None)
+
+        self.assertEqual(self.i2.corpus, None)
+
+    def test_metadata(self):
+        self.assertEqual(len(self.i1.metadata), 0)
+
+        self.assertEqual(self.i2.metadata[0].type, 'meta')
+        self.assertEqual(len(self.i2.metadata[0].metas), 1)
+        self.assertEqual(self.i2.metadata[0][0].text, 'meta')
+
+    def test_attributes(self):
+        self.assertEqual(self.i1.attributes, dict())
+
+        self.assertEqual(self.i2.attributes, {'attr':'val'})
+
+    def test_tiers(self):
+        self.assertEqual(len(self.i1.tiers), 0)
+
+        self.assertEqual(len(self.i2.tiers), 2)
+        # contained Tiers should now have their igt specified
+        for t in self.i2.tiers:
+            self.assertEqual(t.igt, self.i2)
+
 
 class TestXigtCorpus(unittest.TestCase):
     def test_empty(self):
@@ -142,8 +225,6 @@ class TestXigtCorpus(unittest.TestCase):
         self.assertRaises(XigtError, XigtCorpus, igts=[Igt(id='i1'),
                                                        Igt(id='i1')])
 
-    def test_linked(self):
-        pass
 
 class TestXigtMixin(unittest.TestCase):
     def test_iter(self):
