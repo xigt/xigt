@@ -3,24 +3,69 @@ from xigt import XigtCorpus, Igt, Tier, Item, Metadata, Meta
 from xigt.errors import XigtError, XigtStructureError
 
 class TestMetadata(unittest.TestCase):
+
+    def setUp(self):
+        self.md1 = Metadata()
+
+        self.md2 = Metadata(
+            id='md2',
+            type='basic',
+            attributes={'attr':'val'},
+            metas=[Meta(text='meta')]
+        )
+
     def test_init(self):
-        self.assertRaises(ValueError, Metadata, id='1')  # invalid id        
+        self.assertRaises(ValueError, Metadata, id='1')  # invalid id
 
-    def test_empty(self):
-        m = Metadata()
-        self.assertEqual(m.type, None)
-        self.assertEqual(m.attributes, dict())
-        self.assertEqual(m.metas, [])
+    def test_id(self):
+        self.assertIs(self.md1.id, None)
 
-    def test_full(self):
-        m = Metadata(type='basic',
-                     attributes={'attr':'val'},
-                     metas=[Meta(text='meta')])
-        self.assertEqual(m.type, 'basic')
-        self.assertEqual(m.attributes, {'attr':'val'})
-        self.assertEqual(len(m.metas), 1)
-        self.assertEqual(m[0].text, 'meta')
+        self.assertIs(self.md2.id, 'md2')
 
+    def test_type(self):
+        self.assertEqual(self.md1.type, None)
+
+        self.assertEqual(self.md2.type, 'basic')
+
+    def test_metas(self):
+        self.assertEqual(self.md1.metas, [])
+
+        self.assertEqual(len(self.md2.metas), 1)
+        self.assertEqual(self.md2[0].text, 'meta')
+
+    def test_attributes(self):
+        self.assertEqual(self.md1.attributes, dict())
+
+        self.assertEqual(self.md2.attributes, {'attr':'val'})
+
+    def test_get(self): pass
+    def test_append(self): pass
+    def test_insert(self): pass
+    def test_extend(self): pass
+    def test_clear(self): pass
+    def test_get_attribute(self): pass
+
+
+class TestMeta(unittest.TestCase):
+
+    def setUp(self):
+        self.m1 = Meta()
+
+    def test_init(self):
+        self.assertRaises(ValueError, Meta, id='1')  # invalid id
+
+    def test_id(self):
+        self.assertIs(self.m1.id, None)
+
+    def test_type(self):
+        self.assertIs(self.m1.type, None)
+
+    def test_attributes(self):
+        self.assertEqual(self.m1.attributes, dict())
+
+    def test_get_attribute(self):
+        self.assertIs(self.m1.get_attribute('attr'), None)
+        self.assertIs(self.m1.get_attribute('attr', 1), 1)
 
 class TestItem(unittest.TestCase):
     def setUp(self):
@@ -256,6 +301,15 @@ class TestTier(unittest.TestCase):
 
         self.assertEqual(self.t2.type, 'basic')
 
+    def test_items(self):
+        self.assertEqual(len(self.t1._list), 0)
+        self.assertEqual(self.t1.items, [])
+
+        self.assertEqual(len(self.t2.items), 2)
+        # contained Items should now have their tier specified
+        for i in self.t2.items:
+            self.assertIs(i.tier, self.t2)
+
     def test_parents(self):
         self.assertIs(self.t1.igt, None)
         self.assertIs(self.t1.corpus, None)
@@ -288,14 +342,12 @@ class TestTier(unittest.TestCase):
         self.assertIs(self.t2.content, None)
         self.assertIs(self.t2.segmentation, None)
 
-    def test_items(self):
-        self.assertEqual(len(self.t1._list), 0)
-        self.assertEqual(self.t1.items, [])
-
-        self.assertEqual(len(self.t2.items), 2)
-        # contained Items should now have their tier specified
-        for i in self.t2.items:
-            self.assertIs(i.tier, self.t2)
+    def test_get(self): pass
+    def test_append(self): pass
+    def test_insert(self): pass
+    def test_extend(self): pass
+    def test_clear(self): pass
+    def test_get_attribute(self): pass
 
 
 class TestIgt(unittest.TestCase):
@@ -328,6 +380,14 @@ class TestIgt(unittest.TestCase):
 
         self.assertEqual(self.i2.type, 'basic')
 
+    def test_tiers(self):
+        self.assertEqual(len(self.i1.tiers), 0)
+
+        self.assertEqual(len(self.i2.tiers), 2)
+        # contained Tiers should now have their igt specified
+        for t in self.i2.tiers:
+            self.assertIs(t.igt, self.i2)
+
     def test_parents(self):
         self.assertIs(self.i1.corpus, None)
 
@@ -345,43 +405,72 @@ class TestIgt(unittest.TestCase):
 
         self.assertEqual(self.i2.attributes, {'attr':'val'})
 
-    def test_tiers(self):
-        self.assertEqual(len(self.i1.tiers), 0)
-
-        self.assertEqual(len(self.i2.tiers), 2)
-        # contained Tiers should now have their igt specified
-        for t in self.i2.tiers:
-            self.assertIs(t.igt, self.i2)
+    def test_get(self): pass
+    def test_get_item(self): pass
+    def test_get_any(self): pass
+    def test_append(self): pass
+    def test_insert(self): pass
+    def test_extend(self): pass
+    def test_clear(self): pass
+    def test_get_attribute(self): pass
 
 
 class TestXigtCorpus(unittest.TestCase):
 
+    def setUp(self):
+        self.c1 = XigtCorpus()
+
+        self.c2 = XigtCorpus(
+            id='xc1',
+            type='basic',
+            attributes={'attr':'val'},
+            metadata=[Metadata(type='meta', metas=[Meta(text='meta')])],
+            igts=[Igt(id='i1'), Igt(id='i2')]
+        )
+
     def test_init(self):
         self.assertRaises(ValueError, XigtCorpus, id='1')  # invalid id
 
-    def test_empty(self):
-        c = XigtCorpus()
-        self.assertIs(c.id, None)
-        self.assertEqual(c.attributes, dict())
-        self.assertEqual(len(c.metadata), 0)
-        self.assertEqual(len(c.igts), 0)
-
-    def test_basic(self):
-        c = XigtCorpus(id='xc1', attributes={'attr':'val'},
-                       metadata=[Metadata(type='meta', metas=[Meta(text='meta')])],
-                       igts=[Igt(id='i1'), Igt(id='i2')])
-        self.assertEqual(c.id, 'xc1')
-        self.assertEqual(c.attributes, {'attr':'val'})
-        self.assertEqual(c.metadata[0].type, 'meta')
-        self.assertEqual(len(c.metadata[0].metas), 1)
-        self.assertEqual(c.metadata[0][0].text, 'meta')
-        self.assertEqual(len(c.igts), 2)
-        # contained Igts should now have their corpus specified
-        for i in c.igts:
-            self.assertIs(i.corpus, c)
         # don't allow multiple igts with the same ID
         self.assertRaises(XigtError, XigtCorpus, igts=[Igt(id='i1'),
                                                        Igt(id='i1')])
+
+    def test_id(self):
+        self.assertIs(self.c1.id, None)
+
+        self.assertEqual(self.c2.id, 'xc1')
+
+    def test_type(self):
+        self.assertIs(self.c1.type, None)
+
+        self.assertIs(self.c2.type, 'basic')
+
+    def test_igts(self):
+        self.assertEqual(len(self.c1.igts), 0)
+
+        self.assertEqual(len(self.c2.igts), 2)
+        # contained Igts should now have their corpus specified
+        for i in self.c2.igts:
+            self.assertIs(i.corpus, self.c2)
+
+    def test_attributes(self):
+        self.assertEqual(self.c1.attributes, dict())
+
+        self.assertEqual(self.c2.attributes, {'attr':'val'})
+
+    def test_metadata(self):
+        self.assertEqual(len(self.c1.metadata), 0)
+
+        self.assertEqual(self.c2.metadata[0].type, 'meta')
+        self.assertEqual(len(self.c2.metadata[0].metas), 1)
+        self.assertEqual(self.c2.metadata[0][0].text, 'meta')
+
+    def test_get(self): pass
+    def test_append(self): pass
+    def test_insert(self): pass
+    def test_extend(self): pass
+    def test_clear(self): pass
+    def test_get_attribute(self): pass
 
 
 class TestXigtMixin(unittest.TestCase):

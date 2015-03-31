@@ -61,10 +61,12 @@ class XigtCorpus(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
             =========== ================================================
     """
 
-    def __init__(self, id=None, attributes=None, metadata=None, igts=None,
-                 mode=FULL):
+    def __init__(self, id=None, type=None, attributes=None, metadata=None,
+                 igts=None, mode=FULL):
         XigtContainerMixin.__init__(self)
-        XigtAttributeMixin.__init__(self, id=id, attributes=attributes)
+        XigtAttributeMixin.__init__(
+            self, id=id, type=type, attributes=attributes
+        )
         XigtMetadataMixin.__init__(self, metadata)
         self.mode = mode
         if mode == FULL:
