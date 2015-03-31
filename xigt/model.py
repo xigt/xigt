@@ -310,13 +310,28 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
         return None
 
     def resolve_ref(self, refattr):
-        try:
-            algnexpr = self.attributes[refattr]
-            reftier_id = self.tier.attributes[refattr]
-            reftier = self.igt[reftier_id]
-            return ref.resolve(reftier, algnexpr)
-        except KeyError:
-            return None  # TODO: log this
+        algnexpr = self.attributes[refattr]
+        if self.tier is None:
+            raise XigtStructureError(
+                'Cannot resolve item reference; item (id: {}) is not '
+                'contained by a Tier.'
+                .format(self.id)
+            )
+        reftier_id = self.tier.attributes[refattr]
+        if self.igt is None:
+            raise XigtStructureError(
+                'Cannot resolve item reference; item\'s tier (id: {}) '
+                'is not contained by an Igt.'
+                .format(self.tier.id)
+            )
+        reftier = self.igt.get(reftier_id)
+        if reftier is None:
+            raise XigtStructureError(
+                'Referred tier (id: {}) does not exist in the Igt.'
+                .format(reftier_id)
+            )
+        value = ref.resolve(reftier, algnexpr)
+        return value
 
     def span(self, start, end):
         c = self.value()

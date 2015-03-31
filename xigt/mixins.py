@@ -157,6 +157,12 @@ class XigtReferenceAttributeMixin(object):
 
     def __init__(self, alignment=None, content=None, segmentation=None):
 
+        if segmentation and (content or alignment):
+            raise XigtError(
+                'The "segmentation" reference attribute cannot co-occur with '
+                'the "content" or "alignment" reference attributes.'
+            )
+
         if alignment is not None:
             self.attributes[ALIGNMENT] = alignment
         if content is not None:
