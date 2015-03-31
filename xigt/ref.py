@@ -108,17 +108,17 @@ def selections(expression, keep_delimiters=True):
     Also works on space-separated ID lists, although a sequence of space
     characters will be considered a delimiter.
 
-    >>> selection_split('a1')
+    >>> selections('a1')
     ['a1']
-    >>> selection_split('a1[3:5]')
+    >>> selections('a1[3:5]')
     ['a1[3:5]']
-    >>> selection_split('a1[3:5+6:7]')
+    >>> selections('a1[3:5+6:7]')
     ['a1[3:5+6:7]']
-    >>> selection_split('a1[3:5+6:7]+a2[1:4]')
+    >>> selections('a1[3:5+6:7]+a2[1:4]')
     ['a1[3:5+6:7]', '+', 'a2[1:4]']
-    >>> selection_split('a1[3:5+6:7]+a2[1:4]', keep_delimiters=False)
+    >>> selections('a1[3:5+6:7]+a2[1:4]', keep_delimiters=False)
     ['a1[3:5+6:7]', 'a2[1:4]']
-    >>> selection_split('a1 a2  a3')
+    >>> selections('a1 a2  a3')
     ['a1', ' ', 'a2', '  ', 'a3']
 
     """
@@ -142,21 +142,21 @@ def spans(expression, keep_delimiters=True):
     Also works on space-separated ID lists, although a sequence of space
     characters will be considered a delimiter.
 
-    >>> span_split('a1')
+    >>> spans('a1')
     ['a1']
-    >>> span_split('a1[3:5]')
+    >>> spans('a1[3:5]')
     ['a1[3:5]']
-    >>> span_split('a1[3:5+6:7]')
+    >>> spans('a1[3:5+6:7]')
     ['a1[3:5]', '+', 'a1[6:7]']
-    >>> span_split('a1[3:5+6:7]', keep_delimiters=False)
+    >>> spans('a1[3:5+6:7]', keep_delimiters=False)
     ['a1[3:5]', 'a1[6:7]']
-    >>> span_split('a1[3:5+6:7]+a2[1:4]')
+    >>> spans('a1[3:5+6:7]+a2[1:4]')
     ['a1[3:5]', '+', 'a1[6:7]', '+', 'a2[1:4]']
-    >>> span_split('a1 a2  a3')
+    >>> spans('a1 a2  a3')
     ['a1', ' ', 'a2', '  ', 'a3']
 
     """
-    return selection_split(expand(expression), keep_delimiters=keep_delimiters)
+    return selections(expand(expression), keep_delimiters=keep_delimiters)
 
 
 def ids(expression):
