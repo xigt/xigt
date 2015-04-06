@@ -1,16 +1,33 @@
 Xigt
 ====
 
-A library for *eXtensible Interlinear Glossed Text*
-([IGT](http://en.wikipedia.org/wiki/Interlinear_gloss))
+A framework for *eXtensible Interlinear Glossed Text*
+([IGT](http://en.wikipedia.org/wiki/Interlinear_gloss)).
 
+* [Introduction](#introduction)
 * [Installation and Requirements](#installation-and-requirements)
 * [Features](#features)
 * [Acknowledgments](#acknowledgments)
 
-Xigt is created with extensibility in mind, offering a core framework
-and XML schema (in [RelaxNG](http://relaxng.org/)) ready to be extended
-without much trouble. Here is a small example of an IGT encoded in
+
+### Introduction
+
+The philosophy of Xigt is that IGT data should be
+[simple for the common cases](https://github.com/goodmami/xigt/wiki/Basic-Schema)
+while easily
+[scaling up](https://github.com/goodmami/xigt/wiki/Schema-Extensions)
+to accommodate different kinds of annotations. New
+annotations do not need to alter the original data, but instead can be
+applied on top of them. Furthermore, Xigt data is meant to be easily
+[processed by computers](https://github.com/goodmami/xigt/wiki/Tutorials) so
+that it's easy to inspect, analyze, and modify IGT data.
+
+The Xigt framework includes a
+[data model and XML format](https://github.com/goodmami/xigt/wiki/Data-Model)
+as well as a Python [API](https://github.com/goodmami/xigt/wiki/API-Reference)
+for working with Xigt data.
+
+Here is a small example of an IGT encoded in
 Xigt's XML format:
 
 ```xml
@@ -19,8 +36,8 @@ Xigt's XML format:
     <item id="w1">cocinas</item>
   </tier>
   <tier type="morphemes" id="m" segmentation="w">
-    <item id="m1" segmentation="w1[0:5]"/>
-    <item id="m2" segmentation="w1[5:7]"/>
+    <item id="m1" segmentation="w1[0:5]"/>  <!-- selects "cocin" -->
+    <item id="m2" segmentation="w1[5:7]"/>  <!-- selects "as" -->
   </tier>
   <tier type="glosses" id="g" alignment="m">
     <item id="g1" alignment="m1">cook</item>
@@ -32,37 +49,33 @@ Xigt's XML format:
 </igt>
 ```
 
+
 ### Installation and Requirements
 
-Xigt requires the following:
-* [Python3](http://python.org/download/)
+The [Xigt API](https://github.com/goodmami/xigt/wiki/API-Reference) is coded
+in Python (targeting Python 3.3+, but it may work with Python 2.7 as well).
+* [Python](http://python.org/download/)
 
-For using Xigt's XML format, we recommend you also install:
+For using Xigt's XML format, the following software is recommended:
 * A RelaxNG validator for compact schema, like
   [Jing](http://www.thaiopensource.com/relaxng/jing.html)
 * The [lxml](http://lxml.de/) XML library for Python
 
-Once it's downloaded, there's no need to install Xigt to your system. The
-provided Xigt scripts can be run from the directory they are in, and
-Python extensions can find Xigt's package by setting the [`PYTHONPATH`](
-https://docs.python.org/3.2/using/cmdline.html#envvar-PYTHONPATH)
-environment variable appropriately.
+To get the latest Xigt, clone this repository:
 
-If you wish to install it to the system, use the provided `setup.py`
-script:
-
-```Bash
-$ ./setup.py install
+```bash
+git clone https://github.com/goodmami/xigt.git
 ```
 
-Note: To remove (uninstall) Xigt, remove its package directory. On a Linux
-system, this may somewhere like `/usr/lib/python3.X/site-packages/xigt/`.
-There may also be an Egg info file, such as
-`/usr/lib/python3.X/site-packages/Xigt-(version)-py3.X.egg-info`.
+In order to make Xigt importable by Python, add the path to the cloned Xigt
+repository to the
+[`PYTHONPATH`](https://docs.python.org/3.2/using/cmdline.html#envvar-PYTHONPATH)
+environment variable.
 
-Note 2: I've yet only tested the installation on Linux. If you are having
+Note: Xigt is primarily developed and tested on Linux. If you are having
 trouble installing on Windows, Mac, or some other operating system, please
-contact me or file an [issue report](https://github.com/goodmami/xigt/issues.).
+contact me or file an [issue report](https://github.com/goodmami/xigt/issues).
+
 
 ### Features ###
 
@@ -70,6 +83,10 @@ Xigt has several features that help enable complex alignments, and
 these features can be ignored for simpler IGT.
 
 ##### Alignment Expressions
+
+Alignment expressions are an expanded referencing system that allow some data
+to align to more than one target, and furthermore allows them to select
+substrings from the target(s).
 
 Given:
   
@@ -85,69 +102,84 @@ a1                  -> "one"
 a1,a2               -> "one two"
 a1+a2               -> "onetwo"
 a1[0:1]             -> "o"
-a1[0:1,2:3]         -> "oe"
+a1[0:1,2:3]         -> "o e"
 a1[1:3]+a2[1:2+0:1] -> "newt"
 ```
 
+Alignment expressions are specified on
+[reference attributes](https://github.com/goodmami/xigt/wiki/Data-Model#xigt-reference-attributes)
+at the item level.
+
 ##### Floating Alignments
 
-When more than one item align to the same selection, they are in a floating alignment.
-That is, they are ordered (as in the XML), but have no definite subpartitioning among
-them. For instance, given the following item:
+When more than one item align to the same selection, they are said to be in a
+"floating alignment". That is, they are ordered (as in the XML), but have no
+definite subpartitioning among them. For instance, given the following phrase
+item:
 
 ```xml
-<item id="s1">A dog barks.</item>
+<tier type="phrases" id="p">
+  <item id="p1">A dog barks.</item>
+</tier>
 ```
 
-...and the following aligned items all aligned to the same item above:
+...and the following word items all aligned to the same phrase item above:
 
 ```xml
-<item id="w1" alignment="s1">A</item>
-<item id="w2" alignment="s1">dog</item>
-<item id="w3" alignment="s1">barks</item>
+<tier type="words" id="w" alignment="p">
+  <item id="w1" alignment="p1">A</item>
+  <item id="w2" alignment="p1">dog</item>
+  <item id="w3" alignment="p1">barks</item>
+</tier>
 ```
 
-Xigt will maintain the order \["A", "dog", "barks"\] (i.e. not \["dog", "A", "barks"\] and so on),
-but does not specify the selections (i.e. character spans) from the aligned item. In other words,
-it is understood that **w1**, **w2**, and **w3** are contained by **s1** and in that order, but
-there is no explicit character alignments. This is
-useful when one does not want to delimit items exactly, or when one cannot delimit the sub-items
-(e.g. glosses for portmanteau morphemes).
+Xigt will maintain the order \["A", "dog", "barks"\] (i.e. not \["dog", "A",
+"barks"\] and so on), but does not specify which substrings each item aligns to.
+In other words, it is understood that **w1**, **w2**, and **w3** are contained
+by **s1** and in that order, but there is no explicit character alignments. This
+is useful when one does not want to delimit items exactly (e.g. when dealing
+with noisy data), or when one cannot delimit the sub-items (e.g. glosses for
+portmanteau morphemes).
 
-##### Data Inheritance
+##### Referred Values
 
-Items can provide content as text of the XML elements, but if they don't, they inherit it from other items using the `content` or `segmentation` reference attributes. The `content` attribute may be used when providing annotation and the annotation content comes from another source (e.g. a standoff annotation). The `segmentation` attribute is useful when merely breaking up sentences into words, words into morphemes, etc., as it accomplishes two things: pulling content from and aligning to a span. The alignment during segmentation is necessary to later find where the content came from.
+In Xigt, the only difference between _primary data_ (e.g. phrases or words) and
+_annotations_ (e.g. glosses or translations) is that annotations are aligned to
+some other items. The data/annotation-label is called the "value", and this
+value can either be explicitly given, or refer to some other source. In the
+latter case, an alignment expression (given by the "segmentation" or "content"
+reference attribute) is used to select the value.
 
-For example, one can delimit the morphemes of the word in item **w3** above as follows:
+The benefit of using alignment expressions to select item values is that the
+data becomes more linked. For instance, it becomes possible to say that not
+only does a morpheme align to some word, but that its value is a particular
+substring of that word. A second use for referred values is stand-off
+annotation, where the data comes from some external source and one wants to
+encode the relationship between the IGT structure and the original data.
+
+For example, in the above example, rather than aligning **w1**--**w3** to **p1**
+and then explicitly giving the value, one can "segment" the words from the
+phrase:
 
 ```xml
-<item id="w3" alignment="s1">barks</item>
-...
-<item id="m1" segmentation="w3[0:4]"/>
-<item id="m2" segmentation="w3[4:5]"/>
+<tier type="phrases" id="p">
+  <item id="p1">A dog barks.</item>
+</tier>
+<tier type="words" id="w" segmentation="p">
+  <item id="w1" segmentation="p1[0:1]" />  <!-- selects "A" -->
+  <item id="w2" segmentation="p1[2:5]" />  <!-- selects "dog" -->
+  <item id="w3" segmentation="p1[6:11]" /> <!-- selects "barks -->
+</tier>
 ```
 
-Items **m1** and **m2** do not provide their own content, so their content is inherited from the specified
-spans of **w3**. That is, **m1**'s content is implicitly "bark", and **m2**'s is implicitly "s".
-Later items refer to the relative character positions of the inherited content. For example,
-referencing "m2[0:1]" is the character "s" (aside: since it's the entire content of **m2**, it's the same
-as referencing "m2").
+Here, items **w1**, **w2**, and **w3** do not provide their own value, but instead select it via the alignment expression on their "segmentation"
+attribute.
 
-Also note that an item can specify both a `segmentation` attribute and provide content. This is useful when one wants the alignment of the segmentation to show where the content came from, but also want to provide different content. For example, one may use this to clean up OCR results or show the underlying form before phonological processes have occurred.
+Also note that an item can specify both a "segmentation" or "content" attribute
+and explicitly provide a value, in which case the provided value overrides the
+selected one, but the link remains. This is useful for cleaning up OCR results
+or showing the underlying form before phonological processes have occurred.
 
-##### Data Shadowing
-
-When an item **x** provides content, later items referring to **x** can only select alignments to **x**'s
-content, and not that of any items **x** refers to. For example, in the following, the content of **y** is
-"t", and not "o".
-
-```xml
-<item id="w">one</item>
-...
-<item id="x" segmentation="w">two</item>
-...
-<item id="y" segmentation="x[0:1]"/>
-```
 
 ### Acknowledgments
 
@@ -158,5 +190,9 @@ findings, and conclusions or recommendations expressed in this material are
 those of the author(s) and do not necessarily reflect the views of the National
 Science Foundation.
 
-Xigt was developed under the AGGREGATION project
+This project is also partially supported by the Affectedness project, under
+the Singapore Ministry of Education Tier 2 grant (grant number
+MOE2013-T2-1-016).
+
+Xigt was initially developed under the AGGREGATION project
 (http://depts.washington.edu/uwcl/aggregation/)
