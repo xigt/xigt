@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
+import argparse
 import logging
 from xigt.codecs import xigtxml
 
-def main(infile, outpath, out_format, config=None):
+def run(infile, outpath, out_format, config=None):
     cfg = None
     if config:
         import json
@@ -17,8 +18,7 @@ def main(infile, outpath, out_format, config=None):
         xc = xigtxml.load(in_fh, mode='transient')
         exporter.xigt_export(xc, outpath, config=cfg)
 
-if __name__ == '__main__':
-    import argparse
+def main(arglist=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--verbose',
         action='count', dest='verbosity', default=2,
@@ -32,6 +32,9 @@ if __name__ == '__main__':
         help='The format of the output corpus (default: latex).')
     parser.add_argument('-c', '--config', metavar='PATH', default=None,
         help='A JSON-formatted configuration file.')
-    args = parser.parse_args()
+    args = parser.parse_args(arglist)
     logging.basicConfig(level=50-(args.verbosity*10))
-    main(args.input, args.output, args.format, config=args.config)
+    run(args.input, args.output, args.format, config=args.config)
+
+if __name__ == '__main__':
+    main()

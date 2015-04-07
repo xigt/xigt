@@ -107,7 +107,7 @@ def print_languages(title, lg_stats):
     print()
 
 
-if __name__ == '__main__':
+def main(arglist=None):
     parser = argparse.ArgumentParser(
         description='Query Xigt documents.'
     )
@@ -125,8 +125,12 @@ if __name__ == '__main__':
         help='List the languages used in each input file with their counts.')
     #parser.add_argument('-m' '--xigt-meta')
     parser.add_argument('files', nargs='+')
-    args = parser.parse_args()
+    args = parser.parse_args(arglist)
 
     if args.summarize or args.summarize_each or \
        args.languages or args.languages_each:
         print_stats(args)
+
+
+if __name__ == '__main__':
+    main()

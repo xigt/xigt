@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
+import argparse
 import logging
 import json
 
-def main(args):
+def run(args):
     infile = args.input
     outfile = args.output
     inp_format = args.format
@@ -16,8 +17,7 @@ def main(args):
     with open(infile, 'r') as in_fh, open(outfile, 'w') as out_fh:
         importer.xigt_import(in_fh, out_fh, options=config)
 
-if __name__ == '__main__':
-    import argparse
+def main(arglist=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--verbose',
         action='count', dest='verbosity', default=2,
@@ -32,6 +32,9 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--config', metavar='PATH',
         help='A JSON-formatted configurationp file for '
              'format-specific options.')
-    args = parser.parse_args()
+    args = parser.parse_args(arglist)
     logging.basicConfig(level=50-(args.verbosity*10))
-    main(args)
+    run(args)
+
+if __name__ == '__main__':
+    main()

@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 
+import argparse
+import sys
 from collections import Counter, defaultdict
 import logging
 import warnings
 warnings.simplefilter('ignore')
 
 from xigt.codecs import xigtxml
-from xigt.core import (
-    get_alignment_expression_ids as get_ae_ids,
-    get_alignment_expression_spans as get_ae_spans,
-    XigtAttributeError
-)
+from xigt.ref import (ids, spans, selection_re, span_re)
+from xigt.errors import XigtAttributeError
 
 datalevels = ['corpus', 'igt', 'tier', 'item']
 reference_attributes = ['alignment', 'segmentation', 'content']
@@ -241,7 +240,7 @@ def algnexpr_ids_in_referred_tier(item, refattr):
     if not itemref or not reftier:
         return
     missing = []
-    for ae_id in get_ae_ids(itemref):
+    for ae_id in ids(itemref):
         if reftier.get(ae_id) is None:
             missing.append(ae_id)
     if missing:
@@ -258,12 +257,16 @@ def algnexpr_spans_in_aligned_item(item, refattr):
     if not itemref or not reftier:
         return
     error_spans = []
-    for span in get_ae_spans(itemref):
+    for span in spans(itemref):
         if span in alignment_expression_delimiters:
             continue  # schema validator should catch bad algnexprs like '+w3'
-        if isinstance(span, str):
-            continue  # just an id (like "w3"), which means the full span
-        item_id, start, end = span
+        sel_delim, item_id, _range = selection_re.match(span).groups()
+        if _range:
+            _, start, end = span_re.match(_range).groups()
+            start = int(start)
+            end = int(end)
+        else:
+            continue
         tgt_item = reftier.get(item_id)
         if tgt_item is None:
             continue  # this should be caught by algnexpr_ids_in_referred_tier
@@ -274,9 +277,7 @@ def algnexpr_spans_in_aligned_item(item, refattr):
         return (
             'Alignment expressions {{modal}} select spans within '
             'the aligned <item> elements. The following spans are not '
-            'valid: {}'.format(', '.join(
-                '{}[{}:{}]'.format(*span) for span in error_spans
-             ))
+            'valid: {}'.format(', '.join(error_spans))
         )
 
 def algnexpr_spans_do_not_overlap(item, refattr):
@@ -285,7 +286,7 @@ def algnexpr_spans_do_not_overlap(item, refattr):
     if not itemref or not reftier:
         return
     spans_by_id = defaultdict(Counter)
-    for span in get_ae_spans(itemref):
+    for span in spans(itemref):
         if span in alignment_expression_delimiters:
             continue  # schema validator should catch bad algnexprs like '+w3'
         if isinstance(span, str):
@@ -380,7 +381,7 @@ def format_message(record, nestlevel, args):
 
 # COMMANDLINE USE
 
-def main(args):
+def run(args):
     passed = []
     from xml.etree import ElementTree as ET
     ids = Counter()
@@ -409,10 +410,7 @@ def main(args):
                 add_id(ids, xc)
     return all(passed)
 
-if __name__ == '__main__':
-    import argparse
-    import sys
-
+def main(arglist=None):
     parser = argparse.ArgumentParser(description="Validate Xigt documents.")
     add = parser.add_argument
     add('files', nargs='+')
@@ -424,11 +422,15 @@ if __name__ == '__main__':
         action='store_const', const=0, dest='verbosity',
         help='Set verbosity to the quietest level.')
 
-    args = parser.parse_args()
+    args = parser.parse_args(arglist)
     logging.basicConfig(
         level=60-(args.verbosity*10),
         format='%(message)s'
     )
 
-    success = main(args)
-    sys.exit(0 if success else 1)
+    success = run(args)
+    sys.exit(0 if success else 1)    
+
+
+if __name__ == '__main__':
+    main()

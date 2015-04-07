@@ -1,51 +1,55 @@
 #!/usr/bin/env python3
 
-from unittest import TextTestRunner, TestLoader
-from glob import glob
-from os.path import splitext, basename, join as pjoin
-import os
-from distutils.core import setup, Command
+from setuptools import setup
 
-# thanks: http://da44en.wordpress.com/2002/11/22/using-distutils/
-class TestCommand(Command):
-    description='run unit tests'
-    user_options = [ ]
-
-    def initialize_options(self):
-        self._dir = os.getcwd()
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        '''
-        Finds all the tests modules in tests/, and runs them.
-        '''
-        testfiles = [ ]
-        for t in glob(pjoin(self._dir, 'tests', '*.py')):
-            if not t.endswith('__init__.py'):
-                testfiles.append('.'.join(
-                    ['tests', splitext(basename(t))[0]])
-                )
-
-        tests = TestLoader().loadTestsFromNames(testfiles)
-        t = TextTestRunner(verbosity = 1)
-        t.run(tests)
+long_description='''\
+Xigt is a framemwork for working with interlinear glossed text (IGT). It
+provides a data model and XML format as well as an API for
+programmatically interacting with Xigt data. The format has a flat
+structure and makes use of IDs and references to encode the annotation
+structure of an IGT. This architecture allows for interesting extensions
+to the standard IGT tiers, such as for parse trees, dependencies,
+bilingual alignments, and more.'''
 
 setup(
     name='Xigt',
-    version='0.9',
+    version='1.0rc1',
+    description='A framework for eXtensible Interlinear Glossed Text',
+    long_description=long_description,
     url='https://github.com/goodmami/xigt',
     author='Michael Wayne Goodman',
     author_email='goodman.m.w@gmail.com',
-    description='A library and schema for eXtensible Interlinear Glossed Text',
-    packages=['xigt','xigt.codecs'],
-    scripts=[
-        'bin/xigt-import',
-        'bin/xigt-export',
-        'bin/xigt-process',
-        'bin/xigt-query',
-        'bin/xigt-validate'
+    license='MIT',
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Information Technology',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Topic :: Scientific/Engineering :: Information Analysis',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Text Processing :: Linguistic'
     ],
-    cmdclass={'test':TestCommand}
+    keywords='nlp igt linguistics',
+    packages=[
+        'xigt',
+        'xigt.codecs',
+        'xigt.importers',
+        'xigt.exporters',
+        'xigt.scripts'
+    ],
+    #extras_require={
+    #    'toolbox': ['toolbox'],
+    #    'itsdb': ['pydelphin']
+    #}
+    entry_points={
+        'console_scripts': [
+            'xigt=xigt.main:main'
+        ]
+    },
+    test_suite='tests'
 )

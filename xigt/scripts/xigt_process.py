@@ -83,7 +83,7 @@ def merge_tiers(infile1, infile2, outfile, overwrite_tiers=False):
     raise NotImplementedError
 
 
-if __name__ == '__main__':
+def main(arglist=None):
     parser = argparse.ArgumentParser(description="Process Xigt documents.")
     subparsers = parser.add_subparsers(dest='cmd', help='sub-command help')
     # place IGTs into subcorpora based on a property
@@ -127,5 +127,8 @@ if __name__ == '__main__':
     mrg_parser.add_argument('outfile', help='merged output Xigt corpus')
     mrg_parser.add_argument('-O', '--overwrite', action='store_true',
             help='overwrite conflicting tiers in infile1 with those from infile2')
-    args = parser.parse_args()
+    args = parser.parse_args(arglist)
     args.func(args)
+
+if __name__ == '__main__':
+    main()

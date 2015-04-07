@@ -52,9 +52,9 @@ Xigt's XML format:
 
 ### Installation and Requirements
 
-The [Xigt API](https://github.com/goodmami/xigt/wiki/API-Reference) is coded
-in Python (targeting Python 3.3+, but it may work with Python 2.7 as well).
-* [Python](http://python.org/download/)
+The [Xigt API](https://github.com/goodmami/xigt/wiki/API-Reference) is coded in
+[Python](http://python.org/download/) (targeting Python 3.3+, but it may work
+with Python 2.7 as well).
 
 For using Xigt's XML format, the following software is recommended:
 * A RelaxNG validator for compact schema, like
@@ -69,7 +69,7 @@ git clone https://github.com/goodmami/xigt.git
 
 In order to make Xigt importable by Python, add the path to the cloned Xigt
 repository to the
-[`PYTHONPATH`](https://docs.python.org/3.2/using/cmdline.html#envvar-PYTHONPATH)
+[`PYTHONPATH`](https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH)
 environment variable.
 
 Note: Xigt is primarily developed and tested on Linux. If you are having
