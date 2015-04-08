@@ -75,11 +75,12 @@ def default_decode(events, mode='full'):
         event, elem = next(events)
     igts = None
     if event == 'start' and elem.tag == 'igt':
-        igts = filter(bool, map(
-            decode_igt,
-            iter_elements('igt', events, root,
-                          break_on=[('end', 'xigt-corpus')])
-        ))
+        igts = (
+            decode_igt(e)
+            for e in iter_elements(
+                'igt', events, root, break_on=[('end', 'xigt-corpus')]
+            )
+        )
     xc = decode_xigtcorpus(root, igts=igts, mode=mode)
     return xc
 
@@ -138,57 +139,36 @@ def default_decode_item(elem):
 
 
 def default_decode_metadata(elem):
-    metadata = None
     if elem is None:
         return None
-    # no metadata type... just treat contents as text
-    if elem.get('type') is None:
-        metadata = Metadata(
-            type=elem.get('type'),
-            attributes=get_attributes(elem, ignore=('type',)),
-            text=elem.text
-        )
-    # basic metadata subtype allowed by default schema
-    elif elem.get('type') == 'xigt-meta':
-        metadata = Metadata(
-            type=elem.get('type'),
-            attributes=get_attributes(elem, ignore=('type',)),
-            text=[decode_meta(meta) for meta in elem.findall('meta')]
-        )
-    else:
-        raise TypeError('Invalid subtype of Metadata: {}'
-                        .format(elem.get('type')))
+    metadata = Metadata(
+        id=elem.get('id'),
+        type=elem.get('type'),
+        attributes=get_attributes(elem, ignore=('id', 'type')),
+        metas=[decode_meta(meta) for meta in elem.findall('meta')]
+    )
     elem.clear()
     return metadata
 
 
 def default_decode_meta(elem):
-    meta = None
-    metatype = elem.get('type').lower()
-    metaattrs = get_attributes(elem, ignore=('type',))
-    # language is easy---just attributes
-    if metatype == 'language':
-        meta = Meta(type=metatype,
-                    attributes=metaattrs)
-    # and the following have basic content
-    elif metatype in ('date', 'author', 'comment'):
-        meta = Meta(type=metatype,
-                    attributes=metaattrs,
-                    text=elem.text)
-    # source has two alternatives
-    elif metatype == 'source' and elem.get('id') is not None:
-        meta = Meta(type=metatype,
-                    attributes=metaattrs,
-                    text=elem.text)
-    elif metatype == 'source' and elem.get('ref') is not None:
-        meta = Meta(type=metatype,
-                    attributes=metaattrs)
-    else:
-        meta = Meta(type=metatype,
-                    attributes=metaattrs,
-                    text=elem.text or None)
-        # raise ValueError('Invalid subtype of Meta: {}'
-        #                  .format(metatype))
+    # a meta can simply have text, which is the easy case, or it can
+    # have nested XML. In the latter case, we don't know what the nested
+    # XML will look like, so just reserialize it and store it as text.
+
+    # python3 needs encoding='unicode' to get a native string, but for
+    # python2 this gives a LookupError
+    try:
+        children = [ET.tostring(e, encoding='unicode') for e in elem]
+    except LookupError:
+        children = [ET.tostring(e) for e in elem]
+    meta = Meta(
+        id=elem.get('id'),
+        type=elem.get('type'),
+        attributes=get_attributes(elem, ignore=('id', 'type')),
+        text=elem.text,
+        children=children
+    )
     elem.clear()
     return meta
 
@@ -277,24 +257,13 @@ def default_encode_item(item, indent=2):
 def default_encode_metadata(metadata, indent=2, level=0):
     attrs = encode_attributes(metadata, ['id', 'type'])
     indent_space = ' ' * ((level * indent) - 2)
-    if metadata.type is None:
-        return '{}<metadata{}>{}</metadata>{}'.format(
-            indent_space,
-            attrs,
-            escape(metadata.text),
-            '\n' if indent else ''
-        )
-    elif metadata.type == 'xigt-meta':
-        lines = ['{}<metadata{}>'.format(indent_space, attrs)]
-        lines.extend(
-            encode_meta(meta, indent=indent, level=(level + 1))
-            for meta in metadata.text
-        )
-        lines.append('{}</metadata>'.format(indent_space))
-        return ('\n' if indent else '').join(lines)
-    else:
-        raise ValueError('Invalid subtype of Metadata: {}'
-                         .format(metadata.type))
+    lines = ['{}<metadata{}>'.format(indent_space, attrs)]
+    lines.extend(
+        encode_meta(meta, indent=indent, level=(level + 1))
+        for meta in metadata.metas
+    )
+    lines.append('{}</metadata>'.format(indent_space))
+    return ('\n' if indent else '').join(lines)
 
 
 def default_encode_meta(meta, indent=2, level=1):
@@ -303,11 +272,11 @@ def default_encode_meta(meta, indent=2, level=1):
     #    raise ValueError('Invalid subtype of Meta: {}'
     #                     .format(meta.type))
     attrs = encode_attributes(meta, ['id', 'type'])
-    cnt = meta.text
+    cnt = ''.join([escape(meta.text)] + meta.children)
     s = '{}<meta{}{}>'.format(
         ' ' * ((level * indent) - 2),
         attrs,
-        '/' if cnt is None else '>{}</meta>'.format(escape(cnt))
+        '/' if cnt is None else '>{}</meta>'.format(cnt)
     )
     return s
 

@@ -396,7 +396,7 @@ class Metadata(XigtContainerMixin, XigtAttributeMixin):
         return self._list
     @metas.setter
     def metas(self, value):
-            self._list = value
+        self._list = value
 
     # deprecated properties
 
@@ -412,13 +412,14 @@ class Metadata(XigtContainerMixin, XigtAttributeMixin):
 
 class Meta(XigtAttributeMixin):
     def __init__(self, id=None, type=None, attributes=None, text=None,
-                 metadata=None):
+                 children=None, metadata=None):
         XigtAttributeMixin.__init__(
             self, id=id, type=type, attributes=attributes
         )
 
         self._parent = metadata
         self.text = text
+        self.children = children
 
     def __repr__(self):
         return '<Meta object (id: {}) at {}>'.format(

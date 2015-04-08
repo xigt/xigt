@@ -2,8 +2,20 @@
 
 ## [Unreleased][unreleased]
 
+### Added
+
+* Meta objects now take a "children" argument, which is for nested
+  (non-string) content.
+
+### Fixed
+
+* xigtxml now reads <metadata> for Python2 (a map() problem meant that it was
+  cleared in Py2 before it could be parsed)
+* xigtxml now serializes and deserializes Metadata and Meta elements correctly
+
 ### Changed
 
+* xigtxml now outputs <igt> elements even if they are empty (<igt/>)
 * rename get_aligment_expression_ids() to get_alignment_expression_ids()
   This function was deprecated, but somewhere along the lines it got renamed.
   This just fixes the rename.
@@ -13,8 +25,8 @@
 ### Added
 
 * xigt.query : advanced queries of the data
-  - xigt.query.ancestors()
-  - xigt.query.descendants()
+  - [xigt.query.ancestors()](../../wiki/Queries#ancestors)
+  - [xigt.query.descendants()](../../wiki/Queries#descendants)
 * more extensive unit tests (but still not full coverage)
 
 ### Changed
@@ -28,23 +40,23 @@
 ### Deprecated
 
 * get_aligned_tier()
-    see ref.dereference()
+  &mdash; see [ref.dereference()](../../wiki/References#dereference)
 * get_aligment_expression_ids()
-    see ref.ids()
+  &mdash; see [ref.ids()](../../wiki/References#ids)
 * get_alignment_expression_spans()
-    see ref.spans()
+  &mdash; see [ref.spans()](../../wiki/References#spans)
 * resolve_alignment_expression()
-    see ref.resolve()
+  &mdash; see [ref.resolve()](../../wiki/References#resolve)
 * resolve_alignment()
-    see ref.dereference()
+  &mdash; see [ref.dereference()](../../wiki/References#dereference)
 * Item.get_content()
-    see Item.value()
+  &mdash; see [Item.value()](../../wiki/Data-Structures#Item_value)
 * Metadata.text
-    see Metadata.metas
+  &mdash; see [Metadata.metas](../../wiki/Data-Structures#Metadata_metas)
 * XigtContainerMixin.add()
-    see XigtContainerMixin.append()
+  &mdash; see [XigtContainerMixin.append()](../../wiki/Data-Structures#Container_append)
 * XigtContainerMixin.add_list()
-    see XigtContainerMixin.extend()
+  &mdash; see [XigtContainerMixin.extend()](../../wiki/Data-Structures#Container_extend)
 
 ### Removed
 
