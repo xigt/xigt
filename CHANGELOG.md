@@ -2,7 +2,11 @@
 
 ## [Unreleased][unreleased]
 
-(nothing yet)
+### Changed
+
+* rename get_aligment_expression_ids() to get_alignment_expression_ids()
+  This function was deprecated, but somewhere along the lines it got renamed.
+  This just fixes the rename.
 
 ## [v1.0rc1] - 2015.04.07
 

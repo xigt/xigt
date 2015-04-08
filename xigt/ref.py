@@ -303,7 +303,7 @@ def get_aligned_tier(tier, algnattr):
     return tgt_tier
 
 
-def get_aligment_expression_ids(expression):
+def get_alignment_expression_ids(expression):
     return ids(expression)
 
 
