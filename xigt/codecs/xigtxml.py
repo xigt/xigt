@@ -272,13 +272,18 @@ def default_encode_meta(meta, indent=2, level=1):
     #    raise ValueError('Invalid subtype of Meta: {}'
     #                     .format(meta.type))
     attrs = encode_attributes(meta, ['id', 'type'])
-    cnt = ''.join([escape(meta.text)] + meta.children)
-    s = '{}<meta{}{}>'.format(
+    cnt = ''.join([escape(meta.text)] + (meta.children or []))
+    lines = ['{}<meta{}{}>'.format(
         ' ' * ((level * indent) - 2),
         attrs,
-        '/' if cnt is None else '>{}</meta>'.format(cnt)
-    )
-    return s
+        '/' if not cnt else ''
+    )]
+    if cnt:
+        lines.append(cnt.rstrip())
+        if indent:
+            lines.append('\n')
+        lines.append('{}</meta>'.format(' ' * ((level * indent) - 2)))
+    return ''.join(lines)
 
 
 ##############################################################################
