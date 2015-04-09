@@ -21,6 +21,9 @@ from xigt.mixins import (
     XigtContainerMixin,  # XigtCorpus, Igt, Tier, Metadata
     XigtAttributeMixin,  # XigtCorpus, Igt, Tier, Item, Metadata, Meta
     XigtReferenceAttributeMixin,  # Tier, Item
+)
+
+from xigt.metadata import (
     XigtMetadataMixin  # XigtCorpus, Igt, Tier
 )
 
@@ -349,79 +352,3 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
             DeprecationWarning
         )
         return self.value(refattrs=(CONTENT, SEGMENTATION))
-
-
-def metadata_text_warning():
-    warnings.warn(
-        'Metadata.text is deprecated; use Metadata.metas instead.',
-        DeprecationWarning
-    )
-
-class Metadata(XigtContainerMixin, XigtAttributeMixin):
-    """
-    A container for metadata on XigtCorpus, Igt, or Tier objects.
-    Extensions may place constraints on the allowable metadata.
-    """
-    def __init__(self, id=None, type=None, attributes=None,
-                 text=None, metas=None):
-        XigtContainerMixin.__init__(self)
-        XigtAttributeMixin.__init__(
-            self, id=id, type=type, attributes=attributes
-        )
-
-        if text is not None:
-            metadata_text_warning()
-            if metas is not None:
-                raise XigtError(
-                    'text and metas cannot both be specified.'
-                )
-            if isinstance(text, str):
-                warnings.warn(
-                    'String values of Metadata are deprecated; '
-                    'it will be put in an untyped Meta object.',
-                    DeprecationWarning
-                )
-                text = [Meta(text=text)]
-            metas = text
-
-        self.extend(metas or [])
-
-    def __repr__(self):
-        return '<Metadata object (id: {}) with {} Metas at {}>'.format(
-            str(self.id or '--'), len(self), str(id(self))
-        )
-
-    @property
-    def metas(self):
-        return self._list
-    @metas.setter
-    def metas(self, value):
-        self._list = value
-
-    # deprecated properties
-
-    @property
-    def text(self):
-        metadata_text_warning()
-        return self.metas
-    @text.setter
-    def text(self, value):
-        metadata_text_warning()
-        self.metas = value
-
-
-class Meta(XigtAttributeMixin):
-    def __init__(self, id=None, type=None, attributes=None, text=None,
-                 children=None, metadata=None):
-        XigtAttributeMixin.__init__(
-            self, id=id, type=type, attributes=attributes
-        )
-
-        self._parent = metadata
-        self.text = text
-        self.children = children
-
-    def __repr__(self):
-        return '<Meta object (id: {}) at {}>'.format(
-            str(self.id or '--'), str(id(self))
-        )

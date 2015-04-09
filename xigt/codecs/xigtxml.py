@@ -272,7 +272,7 @@ def default_encode_meta(meta, indent=2, level=1):
     #    raise ValueError('Invalid subtype of Meta: {}'
     #                     .format(meta.type))
     attrs = encode_attributes(meta, ['id', 'type'])
-    cnt = ''.join([escape(meta.text)] + (meta.children or []))
+    cnt = ''.join([escape(meta.text or '')] + (meta.children or []))
     lines = ['{}<meta{}{}>'.format(
         ' ' * ((level * indent) - 2),
         attrs,

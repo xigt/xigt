@@ -217,28 +217,4 @@ class XigtReferenceAttributeMixin(object):
             ras = self._item_refattrs.get(tier_type, self._item_refattrs[None])
             return ras.get(self.type, ras[None])
 
-
-class XigtMetadataMixin(object):
-    """
-    Enables the inheritance of metadata.
-    """
-    def __init__(self, metadata):
-        self.metadata = list(metadata or [])
-
-    def get_meta(self, key, conditions=None, default=None, inherit=True):
-        if conditions is None:
-            conditions = []
-        metas = []
-        for metadata in self.metadata:
-            if metadata.type != 'xigt-meta':
-                continue
-            for meta in metadata.text:
-                if meta.type == key and all(c(meta) for c in conditions):
-                    metas.append(meta)
-        if metas:
-            return metas
-        elif inherit and _has_parent(self):
-            return self._parent.get_meta(key, conditions, default, inherit)
-        else:
-            return default
-
+    
