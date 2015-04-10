@@ -1,0 +1,169 @@
+import unittest
+
+from xigt import (
+    XigtCorpus, Igt, Tier, Item, Metadata, Meta
+)
+from xigt.query import (ancestors, descendants)
+from xigt.errors import (
+    XigtError, XigtStructureError, XigtLookupError
+)
+
+
+class TestQueries(unittest.TestCase):
+
+    def setUp(self):
+        # no alignments
+        self.xc1 = XigtCorpus(id='xc1', igts=[
+            Igt(id='i1', tiers=[
+                Tier(id='p', type='phrases', items=[
+                    Item(id='p1', text='inu=ga san-biki hoe-ru')
+                ]),
+                Tier(id='t', type='translations', items=[
+                    Item(id='t1', text='Three dogs bark.')
+                ])
+            ])
+        ])
+
+        # basic alignment
+        self.xc2 = XigtCorpus(id='xc1', igts=[
+            Igt(id='i1', tiers=[
+                Tier(id='p', type='phrases', items=[
+                    Item(id='p1', text='inu=ga san-biki hoe-ru')
+                ]),
+                Tier(id='t', type='translations', alignment='p', items=[
+                    Item(id='t1', alignment='p1', text='Three dogs bark.')
+                ])
+            ])
+        ])
+
+        # multi-level alignments
+        # basic alignment
+        self.xc3 = XigtCorpus(id='xc1', igts=[
+            Igt(id='i1', tiers=[
+                Tier(id='p', type='phrases', items=[
+                    Item(id='p1', text='inu=ga san-biki hoe-ru')
+                ]),
+                Tier(id='w', type='words', segmentation='p', items=[
+                    Item(id='w1', segmentation='p1[0:6]'),
+                    Item(id='w2', segmentation='p1[7:15]'),
+                    Item(id='w3', segmentation='p1[16:22]')
+                ]),
+                Tier(id='m', type='morphemes', segmentation='w', items=[
+                    Item(id='m1', segmentation='w1[0:3]'),
+                    Item(id='m2', segmentation='w1[4:6]'),
+                    Item(id='m3', segmentation='w2[0:3]'),
+                    Item(id='m4', segmentation='w2[4:8]'),
+                    Item(id='m5', segmentation='w3[0:3]'),
+                    Item(id='m6', segmentation='w3[4:6]')
+                ]),
+                Tier(id='g', type='glosses', alignment='m', items=[
+                    Item(id='g1', alignment='m1', text='dog'),
+                    Item(id='g2', alignment='m2', text='NOM'),
+                    Item(id='g3', alignment='m3', text='three'),
+                    Item(id='g4', alignment='m4', text='NUMCL.animal'),
+                    Item(id='g5', alignment='m5', text='bark'),
+                    Item(id='g6', alignment='m6', text='IMP')
+                ]),
+                Tier(id='x', type='syntax', alignment='w',
+                     attributes={'children': 'x'}, items=[
+                    Item(id='x1', alignment='w1', text='NP'),
+                    Item(id='x2', alignment='w2', text='NUMCL'),
+                    Item(id='x3', alignment='w3', text='VBZ'),
+                    Item(id='x4', attributes={'children': 'x1 x2'}, text='NP'),
+                    Item(id='x5', attributes={'children': 'x4 x3'}, text='S')
+                ]),
+                Tier(id='t', type='translations', alignment='p', items=[
+                    Item(id='t1', alignment='p1', text='Three dogs bark.')
+                ])
+            ])
+        ])
+
+    def test_ancestors(self):
+        ancs = list(ancestors(self.xc1[0]['t']))
+        self.assertEqual(ancs, [])
+
+        ancs = list(ancestors(self.xc2[0]['t']))
+        self.assertEqual(len(ancs), 1)
+        srctier, refattr, reftier, refitems = ancs[0]
+        self.assertEqual(srctier.id, 't')
+        self.assertEqual(refattr, 'alignment')
+        self.assertEqual(reftier.id, 'p')
+        self.assertEqual(len(refitems), 1)
+        self.assertEqual(refitems[0].id, 'p1')
+
+        ancs = list(ancestors(self.xc3[0]['m']))
+        self.assertEqual(len(ancs), 2)
+        srctier, refattr, reftier, refitems = ancs[0]
+        self.assertEqual(srctier.id, 'm')
+        self.assertEqual(refattr, 'segmentation')
+        self.assertEqual(reftier.id, 'w')
+        self.assertEqual(len(refitems), 3)
+        self.assertEqual(refitems[0].id, 'w1')
+        self.assertEqual(refitems[1].id, 'w2')
+        self.assertEqual(refitems[2].id, 'w3')
+        srctier, refattr, reftier, refitems = ancs[1]
+        self.assertEqual(srctier.id, 'w')
+        self.assertEqual(refattr, 'segmentation')
+        self.assertEqual(reftier.id, 'p')
+        self.assertEqual(len(refitems), 1)
+        self.assertEqual(refitems[0].id, 'p1')
+
+        ancs = list(ancestors(self.xc3[0]['m']['m1']))
+        self.assertEqual(len(ancs), 2)
+        srctier, refattr, reftier, refitems = ancs[0]
+        self.assertEqual(srctier.id, 'm')
+        self.assertEqual(refattr, 'segmentation')
+        self.assertEqual(reftier.id, 'w')
+        self.assertEqual(len(refitems), 1)
+        self.assertEqual(refitems[0].id, 'w1')
+        srctier, refattr, reftier, refitems = ancs[1]
+        self.assertEqual(srctier.id, 'w')
+        self.assertEqual(refattr, 'segmentation')
+        self.assertEqual(reftier.id, 'p')
+        self.assertEqual(len(refitems), 1)
+        self.assertEqual(refitems[0].id, 'p1')
+
+    def test_descendants(self):
+        desc = list(descendants(self.xc1[0]['p']))
+        self.assertEqual(desc, [])
+
+        desc = list(ancestors(self.xc2[0]['p']))
+        self.assertEqual(len(desc), 1)
+        srctier, refattr, reftier, refitems = desc[0]
+        self.assertEqual(srctier.id, 'p')
+        self.assertEqual(refattr, 'alignment')
+        self.assertEqual(reftier.id, 't')
+        self.assertEqual(len(refitems), 1)
+        self.assertEqual(refitems[0].id, 't1')
+
+        desc = list(ancestors(self.xc3[0]['w']))
+        self.assertEqual(len(desc), 3)
+        srctier, refattr, reftier, refitems = desc[0]
+        # self.assertEqual(srctier.id, 'm')
+        # self.assertEqual(refattr, 'segmentation')
+        # self.assertEqual(reftier.id, 'w')
+        # self.assertEqual(len(refitems), 3)
+        # self.assertEqual(refitems[0].id, 'w1')
+        # self.assertEqual(refitems[1].id, 'w2')
+        # self.assertEqual(refitems[2].id, 'w3')
+        # srctier, refattr, reftier, refitems = desc[1]
+        # self.assertEqual(srctier.id, 'w')
+        # self.assertEqual(refattr, 'segmentation')
+        # self.assertEqual(reftier.id, 'p')
+        # self.assertEqual(len(refitems), 1)
+        # self.assertEqual(refitems[0].id, 'p1')
+
+        # desc = list(ancestors(self.xc3[0]['m']['m1']))
+        # self.assertEqual(len(desc), 2)
+        # srctier, refattr, reftier, refitems = desc[0]
+        # self.assertEqual(srctier.id, 'm')
+        # self.assertEqual(refattr, 'segmentation')
+        # self.assertEqual(reftier.id, 'w')
+        # self.assertEqual(len(refitems), 1)
+        # self.assertEqual(refitems[0].id, 'w1')
+        # srctier, refattr, reftier, refitems = desc[1]
+        # self.assertEqual(srctier.id, 'w')
+        # self.assertEqual(refattr, 'segmentation')
+        # self.assertEqual(reftier.id, 'p')
+        # self.assertEqual(len(refitems), 1)
+        # self.assertEqual(refitems[0].id, 'p1')
