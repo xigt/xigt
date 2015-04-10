@@ -9,7 +9,8 @@ from xigt.consts import (
     SEGMENTATION
 )
 from xigt.errors import (
-    XigtError
+    XigtError,
+    XigtStructureError
 )
 from xigt.ref import id_re
 
@@ -22,9 +23,10 @@ class XigtContainerMixin(object):
     Common methods for accessing subelements in XigtCorpus, Igt, and
     Tier objects.
     """
-    def __init__(self):
+    def __init__(self, contained_type=None):
         self._list = []
         self._dict = {}
+        self._contained_type = contained_type
 
     def __iter__(self):
         return iter(self._list)
@@ -58,12 +60,21 @@ class XigtContainerMixin(object):
         )
         return filter(match, self)
 
+    def _assert_type(self, obj):
+        if self._contained_type and not isinstance(obj, self._contained_type):
+            raise XigtStructureError(
+                'Only {} objects are allowed in this container.'
+                .format(self._contained_type.__name__)
+            )
+
     def append(self, obj):
+        self._assert_type(obj)
         obj._parent = self
         self._create_id_mapping(obj)
         self._list.append(obj)
 
     def insert(self, i, obj):
+        self._assert_type(obj)
         obj._parent = self
         self._create_id_mapping(obj)
         self._list.insert(i, obj)

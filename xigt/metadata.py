@@ -1,15 +1,19 @@
 
+import warnings
+
 from xigt.mixins import (
     XigtContainerMixin,
     XigtAttributeMixin
 )
+from xigt.errors import XigtError
+
 
 class XigtMetadataMixin(object):
     """
     Enables the management of metadata.
     """
     def __init__(self, metadata=None):
-        self._md = XigtContainerMixin()
+        self._md = XigtContainerMixin(contained_type=Metadata)
         if metadata is not None:
             self.metadata = metadata
 
@@ -19,7 +23,8 @@ class XigtMetadataMixin(object):
     @metadata.setter
     def metadata(self, value):
         if isinstance(value, Metadata):
-            value = [value]
+            raise XigtError('The metadata attribute must be a sequence '
+                            'of Metadata objects.')
         self._md.clear()
         self._md.extend(value)
 
@@ -37,7 +42,7 @@ class XigtMetadataMixin(object):
                     metas.append(meta)
         if metas:
             return metas
-        elif inherit and _has_parent(self):
+        elif inherit and hasattr(self, '_parent') and self._parent is not None:
             return self._parent.get_meta(key, conditions, default, inherit)
         else:
             return default
@@ -56,7 +61,7 @@ class Metadata(XigtContainerMixin, XigtAttributeMixin):
     """
     def __init__(self, id=None, type=None, attributes=None,
                  text=None, metas=None):
-        XigtContainerMixin.__init__(self)
+        XigtContainerMixin.__init__(self, contained_type=Meta)
         XigtAttributeMixin.__init__(
             self, id=id, type=type, attributes=attributes
         )

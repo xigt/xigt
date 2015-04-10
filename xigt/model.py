@@ -66,7 +66,7 @@ class XigtCorpus(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
 
     def __init__(self, id=None, type=None, attributes=None, metadata=None,
                  igts=None, mode=FULL):
-        XigtContainerMixin.__init__(self)
+        XigtContainerMixin.__init__(self, contained_type=Igt)
         XigtAttributeMixin.__init__(
             self, id=id, type=type, attributes=attributes
         )
@@ -107,7 +107,7 @@ class Igt(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
     """
     def __init__(self, id=None, type=None, attributes=None, metadata=None,
                  tiers=None, corpus=None):
-        XigtContainerMixin.__init__(self)
+        XigtContainerMixin.__init__(self, contained_type=Tier)
         XigtAttributeMixin.__init__(
             self, id=id, type=type, attributes=attributes
         )
@@ -225,7 +225,7 @@ class Tier(XigtContainerMixin, XigtAttributeMixin,
                  alignment=None, content=None, segmentation=None,
                  attributes=None, metadata=None,
                  items=None, igt=None):
-        XigtContainerMixin.__init__(self)
+        XigtContainerMixin.__init__(self, contained_type=Item)
         XigtAttributeMixin.__init__(
             self, id=id, type=type, attributes=attributes
         )
