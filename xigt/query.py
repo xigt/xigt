@@ -56,6 +56,7 @@ def descendants(obj, refattrs=(SEGMENTATION, ALIGNMENT), follow='first'):
         tier = obj
         items = tier.items
     igt = tier.igt
+    visited = set()
     agenda = deque([(tier, items)])
     while agenda:
         tier, items = agenda.popleft()
@@ -69,6 +70,11 @@ def descendants(obj, refattrs=(SEGMENTATION, ALIGNMENT), follow='first'):
             continue
         # unlike ancestors, descendants for a refattr may have 1+ tiers
         for refattr in ras:
+            # try to avoid cycles
+            if (tier.id, refattr) in visited:
+                continue
+            else:
+                visited.add((tier.id, refattr))
             for reftier_id in tier_refs[refattr]:
                 reftier = igt[reftier_id]
                 refitems = [
@@ -80,4 +86,4 @@ def descendants(obj, refattrs=(SEGMENTATION, ALIGNMENT), follow='first'):
                 agenda.append((reftier, refitems))
 
 #def ingroup(obj, refattrs)
-#def filter([objs], lambda x: 
+#def filter([objs], lambda x:

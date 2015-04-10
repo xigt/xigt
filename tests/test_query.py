@@ -78,92 +78,78 @@ class TestQueries(unittest.TestCase):
             ])
         ])
 
+    def check(self, result, srcid, refattr, refid, refitemids):
+        srctier, refattr_, reftier, refitems = result
+        self.assertEqual(srctier.id, srcid)
+        self.assertEqual(refattr_, refattr)
+        self.assertEqual(reftier.id, refid)
+        self.assertEqual(len(refitems), len(refitemids))
+        self.assertEqual([i.id for i in refitems], refitemids)
+
+
     def test_ancestors(self):
         ancs = list(ancestors(self.xc1[0]['t']))
         self.assertEqual(ancs, [])
 
         ancs = list(ancestors(self.xc2[0]['t']))
         self.assertEqual(len(ancs), 1)
-        srctier, refattr, reftier, refitems = ancs[0]
-        self.assertEqual(srctier.id, 't')
-        self.assertEqual(refattr, 'alignment')
-        self.assertEqual(reftier.id, 'p')
-        self.assertEqual(len(refitems), 1)
-        self.assertEqual(refitems[0].id, 'p1')
+        self.check(ancs[0], 't', 'alignment', 'p', ['p1'])
 
         ancs = list(ancestors(self.xc3[0]['m']))
         self.assertEqual(len(ancs), 2)
-        srctier, refattr, reftier, refitems = ancs[0]
-        self.assertEqual(srctier.id, 'm')
-        self.assertEqual(refattr, 'segmentation')
-        self.assertEqual(reftier.id, 'w')
-        self.assertEqual(len(refitems), 3)
-        self.assertEqual(refitems[0].id, 'w1')
-        self.assertEqual(refitems[1].id, 'w2')
-        self.assertEqual(refitems[2].id, 'w3')
-        srctier, refattr, reftier, refitems = ancs[1]
-        self.assertEqual(srctier.id, 'w')
-        self.assertEqual(refattr, 'segmentation')
-        self.assertEqual(reftier.id, 'p')
-        self.assertEqual(len(refitems), 1)
-        self.assertEqual(refitems[0].id, 'p1')
+        self.check(ancs[0], 'm', 'segmentation', 'w', ['w1', 'w2', 'w3'])
+        self.check(ancs[1], 'w', 'segmentation', 'p', ['p1'])
 
         ancs = list(ancestors(self.xc3[0]['m']['m1']))
         self.assertEqual(len(ancs), 2)
-        srctier, refattr, reftier, refitems = ancs[0]
-        self.assertEqual(srctier.id, 'm')
-        self.assertEqual(refattr, 'segmentation')
-        self.assertEqual(reftier.id, 'w')
-        self.assertEqual(len(refitems), 1)
-        self.assertEqual(refitems[0].id, 'w1')
-        srctier, refattr, reftier, refitems = ancs[1]
-        self.assertEqual(srctier.id, 'w')
-        self.assertEqual(refattr, 'segmentation')
-        self.assertEqual(reftier.id, 'p')
-        self.assertEqual(len(refitems), 1)
-        self.assertEqual(refitems[0].id, 'p1')
+        self.check(ancs[0], 'm', 'segmentation', 'w', ['w1'])
+        self.check(ancs[1], 'w', 'segmentation', 'p', ['p1'])
 
     def test_descendants(self):
         desc = list(descendants(self.xc1[0]['p']))
         self.assertEqual(desc, [])
 
-        desc = list(ancestors(self.xc2[0]['p']))
+        desc = list(descendants(self.xc2[0]['p']))
         self.assertEqual(len(desc), 1)
-        srctier, refattr, reftier, refitems = desc[0]
-        self.assertEqual(srctier.id, 'p')
-        self.assertEqual(refattr, 'alignment')
-        self.assertEqual(reftier.id, 't')
-        self.assertEqual(len(refitems), 1)
-        self.assertEqual(refitems[0].id, 't1')
+        self.check(desc[0], 'p', 'alignment', 't', ['t1'])
 
-        desc = list(ancestors(self.xc3[0]['w']))
+        desc = list(descendants(self.xc3[0]['p']))
         self.assertEqual(len(desc), 3)
-        srctier, refattr, reftier, refitems = desc[0]
-        # self.assertEqual(srctier.id, 'm')
-        # self.assertEqual(refattr, 'segmentation')
-        # self.assertEqual(reftier.id, 'w')
-        # self.assertEqual(len(refitems), 3)
-        # self.assertEqual(refitems[0].id, 'w1')
-        # self.assertEqual(refitems[1].id, 'w2')
-        # self.assertEqual(refitems[2].id, 'w3')
-        # srctier, refattr, reftier, refitems = desc[1]
-        # self.assertEqual(srctier.id, 'w')
-        # self.assertEqual(refattr, 'segmentation')
-        # self.assertEqual(reftier.id, 'p')
-        # self.assertEqual(len(refitems), 1)
-        # self.assertEqual(refitems[0].id, 'p1')
+        self.check(desc[0], 'p', 'segmentation', 'w', ['w1', 'w2', 'w3'])
+        self.check(desc[1], 'w', 'segmentation', 'm',
+                   ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'])
+        self.check(desc[2], 'm', 'alignment', 'g',
+                   ['g1', 'g2', 'g3', 'g4', 'g5', 'g6'])
 
-        # desc = list(ancestors(self.xc3[0]['m']['m1']))
-        # self.assertEqual(len(desc), 2)
-        # srctier, refattr, reftier, refitems = desc[0]
-        # self.assertEqual(srctier.id, 'm')
-        # self.assertEqual(refattr, 'segmentation')
-        # self.assertEqual(reftier.id, 'w')
-        # self.assertEqual(len(refitems), 1)
-        # self.assertEqual(refitems[0].id, 'w1')
-        # srctier, refattr, reftier, refitems = desc[1]
-        # self.assertEqual(srctier.id, 'w')
-        # self.assertEqual(refattr, 'segmentation')
-        # self.assertEqual(reftier.id, 'p')
-        # self.assertEqual(len(refitems), 1)
-        # self.assertEqual(refitems[0].id, 'p1')
+        desc = list(descendants(self.xc3[0]['w']['w1']))
+        self.assertEqual(len(desc), 2)
+        self.check(desc[0], 'w', 'segmentation', 'm', ['m1', 'm2'])
+        self.check(desc[1], 'm', 'alignment', 'g', ['g1', 'g2'])
+
+        desc = list(descendants(self.xc3[0]['p'], follow='all'))
+        self.assertEqual(len(desc), 5)
+        self.check(desc[0], 'p', 'segmentation', 'w', ['w1', 'w2', 'w3'])
+        self.check(desc[1], 'p', 'alignment', 't', ['t1'])
+        self.check(desc[2], 'w', 'segmentation', 'm',
+                   ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'])
+        self.check(desc[3], 'w', 'alignment', 'x',
+                   ['x1', 'x2', 'x3'])
+        self.check(desc[4], 'm', 'alignment', 'g',
+                   ['g1', 'g2', 'g3', 'g4', 'g5', 'g6'])
+
+        desc = list(
+            descendants(self.xc3[0]['p'],
+                        refattrs=('segmentation', 'alignment', 'children'),
+                        follow='all')
+        )
+        self.assertEqual(len(desc), 6)
+        self.check(desc[0], 'p', 'segmentation', 'w', ['w1', 'w2', 'w3'])
+        self.check(desc[1], 'p', 'alignment', 't', ['t1'])
+        self.check(desc[2], 'w', 'segmentation', 'm',
+                   ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'])
+        self.check(desc[3], 'w', 'alignment', 'x',
+                   ['x1', 'x2', 'x3'])
+        self.check(desc[4], 'm', 'alignment', 'g',
+                   ['g1', 'g2', 'g3', 'g4', 'g5', 'g6'])
+        self.check(desc[5], 'x', 'children', 'x',
+                   ['x4', 'x5'])
