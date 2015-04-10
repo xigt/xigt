@@ -13,7 +13,7 @@ class XigtMetadataMixin(object):
     Enables the management of metadata.
     """
     def __init__(self, metadata=None):
-        self._md = XigtContainerMixin(contained_type=Metadata)
+        self._md = XigtContainerMixin(container=self, contained_type=Metadata)
         if metadata is not None:
             self.metadata = metadata
 

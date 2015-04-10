@@ -23,10 +23,11 @@ class XigtContainerMixin(object):
     Common methods for accessing subelements in XigtCorpus, Igt, and
     Tier objects.
     """
-    def __init__(self, contained_type=None):
+    def __init__(self, container=None, contained_type=None):
         self._list = []
         self._dict = {}
         self._contained_type = contained_type
+        self._container = container if container is not None else self
 
     def __iter__(self):
         return iter(self._list)
@@ -69,13 +70,13 @@ class XigtContainerMixin(object):
 
     def append(self, obj):
         self._assert_type(obj)
-        obj._parent = self
+        obj._parent = self._container
         self._create_id_mapping(obj)
         self._list.append(obj)
 
     def insert(self, i, obj):
         self._assert_type(obj)
-        obj._parent = self
+        obj._parent = self._container
         self._create_id_mapping(obj)
         self._list.insert(i, obj)
 
@@ -146,14 +147,14 @@ class XigtAttributeMixin(object):
             raise ValueError('Invalid ID: {}'.format(value))
         self._id = value
 
-    # no validation for type yet, so the property isn't necessary    
+    # no validation for type yet, so the property isn't necessary
     # @property
     # def type(self):
     #     return self._type
     # @type.setter
     # def type(self, value):
     #     self._type = value
-    
+
 
 class XigtReferenceAttributeMixin(object):
 
@@ -228,4 +229,3 @@ class XigtReferenceAttributeMixin(object):
             ras = self._item_refattrs.get(tier_type, self._item_refattrs[None])
             return ras.get(self.type, ras[None])
 
-    
