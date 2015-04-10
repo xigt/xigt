@@ -6,12 +6,16 @@
 
 * Meta objects now take a "children" argument, which is for nested
   (non-string) content.
+* Unit tests now cover all API classes, methods, and functions for
+  xigt.model, xigt.ref, and xigt.query.
 
 ### Fixed
 
 * xigtxml now reads <metadata> for Python2 (a map() problem meant that it was
   cleared in Py2 before it could be parsed)
 * xigtxml now serializes and deserializes Metadata and Meta elements correctly
+* xigt.query.descendants now checks for cycles
+* bugs in xigt.ref.{referrers,dereference,dereference_all}
 
 ### Changed
 
@@ -19,6 +23,10 @@
 * rename get_aligment_expression_ids() to get_alignment_expression_ids()
   This function was deprecated, but somewhere along the lines it got renamed.
   This just fixes the rename.
+* All containers now restrict the type of object contained
+* Metadata are now contained by a standalone XigtContainerMixin
+* XigtContainerMixin can now take a "container" attribute which determines
+  the _parent of the contained objects (to help with the Metadata case)
 
 ## [v1.0rc1] - 2015.04.07
 
