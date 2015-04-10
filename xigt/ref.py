@@ -259,15 +259,16 @@ def referrers(igt, id, refattrs=None):
 
         attrget = other.attributes.get  # just loop optimization
         for ra in _refattrs:
+            result.setdefault(ra, [])
             if id in ids(attrget(ra, '')):
-                result.setdefault(ra, []).append(other.id)
+                result[ra].append(other.id)
     return result
 
 
 def dereference(obj, refattr):
     if hasattr(obj, 'igt'):
-        id = ids(obj.attributes[refattr])[0]
-        return obj.igt.get_any(id)
+        _id = ids(obj.attributes[refattr])[0]
+        return obj.igt.get_any(_id)
     else:
         raise XigtLookupError(
             'Cannot dereference from non-Tier, non-Item objects.'
@@ -276,8 +277,8 @@ def dereference(obj, refattr):
 
 def dereference_all(obj, refattr):
     if hasattr(obj, 'igt'):
-        ids = ids(obj.attributes[refattr])
-        return [obj.igt.get_any(id) for id in ids]
+        _ids = ids(obj.attributes[refattr])
+        return [obj.igt.get_any(_id) for _id in _ids]
     else:
         raise XigtLookupError(
             'Cannot dereference from non-Tier, non-Item objects.'
