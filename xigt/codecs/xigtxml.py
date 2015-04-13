@@ -280,9 +280,10 @@ def default_encode_meta(meta, indent=2, level=1):
     )]
     if cnt:
         lines.append(cnt.rstrip())
-        if indent:
-            lines.append('\n')
-        lines.append('{}</meta>'.format(' ' * ((level * indent) - 2)))
+        if indent and (meta.children or '\n' in meta.text):
+            lines.append('\n{}</meta>'.format(' ' * ((level * indent) - 2)))
+        else:
+            lines.append('</meta>')
     return ''.join(lines)
 
 
