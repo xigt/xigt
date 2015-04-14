@@ -309,6 +309,7 @@ def get_alignment_expression_ids(expression):
 
 
 def get_alignment_expression_spans(expression):
+    from itertools import chain
     alignments = algnexpr_re.findall(expression or '')
     spans = list(chain.from_iterable(
         [match] if not item_id else
@@ -332,6 +333,7 @@ def resolve_alignment_expression(expression, tier, plus=delim1, comma=delim2):
 
 
 def resolve_alignment(tier, item_id, selection, plus=delim1, comma=delim2):
+    from xigt.errors import XigtWarning
     item = tier.get(item_id)
     if item is None:
         warnings.warn(
