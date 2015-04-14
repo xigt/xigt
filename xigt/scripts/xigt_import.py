@@ -11,11 +11,12 @@ def run(args):
     config = args.config
     if inp_format == 'toolbox':
         import xigt.importers.toolbox as importer
+    elif inp_format == 'odin':
+        import xigt.importers.odin as importer
     # elif ...
     if config is not None:
         config = json.load(open(config, 'r'))
-    with open(infile, 'r') as in_fh, open(outfile, 'w') as out_fh:
-        importer.xigt_import(in_fh, out_fh, options=config)
+    importer.xigt_import(infile, outfile, config)
 
 def main(arglist=None):
     parser = argparse.ArgumentParser()
@@ -23,14 +24,14 @@ def main(arglist=None):
         action='count', dest='verbosity', default=2,
         help='Increase the verbosity (can be repeated: -vvv).')
     parser.add_argument('-i', '--input', metavar='PATH', required=True,
-        help='The input corpus.')
+        help='The input corpus file or directory.')
     parser.add_argument('-o', '--output', metavar='PATH', required=True,
-        help='The output Xigt corpus.')
+        help='The output Xigt corpus file or directory.')
     parser.add_argument('-f', '--format', metavar='FMT',
-        choices=['toolbox'], default='toolbox',
+        choices=['toolbox', 'odin'], default='toolbox',
         help='The format of the input corpus (default: toolbox).')
     parser.add_argument('-c', '--config', metavar='PATH',
-        help='A JSON-formatted configurationp file for '
+        help='A JSON-formatted configuration file for '
              'format-specific options.')
     args = parser.parse_args(arglist)
     logging.basicConfig(level=50-(args.verbosity*10))

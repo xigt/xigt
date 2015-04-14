@@ -1,5 +1,31 @@
 #!/usr/bin/env python3
 
+# Toolbox Importer
+#
+# default config.json:
+# {
+#   "tier_types": {
+#     "\\t": "words",
+#     "\\m": "morphemes",
+#     "\\g": "glosses",
+#     "\\p": "pos",
+#     "\\f": "translations",
+#   },
+#   "alignments": {
+#     "\\m": "\\t",
+#     "\\g": "\\m",
+#     "\\p": "\\m"
+#   },
+#   "record_markers": [
+#     "\\id",
+#     "\\ref"
+#   ],
+#   "attribute_map": {
+#     "\\id": "corpus-id"
+#   }
+# }
+
+
 from collections import OrderedDict
 import logging
 import warnings
@@ -7,6 +33,7 @@ from itertools import chain, zip_longest
 
 from xigt import (XigtCorpus, Igt, Tier, Item, Metadata, Meta)
 from xigt.codecs import xigtxml
+from xigt.errors import XigtImportError
 
 try:
     import toolbox
@@ -39,11 +66,9 @@ default_attribute_map = {
     '\\id': 'corpus-id'
 }
 
-class XigtImportError(Exception):
-    pass
 
+def xigt_import(infile, outfile, options=None):
 
-def xigt_import(in_fh, out_fh, options=None):
     if options is None:
         options = {}
     options.setdefault('tier_types', default_tier_types)
@@ -51,10 +76,11 @@ def xigt_import(in_fh, out_fh, options=None):
     options.setdefault('record_markers', default_record_markers)
     options.setdefault('attribute_map', default_attribute_map)
 
-    tb = toolbox.read_toolbox_file(in_fh)
-    igts = toolbox_igts(tb, options)
-    xc = XigtCorpus(igts=igts, mode='transient')
-    xigtxml.dump(out_fh, xc)
+    with open(infile, 'r') as in_fh, open(outfile, 'w') as out_fh:
+        tb = toolbox.read_toolbox_file(in_fh)
+        igts = toolbox_igts(tb, options)
+        xc = XigtCorpus(igts=igts, mode='transient')
+        xigtxml.dump(out_fh, xc)
 
 
 def toolbox_igts(tb, options):
