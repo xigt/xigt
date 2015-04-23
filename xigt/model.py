@@ -65,10 +65,11 @@ class XigtCorpus(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
     """
 
     def __init__(self, id=None, type=None, attributes=None, metadata=None,
-                 igts=None, mode=FULL):
+                 igts=None, mode=FULL, namespace=None, nsmap=None):
         XigtContainerMixin.__init__(self, contained_type=Igt)
         XigtAttributeMixin.__init__(
-            self, id=id, type=type, attributes=attributes
+            self, id=id, type=type, attributes=attributes,
+            namespace=namespace, nsmap=nsmap
         )
         XigtMetadataMixin.__init__(self, metadata)
         self.mode = mode
@@ -98,7 +99,8 @@ class XigtCorpus(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
         return self._list
     @igts.setter
     def igts(self, value):
-        self._list = value
+        self.clear()
+        self.extend(value or [])
 
 
 class Igt(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
@@ -106,10 +108,11 @@ class Igt(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
     An IGT (Interlinear Glossed Text) instance.
     """
     def __init__(self, id=None, type=None, attributes=None, metadata=None,
-                 tiers=None, corpus=None):
+                 tiers=None, corpus=None, namespace=None, nsmap=None):
         XigtContainerMixin.__init__(self, contained_type=Tier)
         XigtAttributeMixin.__init__(
-            self, id=id, type=type, attributes=attributes
+            self, id=id, type=type, attributes=attributes,
+            namespace=namespace, nsmap=nsmap
         )
         XigtMetadataMixin.__init__(self, metadata)
 
@@ -194,7 +197,8 @@ class Igt(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
         return self._list
     @tiers.setter
     def tiers(self, value):
-        self._list = value
+        self.clear()
+        self.extend(value or [])
 
     def get_item(self, item_id, default=None):
         return self._itemdict.get(item_id, default)
@@ -224,10 +228,12 @@ class Tier(XigtContainerMixin, XigtAttributeMixin,
     def __init__(self, id=None, type=None,
                  alignment=None, content=None, segmentation=None,
                  attributes=None, metadata=None,
-                 items=None, igt=None):
+                 items=None, igt=None,
+                 namespace=None, nsmap=None):
         XigtContainerMixin.__init__(self, contained_type=Item)
         XigtAttributeMixin.__init__(
-            self, id=id, type=type, attributes=attributes
+            self, id=id, type=type, attributes=attributes,
+            namespace=namespace, nsmap=nsmap
         )
         XigtReferenceAttributeMixin.__init__(
             self, alignment=alignment, content=content,
@@ -259,7 +265,8 @@ class Tier(XigtContainerMixin, XigtAttributeMixin,
         return self._list
     @items.setter
     def items(self, value):
-            self._list = value
+        self.clear()
+        self.extend(value or [])
 
 
 class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
@@ -270,9 +277,11 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
     """
     def __init__(self, id=None, type=None,
                  alignment=None, content=None, segmentation=None,
-                 attributes=None, text=None, tier=None):
+                 attributes=None, text=None, tier=None,
+                 namespace=None, nsmap=None):
         XigtAttributeMixin.__init__(
-            self, id=id, type=type, attributes=attributes
+            self, id=id, type=type, attributes=attributes,
+            namespace=namespace, nsmap=nsmap
         )
         XigtReferenceAttributeMixin.__init__(
             self, alignment=alignment, content=content,

@@ -120,21 +120,33 @@ class XigtContainerMixin(object):
 
 class XigtAttributeMixin(object):
 
-    def __init__(self, id=None, type=None, attributes=None):
+    def __init__(self, id=None, type=None, attributes=None,
+                 namespace=None, nsmap=None):
         self.id = id
         self.type = type
         self.attributes = dict(attributes or [])
+        self.namespace = namespace
+        self.nsmap = dict(nsmap or [])
         # if id is not None or ID not in self.attributes:
         #     self.attributes[ID] = id
         # if type is not None or TYPE not in self.attributes:
         #     self.attributes[TYPE] = type
 
-    def get_attribute(self, key, default=None, inherit=False):
+    def get_attribute(self, key, default=None, inherit=False, namespace=None):
+        if not key.startswith('{') and ':' in key:
+            prefix, suffix = key.split(':', 1)
+            key = '{%s}%s' % (self.nsmap[prefix], suffix)
+        elif namespace in self.nsmap:
+            key = '{%s}%s' % (self.nsmap[namespace], key)
+        elif namespace:
+            key = '{%s}%s' % (namespace, key)
         try:
             return self.attributes[key]
         except KeyError:
             if inherit and _has_parent(self):
-                return self._parent.get_attribute(key, default, inherit)
+                return self._parent.get_attribute(
+                    key, default, inherit, namespace=namespace
+                )
             else:
                 return default
 

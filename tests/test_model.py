@@ -1,5 +1,5 @@
 import unittest
-from xigt import XigtCorpus, Igt, Tier, Item, Metadata, Meta
+from xigt import XigtCorpus, Igt, Tier, Item, Metadata, Meta, MetaChild
 from xigt.errors import XigtError, XigtStructureError
 
 class TestMetadata(unittest.TestCase):
@@ -102,13 +102,25 @@ class TestMetadata(unittest.TestCase):
         self.assertIs(md.get('meta1'), None)
 
     def test_get_attribute(self):
-        md = Metadata(attributes={'one': 1, 'two': 2})
+        md = Metadata(
+            attributes={'one': 1, 'two': 2, '{http://namespace.org}three': 4},
+            nsmap={'pre': 'http://namespace.org'}
+        )
         igt = Igt(metadata=[md], attributes={'three': 3})
         self.assertEqual(md.get_attribute('one'), 1)
         self.assertEqual(md.get_attribute('two'), 2)
         self.assertIs(md.get_attribute('three'), None)
+        self.assertEqual(
+            md.get_attribute('three', namespace='http://namespace.org'), 4
+        )
+        self.assertEqual(
+            md.get_attribute('three', namespace='pre'), 4
+        )
         self.assertEqual(md.get_attribute('three', inherit=True), 3)
-        self.assertEqual(md.get_attribute('three', default=4), 4)
+        self.assertEqual(
+            md.get_attribute('three', namespace='pre', inherit=True), 4
+        )
+        self.assertEqual(md.get_attribute('three', default=5), 5)
 
 
 class TestMeta(unittest.TestCase):
@@ -116,8 +128,13 @@ class TestMeta(unittest.TestCase):
     def setUp(self):
         self.m1 = Meta()
 
-        self.m2 = Meta(id='meta1', type='metatype', attributes={'one': 1},
-                       text='metatext', children='metachildren')
+        self.m2 = Meta(
+            id='meta1',
+            type='metatype',
+            attributes={'one': 1},
+            text='metatext',
+            children=[MetaChild('child1'), MetaChild('child2')]
+        )
 
     def test_init(self):
         self.assertRaises(ValueError, Meta, id='1')  # invalid id
@@ -145,7 +162,10 @@ class TestMeta(unittest.TestCase):
         self.assertIs(self.m2.get_attribute('two'), None)
 
         m = Meta(attributes={'one': 1})
-        md = Metadata(attributes={'two': 2}, metas=[m])
+        md = Metadata(
+            attributes={'two': 2},
+            metas=[m]
+        )
         self.assertEqual(m.get_attribute('two', inherit=True), 2)
 
     def test_text(self):
@@ -154,9 +174,75 @@ class TestMeta(unittest.TestCase):
         self.assertEqual(self.m2.text, 'metatext')
 
     def test_children(self):
-        self.assertIs(self.m1.children, None)
+        self.assertEqual(self.m1.children, [])
 
-        self.assertEqual(self.m2.children, 'metachildren')
+        self.assertEqual(len(self.m2.children), 2)
+        self.assertEqual(self.m2.children[0].name, 'child1')
+        self.assertEqual(self.m2.children[1].name, 'child2')
+
+
+class TestMetaChild(unittest.TestCase):
+
+    def setUp(self):
+        self.mc1 = MetaChild('childname')
+
+        self.mc2 = MetaChild(
+            'childname',
+            attributes={'id': 'mc2', 'type': 'childtype', 'one': 1},
+            text='childtext',
+            children=[MetaChild('grandchild1'), MetaChild('grandchild2')]
+        )
+
+    def test_init(self):
+        # name (i.e. tag in XML) is mandatory
+        self.assertRaises(TypeError, MetaChild)
+        # invalid names
+        self.assertRaises(ValueError, MetaChild, '1')
+        self.assertRaises(ValueError, MetaChild, 'a:1')
+        # id and type not allowed as parameters (they can be attributes)
+        self.assertRaises(TypeError, MetaChild, 'mc0', id='mc1')
+        self.assertRaises(TypeError, MetaChild, 'mc0', type='childtype')
+
+    def test_name(self):
+        self.assertEqual(self.mc1.name, 'childname')
+
+        self.assertEqual(self.mc2.name, 'childname')
+
+    def test_attributes(self):
+        self.assertEqual(self.mc1.attributes, dict())
+
+        self.assertEqual(self.mc2.attributes,
+                         {'id': 'mc2', 'type': 'childtype', 'one': 1})
+
+    def test_get_attribute(self):
+        self.assertIs(self.mc1.get_attribute('id'), None)
+        self.assertIs(self.mc1.get_attribute('attr'), None)
+        self.assertEqual(self.mc1.get_attribute('attr', 1), 1)
+
+        self.assertEqual(self.mc2.get_attribute('id'), 'mc2')
+        self.assertEqual(self.mc2.get_attribute('type'), 'childtype')
+        self.assertEqual(self.mc2.get_attribute('one'), 1)
+        self.assertIs(self.mc2.get_attribute('two'), None)
+
+        mc = MetaChild('childname', attributes={'one': 1})
+        m = Meta(children=[mc])
+        md = Metadata(
+            attributes={'two': 2},
+            metas=[m]
+        )
+        self.assertEqual(mc.get_attribute('two', inherit=True), 2)
+
+    def test_text(self):
+        self.assertIs(self.mc1.text, None)
+
+        self.assertEqual(self.mc2.text, 'childtext')
+
+    def test_children(self):
+        self.assertEqual(self.mc1.children, [])
+
+        self.assertEqual(len(self.mc2.children), 2)
+        self.assertEqual(self.mc2.children[0].name, 'grandchild1')
+        self.assertEqual(self.mc2.children[1].name, 'grandchild2')
 
 
 class TestItem(unittest.TestCase):

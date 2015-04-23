@@ -1,10 +1,26 @@
 
-from xigt import XigtCorpus, Igt, Tier, Item, Metadata, Meta
-from collections import OrderedDict
-from itertools import chain
-import logging
-import xml.etree.ElementTree as ET
-from xml.sax.saxutils import escape, quoteattr
+from xml.etree.ElementTree import (
+    fromstring,
+    tostring,
+    iterparse,
+    Element,
+    QName
+)
+
+try:
+    from xml.etree.ElementTree import _namespace_map
+except ImportError:
+    # reduced set
+     _namespace_map = {
+         "http://www.w3.org/XML/1998/namespace": "xml",
+         "http://www.w3.org/2001/XMLSchema": "xs",
+         "http://www.w3.org/2001/XMLSchema-instance": "xsi",
+         "http://purl.org/dc/elements/1.1/": "dc",
+    }
+
+
+from xigt import XigtCorpus, Igt, Tier, Item, Metadata, Meta, MetaChild
+
 
 ##############################################################################
 ##############################################################################
@@ -12,26 +28,30 @@ from xml.sax.saxutils import escape, quoteattr
 
 
 def load(fh, mode='full'):
-    events = iter(ET.iterparse(fh, events=('start', 'end')))
+    events = ns_iterparse(fh)
     return decode(events, mode=mode)
 
 
 def loads(s):
-    elem = ET.fromstring(s)
+    elem = fromstring(s)
     return decode_xigtcorpus(elem.find('.'))
 
 
-def dump(fh, xc, encoding='utf-8', indent=2):
-    # if encoding is 'unicode', dumps() will return a string, otherwise
-    # a bytestring (which must be written to a buffer)
-    strings = encode(xc, encoding=encoding, indent=indent)
-    if indent:
-        strings = chain(strings, ['\n'])
-    for s in strings:
-        try:
-            fh.write(s)
-        except TypeError:
-            fh.buffer.write(s)
+def dump(f, xc, encoding='utf-8', indent=2):
+    close = False
+    if not hasattr(f, 'write'):
+        if encoding != 'unicode':
+            f = open(f, 'w')
+        else:
+            f = open(f, 'wb')
+        close = True
+    writer = f
+    if encoding and encoding != 'unicode' and hasattr(f, 'buffer'):
+        writer = f.buffer
+    encode(writer, xc, encoding=encoding, indent=indent)
+
+    if close:
+        f.close()
 
 
 def dumps(xc, encoding='unicode', indent=2):
@@ -41,20 +61,123 @@ def dumps(xc, encoding='unicode', indent=2):
         return ''.join(encode(xc, encoding=encoding, indent=indent))
 
 
-##############################################################################
-##############################################################################
-# Decoding
+# XML Utilities#########################################################
 
-def validate_event(event, elem, expected=None):
-    if expected is None:
-        expected = []
-    given = ('<{}>' if event == 'start' else '</{}>').format(elem.tag)
-    if (event, elem) not in expected:
-        expected = ' | '.join(('<{}>' if e == 'start' else '</{}>').format(t)
-                              for e, t in expected)
-        raise Exception('Unexpected tag: {} (expected: {})'
-                        .format(given, expected))
+class _QName(QName):
+    def __init__(self, text_or_uri, tag=None, sortkey=None):
+        QName.__init__(self, text_or_uri, tag=tag)
+        self.sortkey = sortkey
+    def __hash__(self):
+        return QName.__hash__(self)
+    def __lt__(self, other):
+        sortkey = self.sortkey
+        if isinstance(other, QName):
+            other = other.text
+        if sortkey is not None:
+            return sortkey(self.text) < sortkey(other)
+        return self.text < other
+    def __le__(self, other):
+        sortkey = self.sortkey
+        if isinstance(other, QName):
+            other = other.text
+        if sortkey is not None:
+            return sortkey(self.text) <= sortkey(other)
+        return self.text <= other
+    def __gt__(self, other):
+        sortkey = self.sortkey
+        if isinstance(other, QName):
+            other = other.text
+        if sortkey is not None:
+            return sortkey(self.text) > sortkey(other)
+        return self.text > other
+    def __ge__(self, other):
+        sortkey = self.sortkey
+        if isinstance(other, QName):
+            other = other.text
+        if sortkey is not None:
+            return sortkey(self.text) >= sortkey(other)
+        return self.text >= other
+    def __eq__(self, other):
+        sortkey = self.sortkey
+        if isinstance(other, QName):
+            other = other.text
+        if sortkey is not None:
+            return sortkey(self.text) == sortkey(other)
+        return self.text == other
+    def __ne__(self, other):
+        sortkey = self.sortkey
+        if isinstance(other, QName):
+            other = other.text
+        if sortkey is not None:
+            return sortkey(self.text) != sortkey(other)
+        return self.text != other
+    # for python2 support
+    def __cmp__(self, other):
+        sortkey = self.sortkey
+        if isinstance(other, QName):
+            other = other.text
+        if sortkey is not None:
+            self = sortkey(self.text)
+            other = sortkey(other)
+        if self < other:
+            return -1
+        elif self > other:
+            return 1
+        else:
+            return 0
 
+
+def _qname_split(qname):
+    if isinstance(qname, QName):
+        qname = str(qname)
+    if qname.startswith('{'):
+        return qname[1:].split('}', 1)
+    else:
+        return (None, qname)
+
+
+class NSAttribDict(dict):
+    def __init__(self, data, namespaces=None):
+        dict.__init__(self, data)
+        self.nsmap = dict(namespaces or [])
+
+
+def xigt_attrsort(attr):
+    return (
+        not attr.startswith('xmlns:'),
+        attr != 'id',
+        attr != 'type',
+        attr != 'alignment',
+        attr != 'content',
+        attr != 'segmentation',
+        attr
+    )
+
+def ns_iterparse(fh, events=('start', 'end')):
+    events = iter(
+        iterparse(fh, events=['start-ns', 'end-ns'] + list(events))
+    )
+    # thanks: http://effbot.org/elementtree/iterparse.htm
+    namespaces = []
+    for event, elem in events:
+        if event == 'start-ns':
+            namespaces.append(elem)
+        elif event == 'end-ns':
+            namespaces.pop()
+        elif event == 'start':
+            elem.tag = _QName(elem.tag)
+            elem.attrib = NSAttribDict(
+                elem.attrib,
+                # [(_QName(k, sortkey=xigt_attrsort), v)
+                #   for k, v, in elem.attrib.items()],
+                namespaces=namespaces
+            )
+            yield event, elem
+        elif event == 'end':
+            yield event, elem
+
+
+# Decoding #############################################################
 
 def iter_elements(tag, events, root, break_on=None):
     if break_on is None:
@@ -88,51 +211,68 @@ def default_decode(events, mode='full'):
 def default_get_attributes(elem, ignore=None):
     if ignore is None:
         ignore = tuple()
-    return OrderedDict((k, v) for (k, v) in elem.items() if k not in ignore)
+    items = [(k, v) for (k, v) in elem.items() if k not in ignore]
+    return dict(items)
 
 
 def default_decode_xigtcorpus(elem, igts=None, mode='full'):
     # xigt-corpus { attrs, metadata, content }
     # first get the attrs
+    ns, tag = _qname_split(elem.tag)
+    assert tag == 'xigt-corpus'
     return XigtCorpus(
         id=elem.get('id'),
         attributes=get_attributes(elem, ignore=('id',)),
         metadata=[decode_metadata(md) for md in elem.findall('metadata')],
         igts=igts or [decode_igt(igt) for igt in elem.findall('igt')],
-        mode=mode
+        mode=mode,
+        namespace=ns,
+        nsmap=elem.attrib.nsmap
     )
 
 
 def default_decode_igt(elem):
+    ns, tag = _qname_split(elem.tag)
+    assert tag == 'igt'
     igt = Igt(
         id=elem.get('id'),
         type=elem.get('type'),
         attributes=get_attributes(elem, ignore=('id', 'type')),
         metadata=[decode_metadata(md) for md in elem.findall('metadata')],
-        tiers=[decode_tier(tier) for tier in elem.findall('tier')]
+        tiers=[decode_tier(tier) for tier in elem.findall('tier')],
+        namespace=ns,
+        nsmap=elem.attrib.nsmap
     )
     elem.clear()
     return igt
 
 
 def default_decode_tier(elem):
+    ns, tag = _qname_split(elem.tag)
+    assert tag == 'tier'
     tier = Tier(
         id=elem.get('id'),
         type=elem.get('type'),
         attributes=get_attributes(elem, ignore=('id','type')),
         metadata=[decode_metadata(md) for md in elem.findall('metadata')],
-        items=[decode_item(item) for item in elem.findall('item')]
+        items=[decode_item(item) for item in elem.findall('item')],
+        namespace=ns,
+        nsmap=elem.attrib.nsmap
     )
     elem.clear()
     return tier
 
 
 def default_decode_item(elem):
+    ns, tag = _qname_split(elem.tag)
+    assert tag == 'item'
     item = Item(
         id=elem.get('id'),
         type=elem.get('type'),
         attributes=get_attributes(elem, ignore=('id','type')),
-        text=elem.text
+        text=elem.text,
+        namespace=ns,
+        nsmap=elem.attrib.nsmap
     )
     elem.clear()
     return item
@@ -141,11 +281,15 @@ def default_decode_item(elem):
 def default_decode_metadata(elem):
     if elem is None:
         return None
+    ns, tag = _qname_split(elem.tag)
+    assert tag == 'metadata'
     metadata = Metadata(
         id=elem.get('id'),
         type=elem.get('type'),
         attributes=get_attributes(elem, ignore=('id', 'type')),
-        metas=[decode_meta(meta) for meta in elem.findall('meta')]
+        metas=[decode_meta(meta) for meta in elem.findall('meta')],
+        namespace=ns,
+        nsmap=elem.attrib.nsmap
     )
     elem.clear()
     return metadata
@@ -153,138 +297,237 @@ def default_decode_metadata(elem):
 
 def default_decode_meta(elem):
     # a meta can simply have text, which is the easy case, or it can
-    # have nested XML. In the latter case, we don't know what the nested
-    # XML will look like, so just reserialize it and store it as text.
-
-    # python3 needs encoding='unicode' to get a native string, but for
-    # python2 this gives a LookupError
-    try:
-        children = [ET.tostring(e, encoding='unicode') for e in elem]
-    except LookupError:
-        children = [ET.tostring(e) for e in elem]
+    # have nested XML. In the latter case, store the XML in very basic
+    # MetaChild objects
+    ns, tag = _qname_split(elem.tag)
+    assert tag == 'meta'
+    text = elem.text or ''
     meta = Meta(
         id=elem.get('id'),
         type=elem.get('type'),
         attributes=get_attributes(elem, ignore=('id', 'type')),
-        text=elem.text,
-        children=children
+        text=text if text.strip() else None,
+        children=[decode_metachild(mc) for mc in elem],
+        namespace=ns,
+        nsmap=elem.attrib.nsmap
     )
     elem.clear()
     return meta
+
+
+def default_decode_metachild(elem):
+    ns, tag = _qname_split(elem.tag)
+    text = elem.text or ''
+    mc = MetaChild(
+        tag,
+        attributes=get_attributes(elem, ignore=('id', 'type')),
+        text=text if text.strip() else None,
+        children=[decode_metachild(mc) for mc in elem],
+        namespace=ns,
+        nsmap=elem.attrib.nsmap
+    )
+    elem.clear()
+    return mc
+
 
 
 ##############################################################################
 ##############################################################################
 # Encoding
 
-def encode_attributes(obj, attrs):
-    attributes = OrderedDict()
-    for attr in attrs:
-        if hasattr(obj, attr) and getattr(obj, attr) is not None:
-            attributes[attr] = getattr(obj, attr)
-    if hasattr(obj, 'attributes') and getattr(obj, 'attributes') is not None:
-        attributes.update(obj.attributes)
-    return ''.join(' {}={}'.format(k, quoteattr(v))
-                   for k, v in attributes.items())
+# thanks: http://effbot.org/zone/element-namespaces.htm
+def _build_elem(tag, obj, nscontext):
+    ns = getattr(obj, 'namespace', None)
+    revmap = dict((v, k) for k, v in getattr(obj, 'nsmap', {}).items())
+    if revmap.get(ns) is not None:
+        tag = '{}:{}'.format(revmap[ns], tag)
+    e = Element(tag)
+    # element attributes (including namespaces)
+    if hasattr(obj, 'nsmap'):
+        for pre, uri in obj.nsmap.items():
+            if nscontext.get(pre) != uri:
+                e.set(_QName('xmlns:%s' % pre, sortkey=xigt_attrsort), uri)
+    if getattr(obj, 'id') is not None:
+        e.set(_QName('id', sortkey=xigt_attrsort), obj.id)
+    if getattr(obj, 'type') is not None:
+        e.set(_QName('type', sortkey=xigt_attrsort), obj.type)
+    if hasattr(obj, 'attributes'):
+        for attr, val in obj.attributes.items():
+            uri, attr = _qname_split(attr)
+            if uri:
+                # get the prefix from the nsmap,
+                # backing off to the default set
+                try:
+                    pre = revmap[uri]
+                except KeyError:
+                    pre = _namespace_map[uri]
+                attr = '{}:{}'.format(pre, attr)
+            e.set(_QName(attr, sortkey=xigt_attrsort), val)
+    return e
 
 
-def default_encode(xc, encoding='unicode', indent=2):
-    if encoding != 'unicode':
-        enc = lambda s: s.encode(encoding)
-        yield enc('<?xml version="1.0" encoding="{}"?>{}'
-                  .format(encoding.upper(), '\n' if indent else ''))
+def _build_igt(igt, nscontext):
+    e = _build_elem('igt', igt, nscontext)
+    igt_nsmap = igt.nsmap
+    for md in igt.metadata:
+        e.append(_build_metadata(md, igt_nsmap))
+    for tier in igt:
+        e.append(_build_tier(tier, igt_nsmap))
+    return e
+
+
+def _build_tier(tier, nscontext):
+    e = _build_elem('tier', tier, nscontext)
+    tier_nsmap = tier.nsmap
+    for md in tier.metadata:
+        e.append(_build_metadata(md, tier_nsmap))
+    for item in tier:
+        e.append(_build_item(item, tier_nsmap))
+    return e
+
+
+def _build_item(item, nscontext):
+    e = _build_elem('item', item, nscontext)
+    e.text = item.text
+    return e
+
+
+def _build_metadata(md, nscontext):
+    e = _build_elem('metadata', md, nscontext)
+    nsmap = md.nsmap
+    for meta in md:
+        e.append(_build_meta(meta, nsmap))
+    return e
+
+
+def _build_meta(m, nscontext):
+    e = _build_elem('meta', m, nscontext)
+    e.text = m.text
+    nsmap = m.nsmap
+    for child in m:
+        e.append(_build_metachild(child, nsmap))
+    return e
+
+
+def _build_metachild(mc, nscontext):
+    e = _build_elem(mc.name, mc, nscontext)
+    e.text = mc.text
+    nsmap = mc.nsmap
+    for child in mc:
+        e.append(_build_metachild(child, nsmap))
+    return e
+
+
+# thanks: http://effbot.org/zone/element-lib.htm#prettyprint
+def _indent(elem, indent=2, level=0):
+    # don't even output newlines if indent is None (unlike indent=0)
+    if indent is None:
+        return
+    i = "\n" + (indent * level * ' ')
+    if len(elem):
+        if not elem.text or not elem.text.strip():
+            elem.text = i + (' ' * indent)
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+        for elem in elem:
+            _indent(elem, indent=indent, level=level+1)
+        # this is now the last elem from the previous for-loop
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
     else:
-        enc = lambda s: s
-    for s in encode_xigtcorpus(xc, indent=indent):
-        yield enc(s)
+        if level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = i
+
+def _encode_str(s, encoding):
+    if encoding and encoding != 'unicode':
+        return s.encode(encoding)
+
+
+def default_encode(xf, xc, encoding='unicode', indent=2):
+
+    # write the root node manually
+    root = _build_elem('xigt-corpus', xc, {})  # just to format attrs
+    root_attrs = ['{}="{}"'.format(k, v) for k, v in root.items()]
+    open_tag = _encode_str(
+        '<{}{}>{}'.format(
+            root.tag,
+            '' if not root_attrs else ' ' + ' '.join(root_attrs),
+            '' if indent is None else '\n'),
+        encoding
+    )
+    xf.write(open_tag)
+
+    nsmap = xc.nsmap  # for context of lower elements
+    _ind = _encode_str(' ' * (indent or 0), encoding)  # for level-1 elements
+
+    # metadata
+    for md in xc.metadata:
+        md_elem = _build_metadata(md, nsmap)
+        # indenting out of context means the tail needs to be fixed
+        _indent(md_elem, indent=indent, level=1)
+        md_elem.tail = '' if indent is None else '\n'
+        xf.write(_ind + tostring(md_elem))
+
+    for igt in xc:
+        igt_elem = _build_igt(igt, nsmap)
+        # indenting out of context means the tail needs to be fixed
+        _indent(igt_elem, indent=indent, level=1)
+        igt_elem.tail = '' if indent is None else '\n'
+        xf.write(_ind + tostring(igt_elem, encoding=encoding))
+
+    closing_tag = _encode_str(
+        '</{}>{}'.format(root.tag, '' if indent is None else '\n'),
+        encoding
+    )
+    xf.write(closing_tag)
 
 
 def default_encode_xigtcorpus(xc, indent=2):
-    attrs = encode_attributes(xc, ['id'])
-    yield '<xigt-corpus{}>{}'.format(attrs, '\n' if indent else '')
-    for metadata in xc.metadata:
-        yield encode_metadata(metadata, indent=indent, level=1)
-        if indent:
-            yield '\n'
+    # this encodes the whole xigtcorpus at once.
+    # for incremental encoding, see encode() (default_encode())
+    root = _build_elem('xigt-corpus', xc, {})
+    nsmap = xc.nsmap
+    for md in xc.metadata:
+        root.append(_build_metadata(md, nsmap))
     for igt in xc:
-        yield encode_igt(igt, indent=indent)
-        if indent:
-            yield '\n'
-
-    yield '</xigt-corpus>'
-
+        root.append(_build_igt(igt, nsmap))
+    _indent(root, indent=indent)
+    return tostring(root, encoding='unicode')
 
 def default_encode_igt(igt, indent=2):
-    attrs = encode_attributes(igt, ['id', 'type'])
-    # indent - 2 so at indent 2 (compact, but readable), we aren't
-    # wasting 2 extra spaces on nearly every line in the corpus. If
-    # someone uses indent > 2, we assume they aren't concerned about
-    # disk space, so give them the indent.
-    lines = ['{}<igt{}>'.format(' ' * (indent - 2), attrs)]
-    for metadata in igt.metadata:
-        lines.append(encode_metadata(metadata, indent=indent, level=2))
-    for tier in igt.tiers:
-        lines.append(encode_tier(tier, indent=indent))
-    lines.append('{}</igt>'.format(' ' * (indent - 2)))
-    return ('\n' if indent else '').join(lines)
+    elem = _build_igt(igt, {})
+    _indent(elem, indent=indent)
+    return tostring(elem, encoding='unicode')
 
 
 def default_encode_tier(tier, indent=2):
-    attrs = encode_attributes(tier, ['id', 'type'])
-    lines = ['{}<tier{}>'.format(' ' * indent, attrs)]
-    lines.extend(
-        encode_metadata(metadata, indent=indent, level=3)
-        for metadata in tier.metadata
-    )
-    lines.extend(
-        encode_item(item, indent=indent) for item in tier.items
-    )
-    lines.append('{}</tier>'.format(' ' * indent))
-    return ('\n' if indent else '').join(lines)
+    elem = _build_tier(tier, {})
+    _indent(elem, indent=indent)
+    return tostring(elem, encoding='unicode')
 
 
 def default_encode_item(item, indent=2):
-    attrs = encode_attributes(item, ['id', 'type'])
-    cnt = item.text
-    s = '{}<item{}{}>'.format(
-        ' ' * indent * 2,
-        attrs,
-        '/' if cnt is None else '>{}</item'.format(escape(cnt))
-    )
-    return s
+    elem = _build_item(item, {})
+    _indent(elem, indent=indent)
+    return tostring(elem, encoding='unicode')
 
 
-def default_encode_metadata(metadata, indent=2, level=0):
-    attrs = encode_attributes(metadata, ['id', 'type'])
-    indent_space = ' ' * ((level * indent) - 2)
-    lines = ['{}<metadata{}>'.format(indent_space, attrs)]
-    lines.extend(
-        encode_meta(meta, indent=indent, level=(level + 1))
-        for meta in metadata.metas
-    )
-    lines.append('{}</metadata>'.format(indent_space))
-    return ('\n' if indent else '').join(lines)
+def default_encode_metadata(metadata, indent=2):
+    elem = _build_metadata(metadata, {})
+    _indent(elem, indent=indent)
+    return tostring(elem, encoding='unicode')
 
 
-def default_encode_meta(meta, indent=2, level=1):
-    #if meta.type.lower() not in ('language', 'date', 'author', 'source',
-    #                             'comment'):
-    #    raise ValueError('Invalid subtype of Meta: {}'
-    #                     .format(meta.type))
-    attrs = encode_attributes(meta, ['id', 'type'])
-    cnt = ''.join([escape(meta.text or '')] + (meta.children or []))
-    lines = ['{}<meta{}{}>'.format(
-        ' ' * ((level * indent) - 2),
-        attrs,
-        '/' if not cnt else ''
-    )]
-    if cnt:
-        lines.append(cnt.rstrip())
-        if indent and (meta.children or '\n' in meta.text):
-            lines.append('\n{}</meta>'.format(' ' * ((level * indent) - 2)))
-        else:
-            lines.append('</meta>')
-    return ''.join(lines)
+def default_encode_meta(meta, indent=2):
+    elem = _build_meta(meta, {})
+    _indent(elem, indent=indent)
+    return tostring(elem, encoding='unicode')
+
+
+def default_encode_metachild(metachild, indent=2):
+    elem = _build_metachild(metachild, {})
+    _indent(elem, indent=indent)
+    return tostring(elem, encoding='unicode')
 
 
 ##############################################################################
@@ -298,6 +541,7 @@ decode_tier       = default_decode_tier
 decode_item       = default_decode_item
 decode_metadata   = default_decode_metadata
 decode_meta       = default_decode_meta
+decode_metachild  = default_decode_metachild
 
 encode            = default_encode
 encode_xigtcorpus = default_encode_xigtcorpus
@@ -306,3 +550,4 @@ encode_tier       = default_encode_tier
 encode_item       = default_encode_item
 encode_metadata   = default_encode_metadata
 encode_meta       = default_encode_meta
+encode_metachild  = default_encode_metachild

@@ -1,5 +1,6 @@
 
 import warnings
+import re
 
 from xigt.mixins import (
     XigtContainerMixin,
@@ -7,6 +8,12 @@ from xigt.mixins import (
 )
 from xigt.errors import XigtError
 
+# name_re approximately follows the XML 1.0 spec for Name productions,
+# so long as the re character classes correspond to XML productions.
+# This also excludes colons in the name (because of potential trouble
+# with xml processors treating them as namespace delimiters)
+# http://www.w3.org/TR/2000/WD-xml-2e-20000814#NT-Name
+name_re = re.compile(r'^[^\W\d][-.\w]*$')
 
 class XigtMetadataMixin(object):
     """
@@ -60,10 +67,11 @@ class Metadata(XigtContainerMixin, XigtAttributeMixin):
     Extensions may place constraints on the allowable metadata.
     """
     def __init__(self, id=None, type=None, attributes=None,
-                 text=None, metas=None):
+                 text=None, metas=None, namespace=None, nsmap=None):
         XigtContainerMixin.__init__(self, contained_type=Meta)
         XigtAttributeMixin.__init__(
-            self, id=id, type=type, attributes=attributes
+            self, id=id, type=type, attributes=attributes,
+            namespace=namespace, nsmap=nsmap
         )
 
         if text is not None:
@@ -93,7 +101,8 @@ class Metadata(XigtContainerMixin, XigtAttributeMixin):
         return self._list
     @metas.setter
     def metas(self, value):
-        self._list = value
+        self.clear()
+        self.extend(value or [])
 
     # deprecated properties
 
@@ -107,18 +116,58 @@ class Metadata(XigtContainerMixin, XigtAttributeMixin):
         self.metas = value
 
 
-class Meta(XigtAttributeMixin):
+class Meta(XigtContainerMixin, XigtAttributeMixin):
     def __init__(self, id=None, type=None, attributes=None, text=None,
-                 children=None, metadata=None):
+                 children=None, metadata=None, namespace=None, nsmap=None):
+        XigtContainerMixin.__init__(self, contained_type=MetaChild)
         XigtAttributeMixin.__init__(
-            self, id=id, type=type, attributes=attributes
+            self, id=id, type=type, attributes=attributes,
+            namespace=namespace, nsmap=nsmap
         )
 
         self._parent = metadata
         self.text = text
-        self.children = children
+        self.extend(children or [])
 
     def __repr__(self):
         return '<Meta object (id: {}) at {}>'.format(
             str(self.id or '--'), str(id(self))
         )
+
+    @property
+    def children(self):
+        return self._list
+    @children.setter
+    def children(self, value):
+        self.clear()
+        self.extend(value or [])
+
+
+class MetaChild(XigtContainerMixin, XigtAttributeMixin):
+    def __init__(self, name, attributes=None, text=None,
+                 children=None, parent=None, namespace=None, nsmap=None):
+        XigtContainerMixin.__init__(self, contained_type=MetaChild)
+        XigtAttributeMixin.__init__(
+            self, id=None, type=None, attributes=attributes,
+            namespace=namespace, nsmap=nsmap
+        )
+
+        if not name_re.match(name):
+            raise ValueError('Invalid name for MetaChild: {}'.format(name))
+        self.name = name
+        self._parent = parent
+        self.text = text
+        self.extend(children or [])
+
+    def __repr__(self):
+        return '<MetaChild object (name: {}) at {}>'.format(
+            str(self.name or '--'), str(id(self))
+        )
+
+    @property
+    def children(self):
+        return self._list
+    @children.setter
+    def children(self, value):
+        self.clear()
+        self.extend(value or [])

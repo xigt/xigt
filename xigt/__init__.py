@@ -8,7 +8,8 @@ from xigt.model import (
 
 from xigt.metadata import (
     Metadata,
-    Meta
+    Meta,
+    MetaChild
 )
 
 from xigt.ref import (
