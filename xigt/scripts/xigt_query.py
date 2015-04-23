@@ -12,7 +12,7 @@ def print_stats(args):
         return {
             'languages': set(),
             'iso-639-3': defaultdict(lambda: defaultdict(int)),
-            'documents': 0,
+            'instances': 0,
             'igts': defaultdict(int),
             'tiers': defaultdict(int),
             'items': defaultdict(int),
@@ -26,8 +26,8 @@ def print_stats(args):
             cur_stats = new_stats()
             xc = xigtxml.load(fh, mode='transient')
             for igt in xc:
-                stats['documents'] += 1
-                cur_stats['documents'] += 1
+                stats['instances'] += 1
+                cur_stats['instances'] += 1
                 # language is in a meta element
                 lgs = igt.get_meta('language', conditions=[lg_condition])
                 if lgs:
@@ -72,13 +72,13 @@ def print_summary(title, stats):
     st = stats
     maxlen = max(
         map(lambda x: len(str(x)),
-            [len(st['languages']), len(st['iso-639-3']), st['documents']] +
+            [len(st['languages']), len(st['iso-639-3']), st['instances']] +
             list(st['igts'].values()) +
             list(st['tiers'].values()) +
             list(st['items'].values()))
     )
     template = ' {{:>{}}} {{}}'.format(maxlen)
-    print(template.format(st['documents'], 'source documents'))
+    print(template.format(st['instances'], 'IGT instances'))
     print(template.format(len(st['languages']), 'languages (by name)'))
     print(template.format(len(st['iso-639-3']),
                           'languages (by ISO-639-3 language code)'))

@@ -10,7 +10,7 @@ from xigt.codecs import xigtxml
 def divide_corpus(args):
     infile = args.infile
     outdir = args.outdir
-    igt_index = 0
+    igt_index = [0]  # just a list so I don't have to nonlocal it later
     indices = set()
 
     def make_filename(fn):
@@ -18,20 +18,20 @@ def divide_corpus(args):
 
     # this should make reading the corpus faster
     def selective_decode_igt(elem):
-        nonlocal igt_index, indices
-        if igt_index not in indices:
+        idx = igt_index.pop()
+        if idx not in indices:
             igt = None
         else:
             igt = xigtxml.default_decode_igt(elem)
-            indices.remove(igt_index)
-        igt_index += 1
+            indices.remove(idx)
+        igt_index.append(idx + 1)
         return igt
 
     if args.meta is not None:
         metatype, func = args.meta
         func = eval('lambda m:{}'.format(func))
         get_key = lambda igt: next(
-            (func(m) for m in igt.get_meta(metatype) if m is not None),
+            (func(m) for m in igt.get_meta(metatype, default=[]) if m is not None),
             None
         )
 
@@ -48,7 +48,7 @@ def divide_corpus(args):
     for key, indices in keymap.items():
         if key is None:
             key = '-others-'  # FIXME not guaranteed to be unique
-        igt_index = 0
+        igt_index = [0]
         xc = xigtxml.load(open(infile, 'r'), mode='transient')
         xigtxml.dump(open(make_filename(key), 'w'), xc)
 
@@ -88,7 +88,7 @@ def main(arglist=None):
     subparsers = parser.add_subparsers(dest='cmd', help='sub-command help')
     # place IGTs into subcorpora based on a property
     div_parser = subparsers.add_parser(
-        'divide', aliases=['d'],
+        'divide',
         help='Divide a corpus into subcorpora by some condition.'
     )
     div_parser.set_defaults(func=divide_corpus)
@@ -109,7 +109,7 @@ def main(arglist=None):
     )
     # split parts of IGTs into separate corpora
     sep_parser = subparsers.add_parser(
-        's',
+        'split',
         help='Extract tiers into separate files.'
     )
     sep_parser.set_defaults(func=separate_tiers)
@@ -120,7 +120,7 @@ def main(arglist=None):
     sep_parser.add_argument('-r', '--remainder')
     # merge tiers to combine annotations and source data
     mrg_parser = subparsers.add_parser(
-        'm',
+        'merge',
         help='Merge tiers from separate files into a single corpus.')
     mrg_parser.add_argument('infile1', help='first Xigt corpus')
     mrg_parser.add_argument('infile2', help='second Xigt corpus')

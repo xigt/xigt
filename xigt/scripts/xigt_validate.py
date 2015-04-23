@@ -31,7 +31,9 @@ def make_context(obj, index, name, scope, **kwargs):
 
 def validate_condition(condition, obj, context):
     records = []
-    make_record, cond, *args = condition
+    make_record = condition[0]
+    cond = condition[1]
+    args = condition[2:]
     results = cond(obj, *args)
     if results:
         if isinstance(results, str):
@@ -270,7 +272,7 @@ def algnexpr_spans_in_aligned_item(item, refattr):
         tgt_item = reftier.get(item_id)
         if tgt_item is None:
             continue  # this should be caught by algnexpr_ids_in_referred_tier
-        item_len = len(tgt_item.get_content())
+        item_len = len(tgt_item.value())
         if start > item_len or end > item_len:
             error_spans.append(span)
     if error_spans:
@@ -293,7 +295,10 @@ def algnexpr_spans_do_not_overlap(item, refattr):
             tgt_item = reftier.get(span)
             if tgt_item is None:
                 continue  # this should be caught by algnexpr_ids_in_referred_tier
-            item_len = len(tgt_item.get_content())
+            val = tgt_item.value()
+            if val is None:
+                continue  # does this need to be handled?
+            item_len = len(tgt_item.value())
             spans_by_id[span].update(range(0, item_len))
         else:
             item_id, start, end = span
@@ -429,7 +434,7 @@ def main(arglist=None):
     )
 
     success = run(args)
-    sys.exit(0 if success else 1)    
+    sys.exit(0 if success else 1)
 
 
 if __name__ == '__main__':
