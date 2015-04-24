@@ -13,7 +13,7 @@ bilingual alignments, and more.'''
 
 setup(
     name='Xigt',
-    version='1.0rc1',
+    version='1.0',
     description='A framework for eXtensible Interlinear Glossed Text',
     long_description=long_description,
     url='https://github.com/goodmami/xigt',
@@ -27,7 +27,10 @@ setup(
         'Intended Audience :: Information Technology',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Topic :: Scientific/Engineering :: Information Analysis',

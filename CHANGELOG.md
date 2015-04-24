@@ -2,24 +2,33 @@
 
 ## [Unreleased][unreleased]
 
+## [v1.0] - 2015.04.24
+
 ### Added
 
 * Meta objects now take a "children" argument, which is for nested
   (non-string) content.
+* The MetaChild class is added to structurally model such children of Meta.
+* Namespace support is added to aid with XML serialization and querying of
+  in-memory objects.
 * Unit tests now cover all API classes, methods, and functions for
   xigt.model, xigt.ref, and xigt.query.
+* xigt.importers.odin is added for pulling ODIN-style IGTs into Xigt and
+  doing some cleanup. It doesn't infer structure, though (for that, see
+  https://bitbucket.org/ryageo/intent)
 
 ### Fixed
 
+* A handful of Python3 code in scripts was preventing them from running with
+  Python2. Now I think everything works in both Py3 and Py2.
 * xigtxml now reads <metadata> for Python2 (a map() problem meant that it was
   cleared in Py2 before it could be parsed)
 * xigtxml now serializes and deserializes Metadata and Meta elements correctly
 * xigt.query.descendants now checks for cycles
-* bugs in xigt.ref.{referrers,dereference,dereference_all}
+* bugs fixed in xigt.ref.{referrers,dereference,dereference_all}
 
 ### Changed
 
-* xigtxml now outputs <igt> elements even if they are empty (<igt/>)
 * rename get_aligment_expression_ids() to get_alignment_expression_ids()
   This function was deprecated, but somewhere along the lines it got renamed.
   This just fixes the rename.
@@ -81,3 +90,4 @@ report here.
 [unreleased]: https://github.com/goodmami/xigt/tree/develop
 [v0.9]: https://github.com/goodmami/xigt/releases/tag/v0.9
 [v1.0rc1]: https://github.com/goodmami/xigt/releases/tag/v1.0rc1
+[v1.0]: https://github.com/goodmami/xigt/releases/tag/v1.0

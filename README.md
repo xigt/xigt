@@ -52,25 +52,37 @@ Xigt's XML format:
 
 ### Installation and Requirements
 
-The [Xigt API](https://github.com/goodmami/xigt/wiki/API-Reference) is coded in
-[Python](http://python.org/download/) (targeting Python 3.3+, but it may work
-with Python 2.7 as well).
+The [Xigt API](https://github.com/goodmami/xigt/wiki/API-Reference) is
+coded in [Python](http://python.org/download/) (targeting Python 3.3+,
+but it should work with Python 2.7 and Python3.2 as well).
 
-For using Xigt's XML format, the following software is recommended:
-* A RelaxNG validator for compact schema, like
-  [Jing](http://www.thaiopensource.com/relaxng/jing.html)
-* The [lxml](http://lxml.de/) XML library for Python
+Xigt can be installed via [pip](https://docs.python.org/3/installing/)
+(see [PyPI](https://pypi.python.org/pypi/Xigt)):
 
-To get the latest Xigt, clone this repository:
+```bash
+pip install xigt
+```
+
+(You may need to use `pip3` to install for Python3.).
+
+Alternatively, you can get the latest Xigt from the GitHub repository:
 
 ```bash
 git clone https://github.com/goodmami/xigt.git
 ```
 
-In order to make Xigt importable by Python, add the path to the cloned Xigt
-repository to the
+After the cloning has finished, set up your
 [`PYTHONPATH`](https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH)
-environment variable.
+environment variable to point to this directory.
+
+The following extra features have their own requirements:
+* The Toolbox importer: get the [toolbox](http://github.com/goodmami/toolbox)
+  module
+* The [incr tsdb()] profile exporter: get
+  [pyDelphin](https://github.com/goodmami/pydelphin)
+
+For validating Xigt's XML format, I recommend
+[Jing](http://www.thaiopensource.com/relaxng/jing.html).
 
 Note: Xigt is primarily developed and tested on Linux. If you are having
 trouble installing on Windows, Mac, or some other operating system, please
@@ -89,12 +101,12 @@ to align to more than one target, and furthermore allows them to select
 substrings from the target(s).
 
 Given:
-  
+
 ```xml
 <item id="a1">one</item>
 <item id="a2">two</item>
 ```
-        
+
 The following alignment expressions will align to the following selections:
 
 ```python
@@ -172,7 +184,8 @@ phrase:
 </tier>
 ```
 
-Here, items **w1**, **w2**, and **w3** do not provide their own value, but instead select it via the alignment expression on their "segmentation"
+Here, items **w1**, **w2**, and **w3** do not provide their own value, but
+instead select it via the alignment expression on their "segmentation"
 attribute.
 
 Also note that an item can specify both a "segmentation" or "content" attribute
