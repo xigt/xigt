@@ -25,11 +25,13 @@
 #   }
 # }
 
-
 from collections import OrderedDict
 import logging
 import warnings
-from itertools import chain, zip_longest
+try:
+    from itertools import chain, zip_longest
+except ImportError:
+    from itertools import chain, izip_longest as zip_longest
 
 from xigt import (XigtCorpus, Igt, Tier, Item, Metadata, Meta)
 from xigt.codecs import xigtxml
@@ -38,10 +40,10 @@ from xigt.errors import XigtImportError
 try:
     import toolbox
 except ImportError:
-    import sys
-    print('Could not import Toolbox module. Get it from here:\n'
-          '  https://github.com/goodmami/toolbox\n',
-          file=sys.stderr)
+    raise ImportError(
+        'Could not import Toolbox module. Get it from here:\n'
+        '  https://github.com/goodmami/toolbox'
+    )
 
 default_tier_types = {
     '\\t': 'words',

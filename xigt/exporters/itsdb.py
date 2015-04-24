@@ -6,10 +6,10 @@ from os import environ
 try:
     from delphin import itsdb
 except ImportError:
-    import sys
-    print('Could not import pyDelphin module. Get it from here:\n'
-          '  https://github.com/goodmami/pydelphin\n',
-          file=sys.stderr)
+    raise ImportError(
+        'Could not import pyDelphin module. Get it from here:\n'
+        '  https://github.com/goodmami/pydelphin'
+    )
 
 DEFAULT_CELLS = [
     # i-input is a string of either the first phrase (preferred) or all words
