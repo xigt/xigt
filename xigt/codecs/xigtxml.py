@@ -4,9 +4,10 @@ from xml.etree.ElementTree import (
     tostring,
     iterparse,
     Element,
+    ElementTree,
     QName
 )
-
+# this is not part of the public API, so be careful about importing it
 try:
     from xml.etree.ElementTree import _namespace_map
 except ImportError:
@@ -17,6 +18,27 @@ except ImportError:
          "http://www.w3.org/2001/XMLSchema-instance": "xsi",
          "http://purl.org/dc/elements/1.1/": "dc",
     }
+
+# Python2 doesn't have 'unicode' as an encoding option, so fake it
+# (inefficiently, but oh well)
+try:
+    tostring(Element('tag'), encoding='unicode')
+    _tostring = tostring
+except LookupError:
+    def _tostring(elem, encoding='unicode', **kwargs):
+        if encoding == 'unicode':
+            return tostring(elem, encoding='utf-8', **kwargs).decode('utf-8')
+        else:
+            return tostring(elem, encoding=encoding, **kwargs)
+
+# a little bit of mitigation for Python2/3 problems
+# try:
+#     basestring
+# except NameError:
+#     basestring = str
+#     unicode = str
+# else:
+#     bytes = str
 
 
 from xigt import XigtCorpus, Igt, Tier, Item, Metadata, Meta, MetaChild
@@ -38,27 +60,29 @@ def loads(s):
 
 
 def dump(f, xc, encoding='utf-8', indent=2):
-    close = False
-    if not hasattr(f, 'write'):
-        if encoding != 'unicode':
-            f = open(f, 'w')
-        else:
-            f = open(f, 'wb')
-        close = True
-    writer = f
-    if encoding and encoding != 'unicode' and hasattr(f, 'buffer'):
-        writer = f.buffer
-    encode(writer, xc, encoding=encoding, indent=indent)
+    if hasattr(f, 'buffer') and encoding != 'unicode':
+        f = f.buffer
+    root = _build_corpus(xc)
+    _indent(root, indent=indent)
+    ElementTree(root).write(f, encoding=encoding)
+    # close = False
+    # if not hasattr(f, 'write'):
+    #     if encoding != 'unicode':
+    #         f = open(f, 'w')
+    #     else:
+    #         f = open(f, 'wb')
+    #     close = True
+    # writer = f
+    # if encoding and encoding != 'unicode' and hasattr(f, 'buffer'):
+    #     writer = f.buffer
+    # encode(writer, xc, encoding=encoding, indent=indent)
 
-    if close:
-        f.close()
+    # if close:
+    #     f.close()
 
 
 def dumps(xc, encoding='unicode', indent=2):
-    if encoding != 'unicode':
-        return b''.join(encode(xc, encoding=encoding, indent=indent))
-    else:
-        return ''.join(encode(xc, encoding=encoding, indent=indent))
+    return encode_xigtcorpus(xc, encoding=encoding, indent=indent)
 
 
 # XML Utilities#########################################################
@@ -330,7 +354,6 @@ def default_decode_metachild(elem):
     return mc
 
 
-
 ##############################################################################
 ##############################################################################
 # Encoding
@@ -363,6 +386,16 @@ def _build_elem(tag, obj, nscontext):
                     pre = _namespace_map[uri]
                 attr = '{}:{}'.format(pre, attr)
             e.set(_QName(attr, sortkey=xigt_attrsort), val)
+    return e
+
+
+def _build_corpus(xc):
+    e = _build_elem('xigt-corpus', xc, {})
+    nsmap = xc.nsmap
+    for md in xc.metadata:
+        e.append(_build_metadata(md, nsmap))
+    for igt in xc:
+        e.append(_build_igt(igt, nsmap))
     return e
 
 
@@ -438,96 +471,103 @@ def _indent(elem, indent=2, level=0):
         if level and (not elem.tail or not elem.tail.strip()):
             elem.tail = i
 
-def _encode_str(s, encoding):
-    if encoding and encoding != 'unicode':
-        return s.encode(encoding)
+
+# def _encode_str(s, encoding):
+#     if encoding is None or encoding == 'unicode':
+#         if isinstance(s, bytes):
+#             return unicode(s)
+#         return s
+#     elif encoding:
+#         return s.encode(encoding)
+#     return s  # this can fail. is it encoded already or not?
 
 
-def default_encode(xf, xc, encoding='unicode', indent=2):
-
-    # write the root node manually
-    root = _build_elem('xigt-corpus', xc, {})  # just to format attrs
-    root_attrs = ['{}="{}"'.format(k, v) for k, v in root.items()]
-    open_tag = _encode_str(
-        '<{}{}>{}'.format(
-            root.tag,
-            '' if not root_attrs else ' ' + ' '.join(root_attrs),
-            '' if indent is None else '\n'),
-        encoding
-    )
-    xf.write(open_tag)
-
-    nsmap = xc.nsmap  # for context of lower elements
-    _ind = _encode_str(' ' * (indent or 0), encoding)  # for level-1 elements
-
-    # metadata
-    for md in xc.metadata:
-        md_elem = _build_metadata(md, nsmap)
-        # indenting out of context means the tail needs to be fixed
-        _indent(md_elem, indent=indent, level=1)
-        md_elem.tail = '' if indent is None else '\n'
-        xf.write(_ind + tostring(md_elem))
-
-    for igt in xc:
-        igt_elem = _build_igt(igt, nsmap)
-        # indenting out of context means the tail needs to be fixed
-        _indent(igt_elem, indent=indent, level=1)
-        igt_elem.tail = '' if indent is None else '\n'
-        xf.write(_ind + tostring(igt_elem, encoding=encoding))
-
-    closing_tag = _encode_str(
-        '</{}>{}'.format(root.tag, '' if indent is None else '\n'),
-        encoding
-    )
-    xf.write(closing_tag)
+# def _write_declaration(xf, encoding):
+#     if encoding and encoding.lower() not in ('unicode', 'utf-8', 'us-ascii'):
+#         xf.write('<?xml version="1.0" encoding="{}"?>\n'.format(encoding))
 
 
-def default_encode_xigtcorpus(xc, indent=2):
+# def default_encode(xf, xc, encoding='unicode', indent=2):
+#     _write_declaration(xf, encoding)
+#     # write the root node manually
+#     root = _build_elem('xigt-corpus', xc, {})  # just to format attrs
+#     root_attrs = ['{}="{}"'.format(k, v) for k, v in root.items()]
+#     open_tag = _encode_str(
+#         '<{}{}>{}'.format(
+#             root.tag,
+#             '' if not root_attrs else ' ' + ' '.join(root_attrs),
+#             '' if indent is None else '\n'),
+#         encoding
+#     )
+#     xf.write(open_tag)
+
+#     nsmap = xc.nsmap  # for context of lower elements
+#     _ind = _encode_str(' ' * (indent or 0), encoding)  # for level-1 elements
+
+#     # metadata
+#     for md in xc.metadata:
+#         md_elem = _build_metadata(md, nsmap)
+#         # indenting out of context means the tail needs to be fixed
+#         _indent(md_elem, indent=indent, level=1)
+#         md_elem.tail = '' if indent is None else '\n'
+#         xf.write(_ind + _tostring(md_elem, encoding=encoding))
+
+#     for igt in xc:
+#         igt_elem = _build_igt(igt, nsmap)
+#         # indenting out of context means the tail needs to be fixed
+#         _indent(igt_elem, indent=indent, level=1)
+#         igt_elem.tail = '' if indent is None else '\n'
+#         xf.write(_ind + _tostring(igt_elem, encoding=encoding))
+
+#     closing_tag = _encode_str(
+#         '</{}>{}'.format(root.tag, '' if indent is None else '\n'),
+#         encoding
+#     )
+#     xf.write(closing_tag)
+
+
+def default_encode_xigtcorpus(xc, encoding='unicode', indent=2):
     # this encodes the whole xigtcorpus at once.
     # for incremental encoding, see encode() (default_encode())
-    root = _build_elem('xigt-corpus', xc, {})
-    nsmap = xc.nsmap
-    for md in xc.metadata:
-        root.append(_build_metadata(md, nsmap))
-    for igt in xc:
-        root.append(_build_igt(igt, nsmap))
+    root = _build_corpus(xc)
     _indent(root, indent=indent)
-    return tostring(root, encoding='unicode')
+    return _tostring(root, encoding=encoding)
 
-def default_encode_igt(igt, indent=2):
+
+def default_encode_igt(igt, encoding='unicode', indent=2):
     elem = _build_igt(igt, {})
     _indent(elem, indent=indent)
-    return tostring(elem, encoding='unicode')
+    return _tostring(elem, encoding=encoding)
 
 
-def default_encode_tier(tier, indent=2):
+def default_encode_tier(tier, encoding='unicode', indent=2):
     elem = _build_tier(tier, {})
     _indent(elem, indent=indent)
-    return tostring(elem, encoding='unicode')
+    return _tostring(elem, encoding=encoding)
 
 
-def default_encode_item(item, indent=2):
+def default_encode_item(item, encoding='unicode', indent=2):
     elem = _build_item(item, {})
     _indent(elem, indent=indent)
-    return tostring(elem, encoding='unicode')
+    return _tostring(elem, encoding=encoding)
 
 
-def default_encode_metadata(metadata, indent=2):
+def default_encode_metadata(metadata, encoding='unicode', indent=2):
     elem = _build_metadata(metadata, {})
     _indent(elem, indent=indent)
-    return tostring(elem, encoding='unicode')
+    return _tostring(elem, encoding=encoding)
 
 
-def default_encode_meta(meta, indent=2):
+def default_encode_meta(meta, encoding='unicode', indent=2):
     elem = _build_meta(meta, {})
     _indent(elem, indent=indent)
-    return tostring(elem, encoding='unicode')
+    return _tostring(elem, encoding=encoding)
 
 
-def default_encode_metachild(metachild, indent=2):
+def default_encode_metachild(metachild, encoding='unicode', indent=2):
     elem = _build_metachild(metachild, {})
     _indent(elem, indent=indent)
-    return tostring(elem, encoding='unicode')
+    return _tostring(elem, encoding=encoding)
 
 
 ##############################################################################
@@ -543,7 +583,7 @@ decode_metadata   = default_decode_metadata
 decode_meta       = default_decode_meta
 decode_metachild  = default_decode_metachild
 
-encode            = default_encode
+#encode            = default_encode
 encode_xigtcorpus = default_encode_xigtcorpus
 encode_igt        = default_encode_igt
 encode_tier       = default_encode_tier
