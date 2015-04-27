@@ -1,0 +1,64 @@
+
+include "xigt.rnc" {
+    # xigt-meta type no longer necessary, this is here for compatibility
+    Metadata.type = "xigt-meta" | empty
+}
+
+Tier |= grammar { include "xigt-tier.rnc" {
+    Tier.type = "phrases"
+    Item.type = ( "original" | "transliteration" )
+}}
+
+Tier |= grammar { include "xigt-tier.rnc" {
+    Tier.type = "words"
+}}
+
+Tier |= grammar { include "xigt-tier.rnc" {
+    Tier.type = "morphemes"
+    Item.type |= ( "affix" | "clitic" )
+}}
+
+Tier |= grammar { include "xigt-tier.rnc" {
+    Tier.type = "glosses"
+    Item.type |= ( "leipzig" | "lexeme" )
+}}
+
+Tier |= grammar { include "xigt-tier.rnc" {
+    Tier.type = "translations"
+}}
+
+Meta |= grammar { include "xigt-meta.rnc" {
+    Meta.type = "language"
+    # name or iso-639-3 or both may be specified
+    Meta.attrs =
+        ( attribute name { text } |
+          attribute iso-639-3 { text } )+,
+        attribute tiers { IdRefs }
+}}
+
+Meta |= grammar { include "xigt-meta.rnc" {
+    Meta.type = "date"
+    # should this be xsd:dateTime?
+    Meta.content = text
+}}
+
+Meta |= grammar { include "xigt-meta.rnc" {
+    Meta.type = "author"
+    Meta.content = text
+}}
+
+Meta |= grammar { include "xigt-meta.rnc" {
+    Meta.type = "source"
+    Meta.content = text
+}}
+
+Meta |= grammar { include "xigt-meta.rnc" {
+    Meta.type = "source"
+    Meta.attrs = attribute ref { IdRef },
+                 attribute page { text }?
+}}
+
+Meta |= grammar { include "xigt-meta.rnc" {
+    Meta.type = "comment"
+    Meta.content = text
+}}

@@ -2,6 +2,21 @@
 
 ## [Unreleased][unreleased]
 
+### Fixed
+
+* `xigt.importers.toolbox` and `xigt.exporters.itsdb` now work with Python2
+
+### Changed
+
+* The ODIN and Abkhaz example XML files have been updated to the most
+  current conventions.
+* The schemata for Xigt and the examples have been updated. The schema should
+  now be a little easier to extend, as well. The xigt-igt.rnc and
+  xigt-corpus.rnc files have been added to make it easier to customize
+  higher-level things, and all default subtyping has been moved to
+  xigt-default.rnc. Extensions can now build on extensions, so the ODIN and
+  Abkhaz examples build on top of default-xigt.rnc rather than xigt.rnc.
+
 ## [v1.0] - 2015.04.24
 
 ### Added
@@ -20,7 +35,10 @@
 ### Fixed
 
 * A handful of Python3 code in scripts was preventing them from running with
-  Python2. Now I think everything works in both Py3 and Py2.
+  Python2. Now I think everything works in both Py3 and Py2 (update: two
+  optional modules, `xigt.importers.toolbox` and `xigt.exporters.itsdb`,
+  did not work with Py2, but they don't interfere with the other parts
+  of Xigt, and this issue is fixed in a recent commit).
 * xigtxml now reads <metadata> for Python2 (a map() problem meant that it was
   cleared in Py2 before it could be parsed)
 * xigtxml now serializes and deserializes Metadata and Meta elements correctly

@@ -14,21 +14,24 @@ line=961 tag=T:     `I made the child eat rice.'
     <meta type="language" name="english" iso-639-3="eng"
           tiers="glosses translations"/>
   </metadata>
-  <igt id="i1">
-    <tier type="odin-raw" id="o">
-      <item id="o1">doc id=397 959 961 L G T</item>
-      <item id="o2">language: korean (kor)</item>
-      <item id="o3">line=959 tag=L:   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
-      <item id="o4">line=960 tag=G:     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
-      <item id="o5">line=961 tag=T:     `I made the child eat rice.'</item>
+  <igt id="igt1" doc-id="397" line-range="959 961" tag-types="L G T">
+    <tier type="odin" id="r" state="raw">
+      <item id="r1" line="959" tag="L">   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="r2" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="r3" line="961" tag="T">     `I made the child eat rice.'</item>
     </tier>
-    <tier type="odin-clean" id="c">
-      <item id="c1" alignment="o3" line="959" tag="L">Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
-      <item id="c2" alignment="o4" line="960" tag="G">I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
-      <item id="c3" alignment="o5" line="961" tag="T">I made the child eat rice.</item>
+    <tier type="odin" id="c" state="cleaned" alignment="r">
+      <item id="c1" alignment="r1" line="959" tag="L">   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="c2" alignment="r2" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="c3" alignment="r3" line="961" tag="T">     `I made the child eat rice.'</item>
     </tier>
-    <tier type="phrases" id="p" content="c">
-      <item id="p1" content="c1"/>
+    <tier type="odin" id="n" state="normalized" alignment="c">
+      <item id="n1" alignment="c1" line="959" tag="L">Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="n2" alignment="c2" line="960" tag="G">I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="n3" alignment="c3" line="961" tag="T">I made the child eat rice.</item>
+    </tier>
+    <tier type="phrases" id="p" content="n">
+      <item id="p1" content="n1"/>
     </tier>
     <tier type="words" id="w" segmentation="p">
       <item id="w1" segmentation="p1[0:6]"/>
@@ -37,31 +40,31 @@ line=961 tag=T:     `I made the child eat rice.'
       <item id="w4" segmentation="p1[23:35]"/>
     </tier>
     <tier type="morphemes" id="m" segmentation="w">
-      <item id="w1.m1" segmentation="w1[0:3]"/>
-      <item id="w1.m2" segmentation="w1[4:6]"/>
-      <item id="w2.m1" segmentation="w2[0:2]"/>
-      <item id="w2.m2" segmentation="w2[3:8]"/>
-      <item id="w3.m1" segmentation="w3[0:3]"/>
-      <item id="w3.m2" segmentation="w3[4:6]"/>
-      <item id="w4.m1" segmentation="w4[0:3]"/>
-      <item id="w4.m2" segmentation="w4[4:5]"/>
-      <item id="w4.m3" segmentation="w4[6:9]"/>
-      <item id="w4.m4" segmentation="w4[10:12]"/>
+      <item id="m1.1" segmentation="w1[0:3]"/>
+      <item id="m1.2" segmentation="w1[4:6]"/>
+      <item id="m2.1" segmentation="w2[0:2]"/>
+      <item id="m2.2" segmentation="w2[3:8]"/>
+      <item id="m3.1" segmentation="w3[0:3]"/>
+      <item id="m3.2" segmentation="w3[4:6]"/>
+      <item id="m4.1" segmentation="w4[0:3]"/>
+      <item id="m4.2" segmentation="w4[4:5]"/>
+      <item id="m4.3" segmentation="w4[6:9]"/>
+      <item id="m4.4" segmentation="w4[10:12]"/>
     </tier>
-    <tier type="glosses" id="g" alignment="m" content="c">
-      <item id="w1.g1" alignment="w1.m1" content="c2[0:1]"/>
-      <item id="w1.g2" alignment="w1.m2" content="c2[2:5]"/>
-      <item id="w2.g1" alignment="w2.m1" content="c2[6:11]"/>
-      <item id="w2.g2" alignment="w2.m2" content="c2[12:15]"/>
-      <item id="w3.g1" alignment="w3.m1" content="c2[16:20]"/>
-      <item id="w3.g2" alignment="w3.m2" content="c2[21:24]"/>
-      <item id="w4.g1" alignment="w4.m1" content="c2[25:28]"/>
-      <item id="w4.g2" alignment="w4.m2" content="c2[29:33]"/>
-      <item id="w4.g3" alignment="w4.m3" content="c2[34:37]"/>
-      <item id="w4.g4" alignment="w4.m4" content="c2[38:41]"/>
+    <tier type="glosses" id="g" alignment="m" content="n">
+      <item id="g1.1" alignment="m1.1" content="n2[0:1]"/>
+      <item id="g1.2" alignment="m1.2" content="n2[2:5]"/>
+      <item id="g2.1" alignment="m2.1" content="n2[6:11]"/>
+      <item id="g2.2" alignment="m2.2" content="n2[12:15]"/>
+      <item id="g3.1" alignment="m3.1" content="n2[16:20]"/>
+      <item id="g3.2" alignment="m3.2" content="n2[21:24]"/>
+      <item id="g4.1" alignment="m4.1" content="n2[25:28]"/>
+      <item id="g4.2" alignment="m4.2" content="n2[29:33]"/>
+      <item id="g4.3" alignment="m4.3" content="n2[34:37]"/>
+      <item id="g4.4" alignment="m4.4" content="n2[38:41]"/>
     </tier>
-    <tier type="translations" id="t" alignment="p" content="c">
-      <item id="t0" alignment="p1" content="c3"/>
+    <tier type="translations" id="t" alignment="p" content="n">
+      <item id="t1" alignment="p1" content="n3"/>
     </tier>
   </igt>
 </xigt-corpus>

@@ -1,0 +1,56 @@
+start = element igt {
+    attribute id { Igt.id },
+    BaseAttrs,
+    Igt.subtype
+}
+
+Igt.id = parent Igt.id
+
+Igt.subtype =
+    attribute type { Igt.type }?,
+    Igt.attrs,
+    Igt.metadata,
+    Igt.tiers
+Igt.type = parent Igt.type
+Igt.attrs = parent Igt.attrs
+Igt.metadata = (Metadata | LocalMetadata)*
+Igt.tiers = (Tier | LocalTier)*
+
+LocalTier = grammar { include "xigt-tier.rnc" }
+LocalMetadata = grammar { include "xigt-metadata.rnc" }
+
+# keep these in scope
+
+Id = parent Id
+IdRef = parent IdRef
+IdRefs = parent IdRefs
+AlgnExpr = parent AlgnExpr
+
+BaseAttrs = parent BaseAttrs
+
+Tier = parent Tier
+Item = parent Item
+Metadata = parent Metadata
+Meta = parent Meta
+
+Tier.id = parent Tier.id
+Tier.type = parent Tier.type
+Tier.alnref = parent Tier.alnref
+Tier.cntref = parent Tier.cntref
+Tier.segref = parent Tier.segref
+Tier.attrs = parent Tier.attrs
+
+Item.id = parent Item.id
+Item.type = parent Item.type
+Item.alnref = parent Item.alnref
+Item.cntref = parent Item.cntref
+Item.segref = parent Item.segref
+Item.attrs = parent Item.attrs
+
+Metadata.id = parent Metadata.id
+Metadata.type = parent Metadata.type
+Metadata.attrs = parent Metadata.attrs
+
+Meta.id = parent Meta.id
+Meta.type = parent Meta.type
+Meta.attrs = parent Meta.attrs

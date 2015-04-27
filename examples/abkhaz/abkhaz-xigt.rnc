@@ -1,29 +1,27 @@
-include "xigt.rnc" {
+include "default-xigt.rnc"
 
-  Meta |= grammar { include "xigt-meta.rnc" {
+Meta |= grammar { include "xigt-meta.rnc" {
     Meta.type = "vetted"
     Meta.attrs = attribute value { text }
-  }}
-  
-  Meta |= grammar { include "xigt-meta.rnc" {
+}}
+
+Meta |= grammar { include "xigt-meta.rnc" {
     Meta.type = "judgment"
     Meta.attrs = attribute value { text }
-  }}
-  
-  Meta |= grammar { include "xigt-meta.rnc" {
+}}
+
+Meta |= grammar { include "xigt-meta.rnc" {
     Meta.type = "phenomena"
     Meta.content = element phenomenon { text }*
-  }}
+}}
 
-  # Syntax tier allows Items as nodes, synrefs as edges for a parse tree
-  Tier |= grammar { include "xigt-tier.rnc" {
+# Syntax tier allows Items as nodes, synrefs as edges for a parse tree
+Tier |= grammar { include "xigt-tier.rnc" {
     Tier.type = "syntax"
-    Item = grammar { include "xigt-item.rnc" }
-         | grammar { include "xigt-item.rnc" {
-      Item.refs = empty
-      Item.attrs = attribute children { AlgnExpr }
-      Item.content = text
+    Tier.attrs = attribute children { IdRef }
+    Item |= grammar { include "xigt-item.rnc" }
+    Item |= grammar { include "xigt-item.rnc" {
+        Item.refs = empty
+        Item.attrs = attribute children { AlgnExpr }
     }}
-  }}
-
-}
+}}

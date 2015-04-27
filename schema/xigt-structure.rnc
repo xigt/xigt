@@ -4,7 +4,7 @@
 Id = xsd:string { pattern="[a-zA-Z][\-.\w]*" }
 Ref = xsd:string { pattern="[a-zA-Z][\-.\w]*" }
 AlgnExpr = xsd:string {
-	pattern="[a-zA-Z][\-.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?([,+][a-zA-Z][\-.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?)*"
+    pattern="[a-zA-Z][-.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?([,+][a-zA-Z][-.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?)*"
 }
 
 
@@ -22,53 +22,53 @@ AnyAttr = attribute * - (id | type | alignment | content | segmentation) { text 
 
 start = XigtCorpus
 XigtCorpus = element xigt-corpus {
-	IdAttr?,
-	TypeAttr?,
-	Metadata*,
-	Igt*
+    IdAttr?,
+    TypeAttr?,
+    Metadata*,
+    Igt*
 }
 
 Metadata = element metadata {
-	IdAttr?,
-	TypeAttr?,
-	AnyAttr*,
-	Meta*
+    IdAttr?,
+    TypeAttr?,
+    AnyAttr*,
+    Meta*
 }
 
 Meta = element meta {
-	IdAttr?,
-	TypeAttr?,
-	AnyAttr*,
-	Meta.content
+    IdAttr?,
+    TypeAttr?,
+    AnyAttr*,
+    Meta.content
 }
 Meta.content = text | AnyElement*
 AnyElement = element * {
-	(attribute * { text }
-	 | text
-	 | AnyElement)*
+    (attribute * { text }
+     | text
+     | AnyElement)*
 }
 
 Igt = element igt {
-	IdAttr,
-	TypeAttr?,
-	AnyAttr*,
-	Metadata*,
-	Tier*
+    IdAttr,
+    TypeAttr?,
+    AnyAttr*,
+    Metadata*,
+    Tier*
 }
 
 Tier = element tier {
-	IdAttr,
-	TypeAttr,
-	RefAttrs,
-	AnyAttr*,
-	Metadata*,
-	Item*
+    IdAttr,
+    TypeAttr,
+    RefAttrs,
+    AnyAttr*,
+    Metadata*,
+    Item*
 }
 
 Item = element item {
-	IdAttr,
-	TypeAttr?,
-	RefAttrs,
-	AnyAttr*,
-	text
+    IdAttr,
+    TypeAttr?,
+    RefAttrs,
+    AnyAttr*,
+    text
 }

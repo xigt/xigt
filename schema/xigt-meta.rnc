@@ -1,16 +1,31 @@
 start = element meta {
-    # no ID or Ref?
-    attribute type { Meta.type },
-    # tiers defaults to all tiers, but may be a space-separated list
-    attribute tiers { text }?,
+    attribute id { Meta.id }?,
+    BaseAttrs,
+    Meta.subtype
+}
+
+Meta.id = parent Meta.id
+
+Meta.subtype =
+    attribute type { Meta.type }?,
     Meta.attrs,
     Meta.content
+
+Meta.type = parent Meta.type
+Meta.attrs = parent Meta.attrs
+Meta.content = mixed { AnyElement }*
+
+AnyElement = element * {
+    (attribute * { text }
+     | text
+     | AnyElement)*
 }
-Meta.type = notAllowed
-Meta.attrs = empty
-Meta.content = empty
 
 # keep these in scope
+
 Id = parent Id
-Ref = parent Ref
+IdRef = parent IdRef
+IdRefs = parent IdRefs
 AlgnExpr = parent AlgnExpr
+
+BaseAttrs = parent BaseAttrs

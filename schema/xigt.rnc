@@ -2,153 +2,74 @@
 #--- Basics ---
 #--------------
 
+#--- Attribute and Element Types
+
 # The id and ref attributes are used by <tier> and <item> elements to establish
 # alignments amongst the data. <item> elements may use Alignment Expressions to
 # establish one-to-many relationships.
 Id = xsd:string { pattern="[A-Za-z][\-.\w]*" }
 
-Ref = xsd:string { pattern="[A-Za-z][\-.\w]*" }
+IdRef = xsd:string { pattern="[A-Za-z][\-.\w]*" }
+
+IdRefs = xsd:string { pattern="[A-Za-z][\-.\w]*(\s+[A-Za-z][\-.\w]*)*" }
 
 AlgnExpr = xsd:string {
     pattern="[A-Za-z][\-.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?([,+][A-Za-z][\-.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?)*"
 }
 
-#--- Document-wide Definitions ---
+#--- Base Attributes (inherited from any level and overridable)
 
-Igt.id = Id
-Tier.id = Id
-Tier.alnref = Ref
-Tier.cntref = Ref
-Tier.segref = Ref
-Tier.attrs = empty
-Tier.content = notAllowed
+BaseAttrs =
+  attribute xml:lang { text }?,
+  attribute xml:space { "default" | "preserve" }?
+
+#------------------------------
+#--- Structural Definitions ---
+#------------------------------
+
+# many of these definitions exist here so you can override the defaults
+# for an entire document, e.g. to enforce conventions in the form of IDs
+# or restrict the textual content of Items, etc.
+
 Item.id = Id
+Item.type = empty
 Item.alnref = AlgnExpr
 Item.cntref = AlgnExpr
 Item.segref = AlgnExpr
 Item.attrs = empty
-Item.content = notAllowed
+Item.metadata = Metadata*
+Item = notAllowed
 
-#--- Base Attributes (inherited from any level and overridable)
-
-BaseAttrs = BaseAttrs.alignmentMethod
-# BaseAttrs.IterableTiers (those that can be aligned visually?)
-# BaseAttrs... (others?)
-BaseAttrs.alignmentMethod = attribute alignment-method { BaseAttrs.alignmentMethod.value }?
-BaseAttrs.alignmentMethod.value = ( "auto" | "gold" | "vetted" )
-
-#--- Include Structural Definitions ---
-
-# Root element
-start = XigtCorpus
-XigtCorpus = element xigt-corpus {
-    attribute id { Id }?,
-    BaseAttrs,
-    XigtCorpus.attrs,
-    XigtCorpus.metadata,
-    XigtCorpus.content
-}
-# no corpus-level attributes by default, but they can be added via extensions
-XigtCorpus.attrs = empty
-XigtCorpus.metadata = (BasicMetadata | Metadata)*
-XigtCorpus.content = Igt*
-Igt = element igt {
-    attribute id { Igt.id },
-    BaseAttrs,
-    Igt.subtype
-}
-Igt.subtype = attribute type { Igt.type }?,
-              Igt.attrs,
-              Igt.metadata,
-              Igt.content
-Igt.type = notAllowed
-Igt.attrs = empty
-Igt.metadata = (BasicMetadata | Metadata)*
-Igt.content = (BasicTier | Tier)*
-
+Tier.id = Id
+Tier.type = empty
+Tier.alnref = IdRef
+Tier.cntref = IdRef
+Tier.segref = IdRef
+Tier.attrs = empty
+Tier.metadata = Metadata*
 Tier = notAllowed
-Metadata = notAllowed
+
+Meta.id = Id
+Meta.type = empty
+Meta.attrs = empty
 Meta = notAllowed
 
-#------------------------
-#--- Default subtypes ---
-#------------------------
+Metadata.id = Id
+Metadata.type = empty
+Metadata.attrs = empty
+Metadata = notAllowed
 
-BasicTier |= grammar { include "xigt-tier.rnc" {
-  Tier.type = "phrases"
-  Item.type = ( "original" | "transliteration" )
-}}
+Igt.id = Id
+Igt.type = empty
+Igt.attrs = empty
+Igt.metadata = Metadata*
+Igt = notAllowed
 
-BasicTier |= grammar { include "xigt-tier.rnc" {
-  Tier.type = "words"
-}}
+Corpus.id = Id
+Corpus.type = empty
+Corpus.attrs = empty
+Corpus.metadata = Metadata*
+Corpus = grammar { include "xigt-corpus.rnc" }
 
-BasicTier |= grammar { include "xigt-tier.rnc" {
-      Tier.type = "morphemes"
-      Item.type |= ( "affix" | "clitic" )
-}}
-
-BasicTier |= grammar { include "xigt-tier.rnc" {
-      Tier.type = "glosses"
-      Item.type |= ( "leipzig" | "lexeme" )
-}}
-
-BasicTier |= grammar { include "xigt-tier.rnc" {
-      Tier.type = "translations"
-}}
-
-# MWG 2014-01-06: removing alignments tier type for now. If it is re-added
-# in the future, consider redefining Tier.refs and Item.refs to prevent
-# the default refs as possibilities:
-#   Tier.refs = attribute source { Ref }, attribute target { Ref }
-# But the choice of ref names is somewhat problematic: 'source' and 'target'
-# imply directionality. Do we need separate tier types for directional and
-# non-directional alignments?
-#BasicTier |= grammar { include "xigt-tier.rnc" {
-#      Tier.type = "alignments"
-#      Tier.attrs = attribute alignref { Ref }
-#      Tier.content = (Item | parent Tier.content)*
-#      Item.attrs = attribute alignref { AlgnExpr }
-#}}
-
-BasicMetadata |= grammar { include "xigt-metadata.rnc" {
-  Metadata.type = "xigt-meta"
-  # These are not available in the scope of this grammar, so we use
-  # "parent" to get at them.
-  Metadata.content = (parent BasicMeta | parent Meta)*
-}}
-
-BasicMeta |= grammar { include "xigt-meta.rnc" {
-    Meta.type = "language"
-    # name or iso-639-3 or both may be specified
-    Meta.attrs = ( attribute name { text } |
-                   attribute iso-639-3 { text } )+
-}}
-
-BasicMeta |= grammar { include "xigt-meta.rnc" {
-  Meta.type = "date"
-  # should this be xsd:dateTime?
-  Meta.content = text
-}}
-
-BasicMeta |= grammar { include "xigt-meta.rnc" {
-  Meta.type = "author"
-  Meta.content = text
-}}
-
-BasicMeta |= grammar { include "xigt-meta.rnc" {
-  Meta.type = "source"
-  Meta.attrs = attribute id { Id }
-  Meta.content = text
-}}
-
-BasicMeta |= grammar { include "xigt-meta.rnc" {
-  Meta.type = "source"
-  Meta.attrs = attribute ref { Ref },
-               attribute page { text }?
-}}
-
-BasicMeta |= grammar { include "xigt-meta.rnc" {
-  Meta.type = "comment"
-  Meta.content = text
-}}
+# Root element
+start = Corpus

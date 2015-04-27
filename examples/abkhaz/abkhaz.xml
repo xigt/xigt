@@ -27,7 +27,7 @@ the-boy the-girl her-he-see-neg
 The boy does not see the girl.
 -->
 <xigt-corpus>
-  <metadata type="xigt-meta">
+  <metadata>
     <meta type="language" name="Abkhaz" iso-639-3="abk"
           tiers="phrases words morphemes"/>
     <meta type="language" name="English" iso-639-3="eng"
@@ -38,7 +38,7 @@ The boy does not see the girl.
     <meta type="source" id="src-b">Safiyyah Saleem</meta>
   </metadata>
   <igt id="i1">
-    <metadata type="xigt-meta">
+    <metadata>
       <meta type="source" ref="src-a" page="60"/>
       <meta type="vetted" value="s"/>
       <meta type="judgment" value="g"/>
@@ -51,32 +51,32 @@ The boy does not see the girl.
       <item id="p1">at͡ʂʰkʷʰən atəpha dəjəbajt</item>
     </tier>
     <tier type="words" id="w" segmentation="p">
-      <item id="w1" segmentation="p1[0:9]"/>
-      <item id="w2" segmentation="p1[10:16]"/>
-      <item id="w3" segmentation="p1[17:25]"/>
+      <item id="w1" segmentation="p1[0:10]"/>
+      <item id="w2" segmentation="p1[11:17]"/>
+      <item id="w3" segmentation="p1[18:26]"/>
     </tier>
     <tier type="morphemes" id="m" segmentation="w">
-      <item id="w1m1" segmentation="w1[0:1]"/>
-      <item id="w1m2" segmentation="w1[1:9]"/>
-      <item id="w2m1" segmentation="w2[0:1]"/>
-      <item id="w2m2" segmentation="w2[1:6]"/>
-      <item id="w3m1" segmentation="w3[0:2]"/>
-      <item id="w3m2" segmentation="w3[2:4]"/>
-      <item id="w3m3" segmentation="w3[4:6]"/>
-      <item id="w3m4" segmentation="w3[6:8]"/>
+      <item id="m1.1" segmentation="w1[0:1]"/>
+      <item id="m1.2" segmentation="w1[1:10]"/>
+      <item id="m2.1" segmentation="w2[0:1]"/>
+      <item id="m2.2" segmentation="w2[1:6]"/>
+      <item id="m3.1" segmentation="w3[0:2]"/>
+      <item id="m3.2" segmentation="w3[2:4]"/>
+      <item id="m3.3" segmentation="w3[4:6]"/>
+      <item id="m3.4" segmentation="w3[6:8]"/>
     </tier>
     <tier type="glosses" id="g" alignment="m">
-      <item id="w1m1g" alignment="w1m1">the</item>
-      <item id="w1m2g" alignment="w1m2">boy</item>
-      <item id="w2m1g" alignment="w2m1">the</item>
-      <item id="w2m2g" alignment="w2m2">girl</item>
-      <item id="w3m1g" alignment="w3m1">her</item>
-      <item id="w3m2g" alignment="w3m2">he</item>
-      <item id="w3m3g" alignment="w3m3">see</item>
-      <item id="w3m4g1" alignment="w3m4">DYN</item>
-      <item id="w3m4g2" alignment="w3m4">FIN</item>
+      <item id="g1.1" alignment="m1.1">the</item>
+      <item id="g1.2" alignment="m1.2">boy</item>
+      <item id="g2.1" alignment="m2.1">the</item>
+      <item id="g2.2" alignment="m2.2">girl</item>
+      <item id="g3.1" alignment="m3.1">her</item>
+      <item id="g3.2" alignment="m3.2">he</item>
+      <item id="g3.3" alignment="m3.3">see</item>
+      <item id="g3.4.1" alignment="m3.4">DYN</item>
+      <item id="g3.4.2" alignment="m3.4">FIN</item>
     </tier>
-    <tier type="syntax" id="x" alignment="w">
+    <tier type="syntax" id="x" alignment="w" children="x">
       <item id="x1" alignment="w1">NP-SBJ</item>
       <item id="x2" alignment="w2">NP-OBJ</item>
       <item id="x3" alignment="w3">VBD</item>
@@ -88,7 +88,7 @@ The boy does not see the girl.
     </tier>
   </igt>
   <igt id="i30">
-    <metadata type="xigt-meta">
+    <metadata>
       <meta type="source" ref="src-b"/>
       <meta type="vetted" value="f"/>
       <meta type="judgment" value="g"/>
@@ -101,33 +101,33 @@ The boy does not see the girl.
       <item id="p1">at͡ʂʰkʷʰən atəpha dəjəbawam</item>
     </tier>
     <tier type="words" id="w" segmentation="p">
-      <item id="w1" segmentation="p1[0:9]"/>
-      <item id="w2" segmentation="p1[10:16]"/>
-      <item id="w3" segmentation="p1[17:26]"/>
+      <item id="w1" segmentation="p1[0:10]"/>
+      <item id="w2" segmentation="p1[11:17]"/>
+      <item id="w3" segmentation="p1[18:27]"/>
     </tier>
     <tier type="morphemes" id="m" segmentation="w">
-      <item id="w1m1" segmentation="w1[0:1]"/>
-      <item id="w1m2" segmentation="w1[1:9]"/>
-      <item id="w2m1" segmentation="w2[0:1]"/>
-      <item id="w2m2" segmentation="w2[1:6]"/>
-      <item id="w3m1" segmentation="w3[0:2]"/>
-      <item id="w3m2" segmentation="w3[2:4]"/>
-      <item id="w3m3" segmentation="w3[4:6]"/>
-      <item id="w3m4" segmentation="w3[6:8]"/>
-      <item id="w3m5" segmentation="w3[8:9]"/>
+      <item id="m1.1" segmentation="w1[0:1]"/>
+      <item id="m1.2" segmentation="w1[1:10]"/>
+      <item id="m2.1" segmentation="w2[0:1]"/>
+      <item id="m2.2" segmentation="w2[1:6]"/>
+      <item id="m3.1" segmentation="w3[0:2]"/>
+      <item id="m3.2" segmentation="w3[2:4]"/>
+      <item id="m3.3" segmentation="w3[4:6]"/>
+      <item id="m3.4" segmentation="w3[6:8]"/>
+      <item id="m3.5" segmentation="w3[8:9]"/>
     </tier>
     <tier type="glosses" id="g" alignment="m">
-      <item id="w1m1g" alignment="w1m1">the</item>
-      <item id="w1m2g" alignment="w1m2">boy</item>
-      <item id="w2m1g" alignment="w2m1">the</item>
-      <item id="w2m2g" alignment="w2m2">girl</item>
-      <item id="w3m1g" alignment="w3m1">her</item>
-      <item id="w3m2g" alignment="w3m2">he</item>
-      <item id="w3m3g" alignment="w3m3">see</item>
-      <item id="w3m4g" alignment="w3m4">PRS</item>
-      <item id="w3m5g" alignment="w3m5">NEG</item>
+      <item id="g1.1" alignment="m1.1">the</item>
+      <item id="g1.2" alignment="m1.2">boy</item>
+      <item id="g2.1" alignment="m2.1">the</item>
+      <item id="g2.2" alignment="m2.2">girl</item>
+      <item id="g3.1" alignment="m3.1">her</item>
+      <item id="g3.2" alignment="m3.2">he</item>
+      <item id="g3.3" alignment="m3.3">see</item>
+      <item id="g3.4" alignment="m3.4">PRS</item>
+      <item id="g3.5" alignment="m3.5">NEG</item>
     </tier>
-    <tier type="syntax" id="x" alignment="w">
+    <tier type="syntax" id="x" alignment="w" children="x">
       <item id="x1" alignment="w1">NP-SBJ</item>
       <item id="x2" alignment="w2">NP-OBJ</item>
       <item id="x3" alignment="w3">VBZ</item>

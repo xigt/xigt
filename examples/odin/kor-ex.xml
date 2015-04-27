@@ -14,16 +14,16 @@ line=961 tag=T:     `I made the child eat rice.'
     <meta type="language" name="english" iso-639-3="eng"
           tiers="glosses translations"/>
   </metadata>
-  <igt id="i1" doc-id="397" line-range="959 961" tag-types="L G T">
-    <tier type="odin" id="o" state="raw">
-      <item id="o1" line="959" tag="L">   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
-      <item id="o2" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
-      <item id="o3" line="961" tag="T">     `I made the child eat rice.'</item>
+  <igt id="igt1" doc-id="397" line-range="959 961" tag-types="L G T">
+    <tier type="odin" id="r" state="raw">
+      <item id="r1" line="959" tag="L">   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="r2" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="r3" line="961" tag="T">     `I made the child eat rice.'</item>
     </tier>
-    <tier type="odin" id="c" state="cleaned" alignment="o">
-      <item id="c1" alignment="o1" line="959" tag="L">   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
-      <item id="c2" alignment="o2" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
-      <item id="c3" alignment="o3" line="961" tag="T">     `I made the child eat rice.'</item>
+    <tier type="odin" id="c" state="cleaned" alignment="r">
+      <item id="c1" alignment="r1" line="959" tag="L">   1 Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
+      <item id="c2" alignment="r2" line="960" tag="G">     I-Nom child-Dat rice-Acc eat-Caus-Pst-Dec</item>
+      <item id="c3" alignment="r3" line="961" tag="T">     `I made the child eat rice.'</item>
     </tier>
     <tier type="odin" id="n" state="normalized" alignment="c">
       <item id="n1" alignment="c1" line="959" tag="L">Nay-ka ai-eykey pap-ul mek-i-ess-ta</item>
@@ -31,7 +31,7 @@ line=961 tag=T:     `I made the child eat rice.'
       <item id="n3" alignment="c3" line="961" tag="T">I made the child eat rice.</item>
     </tier>
     <tier type="phrases" id="p" content="n">
-      <item type="transliteration" id="p1" content="n1"/>
+      <item id="p1" content="n1"/>
     </tier>
     <tier type="words" id="w" segmentation="p">
       <item id="w1" segmentation="p1[0:6]"/>
@@ -72,7 +72,7 @@ line=961 tag=T:     `I made the child eat rice.'
     <tier type="translations" id="t" alignment="p" content="n">
       <item id="t1" alignment="p1" content="n3"/>
     </tier>
-    <tier type="translation-words" id="tw" segmentation="t">
+    <tier type="words" id="tw" segmentation="t">
       <item id="tw1" segmentation="t1[0:1]"/>
       <item id="tw2" segmentation="t1[2:6]"/>
       <item id="tw3" segmentation="t1[7:10]"/>

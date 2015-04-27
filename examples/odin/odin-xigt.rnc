@@ -1,15 +1,85 @@
-include "xigt.rnc" {
-    Tier |= grammar { include "xigt-tier.rnc" {
-      Tier.type = "odin-raw"
-      # setting refs to empty blocks content/alignment/segmentation
-      Tier.refs = empty
+include "default-xigt.rnc" {
+    Igt.attrs =
+        attribute doc-id { text },
+        attribute line-range { text },
+        attribute tag-types { text }
+}
+
+Tier |= grammar { include "xigt-tier.rnc" {
+    Tier.type = "odin"
+    Tier.attrs = attribute state { "raw" | "cleaned" | "normalized" }
+    Item.attrs =
+        attribute line { text },
+        attribute tag { text }
+}}
+
+Tier |= grammar { include "xigt-tier.rnc" {
+    Tier.type = "pos"
+}}
+
+Tier |= grammar { include "xigt-tier.rnc" {
+    Tier.type = "bilingual-alignments"
+    Tier.attrs =
+        attribute source { IdRef },
+        attribute target { IdRef }
+    Item.attrs =
+        attribute source { AlgnExpr },
+        attribute target { AlgnExpr }?  # no target means it's unaligned
+}}
+
+Tier |= grammar { include "xigt-tier.rnc" {
+    Tier.type = "phrase-structure"
+    Tier.attrs = attribute children { IdRef }
+    Item.attrs = attribute index { text }?
+    #Item |= grammar { include "xigt-item.rnc" }
+    Item |= grammar { include "xigt-item.rnc" {
+        Item.alnref = empty
+        Item.attrs =
+            attribute children { IdRefs },
+            attribute index { text }?
     }}
-    Tier |= grammar { include "xigt-tier.rnc" {
-      Tier.type = "odin-clean"
-      Tier.attrs = empty
-      Item = grammar { include "xigt-item.rnc" {
-        Item.attrs = attribute line { xsd:int }?
-                   , attribute tag { text }?
-      }}
+    Item |= grammar { include "xigt-item.rnc" {
+        Item.type = "null"
+        Item.alnref = empty
+        Item.attrs =
+            attribute ec-type { text },
+            attribute index { text }?
     }}
-} 
+}}
+
+Tier |= grammar { include "xigt-tier.rnc" {
+    Tier.type = "dependencies"
+    Tier.alnref = empty
+    Tier.segref = empty
+    Tier.attrs =
+        attribute head { IdRef },
+        attribute dep { IdRef }
+    Item.alnref = empty
+    Item.segref = empty
+    Item.attrs =
+        attribute head { IdRef }?,  # a dep without a head is the root
+        attribute dep { IdRef }
+}}
+
+Tier |= grammar { include "xigt-tier.rnc" {
+    Tier.type = "dependencies"
+    Tier.alnref = empty
+    Tier.segref = empty
+    Tier.attrs =
+        attribute head { IdRef },
+        attribute dep { IdRef },
+        attribute ec-dep { IdRef },
+        attribute ec-head { IdRef }
+    Item.alnref = empty
+    Item.segref = empty
+    Item |= grammar { include "xigt-item.rnc" {
+        Item.attrs =
+            # a dep without a head is the root
+            ( attribute head { IdRef } | attribute ec-head { IdRef } )?,
+            ( attribute dep { IdRef } | attribute ec-dep { IdRef } )
+    }}
+    Item |= grammar { include "xigt-item.rnc" {
+        Item.type = "null"
+        Item.attrs = attribute ec-pos { text }?
+    }}
+}}

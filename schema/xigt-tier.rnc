@@ -4,7 +4,9 @@ start = element tier {
     Tier.refs,
     Tier.subtype
 }
+
 Tier.id = parent Tier.id
+
 # There are three default ref types, but 'segmentation' cannot cooccur with
 # 'alignment' and/or 'content'.
 Tier.refs = ( attribute alignment { Tier.alnref }?,
@@ -13,33 +15,46 @@ Tier.refs = ( attribute alignment { Tier.alnref }?,
 Tier.alnref = parent Tier.alnref
 Tier.cntref = parent Tier.cntref
 Tier.segref = parent Tier.segref
+
 # all other attributes, types of metadata and the type of content
 # can be selected by the 'type' attribute. If an extension wants to
 # block subtyping of tiers, it can redefine Tier.subtype
-Tier.subtype = attribute type { Tier.type },
+Tier.subtype = attribute type { Tier.type }?,
                Tier.attrs,
                Tier.metadata,
-               Tier.content
+               Tier.items
 Tier.type = notAllowed
 Tier.attrs = parent Tier.attrs
-Tier.metadata = (BasicMetadata | Metadata)*
-Tier.content = ( Item | parent Tier.content )*
 
-Item |= grammar { include "xigt-item.rnc" }
+Tier.metadata = (Metadata | LocalMetadata)*
+Tier.items = (Item | LocalItem)*
 
-# Copy up Item definitions or establish Tier-relevant ones
-Item.id = parent Item.id
-Item.alnref = parent Item.alnref
-Item.cntref = parent Item.cntref
-Item.segref = parent Item.segref
-Item.type = notAllowed
-Item.attrs = parent Item.attrs
-Item.content = parent Item.content
+LocalItem = grammar { include "xigt-item.rnc" }
+LocalMetadata = grammar { include "xigt-metadata.rnc" }
 
 # keep these in scope
 Id = parent Id
-Ref = parent Ref
+IdRef = parent IdRef
+IdRefs = parent IdRefs
 AlgnExpr = parent AlgnExpr
+
 BaseAttrs = parent BaseAttrs
+
+Item = parent Item
 Metadata = parent Metadata
-BasicMetadata = parent BasicMetadata
+Meta = parent Meta
+
+Item.id = parent Item.id
+Item.type = parent Item.type
+Item.alnref = parent Item.alnref
+Item.cntref = parent Item.cntref
+Item.segref = parent Item.segref
+Item.attrs = parent Item.attrs
+
+Metadata.id = parent Metadata.id
+Metadata.type = parent Metadata.type
+Metadata.attrs = parent Metadata.attrs
+
+Meta.id = parent Meta.id
+Meta.type = parent Meta.type
+Meta.attrs = parent Meta.attrs
