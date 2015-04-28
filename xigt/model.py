@@ -91,6 +91,9 @@ class XigtCorpus(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
             for igt in self._generator:
                 if self.mode == INCREMENTAL:
                     self.add(igt)
+                else:
+                    # don't add, but set the parent
+                    igt._parent = self
                 yield igt
             self.mode = FULL
 

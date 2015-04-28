@@ -126,7 +126,7 @@ class XigtAttributeMixin(object):
         self.type = type
         self.attributes = dict(attributes or [])
         self.namespace = namespace
-        self.nsmap = dict(nsmap or [])
+        self.nsmap = nsmap
         # if id is not None or ID not in self.attributes:
         #     self.attributes[ID] = id
         # if type is not None or TYPE not in self.attributes:
@@ -158,6 +158,23 @@ class XigtAttributeMixin(object):
         if value is not None and not id_re.match(value):
             raise ValueError('Invalid ID: {}'.format(value))
         self._id = value
+
+    @property
+    def nsmap(self):
+        if self._nsmap is None:
+            if _has_parent(self):
+                return self._parent.nsmap
+            else:
+                return {}
+        else:
+            return self._nsmap
+    @nsmap.setter
+    def nsmap(self, value):
+        if value is not None:
+            value = dict(value or [])
+        self._nsmap = value
+
+    
 
     # no validation for type yet, so the property isn't necessary
     # @property

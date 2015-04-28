@@ -28,10 +28,15 @@ import argparse
 from collections import OrderedDict, defaultdict
 from itertools import chain
 
-from xigt import XigtCorpus, Igt, Tier, Item, Metadata, Meta
+from xigt import XigtCorpus, Igt, Tier, Item, Metadata, Meta, MetaChild
 from xigt.codecs import xigtxml
 from xigt.errors import XigtImportError
 
+_nsmap={
+    "olac": "http://www.language-archives.org/OLAC/1.1/",
+    "dc": "http://purl.org/dc/elements/1.1/",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+}
 
 def xigt_import(inpath, outpath, options=None):
 
@@ -70,11 +75,7 @@ def _xigt_import(infile, outfile, options):
         igts = odin_igts(in_fh, options)
         xc = XigtCorpus(
             igts=igts,
-            attributes={
-                "xmlns:olac": "http://www.language-archives.org/OLAC/1.1/",
-                "xmlns:dc": "http://purl.org/dc/elements/1.1/",
-                "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance"
-            },
+            nsmap=_nsmap,
             mode='transient'
         )
         xigtxml.dump(out_fh, xc)
@@ -138,6 +139,17 @@ def make_igt_attributes(block, options):
     }
 
 
+def qattrname(attrname, namespace=None):
+    if namespace in _nsmap:
+        return '{%s}%s' % (_nsmap[namespace], attrname)
+    elif namespace is not None:
+        raise XigtImportError(
+            'Unspecified namespace prefix: {}'.format(namespace)
+        )
+    else:
+        return attrname
+
+
 def make_igt_metadata(block, options):
     md = Metadata()
     mi = 1
@@ -152,13 +164,28 @@ def make_igt_metadata(block, options):
     lg_code = block.get('iso-639-3')
     if lg_code is None:
         lg_code = 'und'  # undetermined
+    # should we title-case language?
+    # language = (block.get('language') or '').strip().title()
     language = (block.get('language') or '').strip()
 
-    subj = ('\n      <dc:subject xsi:type="olac:language" '
-            'olac:code="{}">{}</dc:subject>'
-            .format(lg_code.strip(), language))
-    lang = ('\n      <dc:language xsi:type="olac:language" '
-            'olac:code="en">English</dc:language>')
+    subj = MetaChild(
+        'subject',
+        attributes={
+            qattrname('type', 'xsi'): 'olac:language',
+            qattrname('code', 'olac'): lg_code.strip()
+        },
+        text=language,
+        namespace=_nsmap['dc']
+    )
+    lang = MetaChild(
+        'language',
+        attributes={
+            qattrname('type', 'xsi'): 'olac:language',
+            qattrname('code', 'olac'): 'en'
+        },
+        text='English',
+        namespace=_nsmap['dc']
+    )
     md.append(Meta(id='meta{}'.format(mi), children=[subj, lang]))
 
     return md
