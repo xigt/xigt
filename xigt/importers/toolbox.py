@@ -5,11 +5,11 @@
 # default config.json:
 # {
 #   "tier_types": {
-#     "\\t": "words",
-#     "\\m": "morphemes",
-#     "\\g": "glosses",
-#     "\\p": "pos",
-#     "\\f": "translations",
+#     "\\t": ["words", "w"],
+#     "\\m": ["morphemes", "m"],
+#     "\\g": ["glosses", "g"],
+#     "\\p": ["pos", "pos"],
+#     "\\f": ["translations", "t"],
 #   },
 #   "alignments": {
 #     "\\m": "\\t",
@@ -22,7 +22,7 @@
 #   ],
 #   "attribute_map": {
 #     "\\id": "corpus-id"
-#   }
+#   },
 #   "error_recovery_method": "ratio"
 # }
 
@@ -47,11 +47,11 @@ except ImportError:
     )
 
 default_tier_types = {
-    '\\t': 'words',
-    '\\m': 'morphemes',
-    '\\g': 'glosses',
-    '\\p': 'pos',
-    '\\f': 'translations'
+    '\\t': ['words', 'w'],
+    '\\m': ['morphemes', 'm'],
+    '\\g': ['glosses', 'g'],
+    '\\p': ['pos', 'pos'],
+    '\\f': ['translations', 't'],
 }
 
 default_alignments = {
@@ -158,8 +158,7 @@ def make_all_tiers(item_data, options):
         tier_data, alignments, errors=options['error_recovery_method']
     )
     for mkr, aligned_tokens in aligned_fields:
-        tier_type = tier_types.get(mkr)
-        tier_id = mkr.lstrip('\\')
+        tier_type, tier_id = tier_types.get(mkr)
         algn_tier = prev.get(alignments.get(mkr))  # could be None
         try:
             tier = make_tier(tier_type, tier_id, aligned_tokens, algn_tier)
@@ -168,6 +167,7 @@ def make_all_tiers(item_data, options):
                                   .format(tier_type, mkr))
         prev[mkr] = tier
         yield tier
+
 
 def make_tier(tier_type, tier_id, aligned_tokens, algn_tier):
     attrs = OrderedDict()
