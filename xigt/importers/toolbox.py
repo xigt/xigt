@@ -23,6 +23,7 @@
 #   "attribute_map": {
 #     "\\id": "corpus-id"
 #   }
+#   "error_recovery_method": "ratio"
 # }
 
 from collections import OrderedDict
@@ -68,6 +69,8 @@ default_attribute_map = {
     '\\id': 'corpus-id'
 }
 
+default_error_recovery_method = 'ratio'
+
 
 def xigt_import(infile, outfile, options=None):
 
@@ -77,6 +80,7 @@ def xigt_import(infile, outfile, options=None):
     options.setdefault('alignments', default_alignments)
     options.setdefault('record_markers', default_record_markers)
     options.setdefault('attribute_map', default_attribute_map)
+    options.setdefault('error_recovery_method', default_error_recovery_method)
 
     with open(infile, 'r') as in_fh, open(outfile, 'w') as out_fh:
         tb = toolbox.read_toolbox_file(in_fh)
@@ -94,26 +98,25 @@ def toolbox_igts(tb, options):
         if context.get(mkrPriKey) is None:
             continue  # header info
         igt = make_igt(
-            context[mkrPriKey],
-            data,
-            context=context,
-            tier_types=options['tier_types'],
-            alignments=options['alignments'],
-            attribute_map=options['attribute_map']
+            context[mkrPriKey], data, context, options
         )
         if igt is not None:
             yield igt
 
-def make_igt(key, data, context=None,
-             tier_types=default_tier_types,
-             alignments=default_alignments,
-             attribute_map=default_attribute_map):
+def make_igt(key, data, context, options):
+    # IDs cannot start with a digit
+    assert key
+    if key[0].isdigit():
+        key = 'igt{}'.format(key)
     if context is None:
         context = {}
     attrs = {}
+    attmap = options['attribute_map']
     for (mkr, val) in chain(data, context.items()):
-        if mkr in attribute_map:
-            attrs[attribute_map[mkr]] = val
+        if val is None:  # will be None if mkr not encountered
+            continue
+        if mkr in attmap:
+            attrs[attmap[mkr]] = val
     metadata = None
 
     w = None
@@ -121,7 +124,7 @@ def make_igt(key, data, context=None,
         warnings.simplefilter('always')
 
         try:
-            tiers = make_all_tiers(data, tier_types, alignments)
+            tiers = make_all_tiers(data, options)
             igt = Igt(
                 id=key,
                 attributes=attrs,
@@ -144,13 +147,15 @@ def make_igt(key, data, context=None,
     return igt
 
 
-def make_all_tiers(item_data, tier_types, alignments):
+def make_all_tiers(item_data, options):
+    tier_types = options['tier_types']
+    alignments = options['alignments']
     aligned_tiers = set(alignments.keys()).union(alignments.values())
     # use strip=False because we want same-length strings
     tier_data = toolbox.normalize_record(item_data, aligned_tiers, strip=False)
     prev = {}
     aligned_fields = toolbox.align_fields(
-        tier_data, alignments, errors='ratio'
+        tier_data, alignments, errors=options['error_recovery_method']
     )
     for mkr, aligned_tokens in aligned_fields:
         tier_type = tier_types.get(mkr)
