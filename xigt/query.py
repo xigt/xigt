@@ -24,6 +24,9 @@ def ancestors(obj, refattrs=(ALIGNMENT, SEGMENTATION)):
     else:
         tier = obj
         items = tier.items
+    # a tier may be visited twice (e.g. A > B > A), but then it stops;
+    # this is to avoid cycles
+    visited = set([tier.id])
     while True:
         # get the first specified attribute
         refattr = next((ra for ra in refattrs if ra in tier.attributes), None)
@@ -35,6 +38,10 @@ def ancestors(obj, refattrs=(ALIGNMENT, SEGMENTATION)):
         ))
         refitems = [item for item in reftier.items if item.id in ids]
         yield (tier, refattr, reftier, refitems)
+        # cycle detection; break if we've now encountered something twice
+        if reftier.id in visited:
+            break
+        visited.update(reftier.id)
         tier = reftier
         items = refitems
 

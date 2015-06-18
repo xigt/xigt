@@ -78,6 +78,25 @@ class TestQueries(unittest.TestCase):
             ])
         ])
 
+        # cycle 1
+        self.xc4 = XigtCorpus(id='xc1', igts=[
+            Igt(id='i1', tiers=[
+                Tier(id="w", type="words", segmentation="w", items=[
+                    Item(id="w1", segmentation="w1")
+                ])
+            ])
+        ])
+
+        # cycle 2
+        self.xc5 = XigtCorpus(id='xc1', igts=[
+            Igt(id='i1', tiers=[
+                Tier(id="w", type="words", segmentation="w", items=[
+                    Item(id="w1", segmentation="w1,w2"),
+                    Item(id="w2", segmentation="w1,w2")
+                ])
+            ])
+        ])
+
     def check(self, result, srcid, refattr, refid, refitemids):
         srctier, refattr_, reftier, refitems = result
         self.assertEqual(srctier.id, srcid)
@@ -104,6 +123,14 @@ class TestQueries(unittest.TestCase):
         self.assertEqual(len(ancs), 2)
         self.check(ancs[0], 'm', 'segmentation', 'w', ['w1'])
         self.check(ancs[1], 'w', 'segmentation', 'p', ['p1'])
+
+        ancs = list(ancestors(self.xc4[0]['w']['w1']))
+        self.assertEqual(len(ancs), 1)
+        self.check(ancs[0], 'w', 'segmentation', 'w', ['w1'])
+
+        ancs = list(ancestors(self.xc5[0]['w']))
+        self.assertEqual(len(ancs), 1)
+        self.check(ancs[0], 'w', 'segmentation', 'w', ['w1', 'w2'])
 
     def test_descendants(self):
         desc = list(descendants(self.xc1[0]['p']))
@@ -153,3 +180,19 @@ class TestQueries(unittest.TestCase):
                    ['g1', 'g2', 'g3', 'g4', 'g5', 'g6'])
         self.check(desc[5], 'x', 'children', 'x',
                    ['x4', 'x5'])
+
+        desc = list(descendants(self.xc4[0]['w']))
+        self.assertEqual(len(desc), 1)
+        self.check(desc[0], 'w', 'segmentation', 'w', ['w1'])
+
+        desc = list(descendants(self.xc4[0]['w'], follow='all'))
+        self.assertEqual(len(desc), 1)
+        self.check(desc[0], 'w', 'segmentation', 'w', ['w1'])
+
+        desc = list(descendants(self.xc5[0]['w']))
+        self.assertEqual(len(desc), 1)
+        self.check(desc[0], 'w', 'segmentation', 'w', ['w1', 'w2'])
+
+        desc = list(descendants(self.xc5[0]['w'], follow='all'))
+        self.assertEqual(len(desc), 1)
+        self.check(desc[0], 'w', 'segmentation', 'w', ['w1', 'w2'])
