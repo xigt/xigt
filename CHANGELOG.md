@@ -5,6 +5,8 @@
 ### Fixed
 
 * `xigt.importers.toolbox` and `xigt.exporters.itsdb` now work with Python2
+* xigtxml now throws a (decipherable) error if the given object is not an
+  instance of XigtCorpus (see #31)
 
 ### Changed
 

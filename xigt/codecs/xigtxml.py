@@ -42,6 +42,7 @@ except LookupError:
 
 
 from xigt import XigtCorpus, Igt, Tier, Item, Metadata, Meta, MetaChild
+from xigt.errors import XigtError
 
 
 ##############################################################################
@@ -60,28 +61,22 @@ def loads(s):
 
 
 def dump(f, xc, encoding='utf-8', indent=2):
+    if not isinstance(xc, XigtCorpus):
+        raise XigtError(
+            'Second argument of dump() must be an instance of XigtCorpus.'
+        )
     if hasattr(f, 'buffer') and encoding != 'unicode':
         f = f.buffer
     root = _build_corpus(xc)
     _indent(root, indent=indent)
     ElementTree(root).write(f, encoding=encoding)
-    # close = False
-    # if not hasattr(f, 'write'):
-    #     if encoding != 'unicode':
-    #         f = open(f, 'w')
-    #     else:
-    #         f = open(f, 'wb')
-    #     close = True
-    # writer = f
-    # if encoding and encoding != 'unicode' and hasattr(f, 'buffer'):
-    #     writer = f.buffer
-    # encode(writer, xc, encoding=encoding, indent=indent)
-
-    # if close:
-    #     f.close()
 
 
 def dumps(xc, encoding='unicode', indent=2):
+    if not isinstance(xc, XigtCorpus):
+        raise XigtError(
+            'First argument of dumps() must be an instance of XigtCorpus.'
+        )
     return encode_xigtcorpus(xc, encoding=encoding, indent=indent)
 
 
