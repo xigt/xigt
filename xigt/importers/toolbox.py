@@ -104,9 +104,9 @@ def toolbox_igts(tb, options):
             yield igt
 
 def make_igt(key, data, context, options):
-    # IDs cannot start with a digit
+    # IDs must start with a letter
     assert key
-    if key[0].isdigit():
+    if not key[0].isalpha():
         key = 'igt{}'.format(key)
     if context is None:
         context = {}
@@ -158,6 +158,8 @@ def make_all_tiers(item_data, options):
         tier_data, alignments, errors=options['error_recovery_method']
     )
     for mkr, aligned_tokens in aligned_fields:
+        if mkr not in tier_types:
+            continue
         tier_type, tier_id = tier_types.get(mkr)
         algn_tier = prev.get(alignments.get(mkr))  # could be None
         try:

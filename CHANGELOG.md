@@ -4,7 +4,8 @@
 
 ### Fixed
 
-* `xigt.importers.toolbox` and `xigt.exporters.itsdb` now work with Python2
+* xigt.importers.toolbox and xigt.exporters.itsdb now work with Python2
+* xigt.importers.toolbox now works better with undeclared tiers
 * xigtxml now throws a (decipherable) error if the given object is not an
   instance of XigtCorpus (see #31)
 
