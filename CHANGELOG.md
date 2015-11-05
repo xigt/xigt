@@ -19,6 +19,11 @@
   higher-level things, and all default subtyping has been moved to
   xigt-default.rnc. Extensions can now build on extensions, so the ODIN and
   Abkhaz examples build on top of default-xigt.rnc rather than xigt.rnc.
+* The xigt.sh script now uses `python` instead of `python3`
+
+### Removed
+
+* xigt.importers.odin functions for cleaning and normalization
 
 ## [v1.0] - 2015.04.24
 
