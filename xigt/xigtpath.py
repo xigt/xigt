@@ -136,11 +136,14 @@ def _find_attr(obj, attr):
         yield val
 
 def _find_descendant_or_self(obj, name):
+    namespace = None
+    if ':' in name:
+        namespace, name = name.split(':', 1)
     if isinstance(obj, MetaChild):
         objname = obj.name
     else:
         objname = obj.__class__.__name__.lower()
-    if objname == name:
+    if (namespace is None or obj.namespace == namespace) and objname == name:
         yield obj
     for child in _find_child(obj, '*'):
         for desc in _find_descendant_or_self(child, name):

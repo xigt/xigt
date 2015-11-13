@@ -114,6 +114,10 @@ class TestXigtPath(unittest.TestCase):
             xc1m[0].metadata[0][0][0]
         )
         self.assertEqual(
+            xp.find(xc1m, 'igt/metadata//dc:subject'),
+            xc1m[0].metadata[0][0][0]
+        )
+        self.assertEqual(
             xp.find(xc1m, 'igt/metadata/meta/dc:subject/@olac:code'),
             'jpn'
         )
