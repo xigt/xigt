@@ -2,6 +2,11 @@
 
 ## [Unreleased][unreleased]
 
+### Added
+
+* xigt.xigtpath - an XPath-like query language that is aware of Xigt
+  references and structure.
+
 ### Fixed
 
 * xigt.importers.toolbox and xigt.exporters.itsdb now work with Python2
@@ -20,6 +25,13 @@
   xigt-default.rnc. Extensions can now build on extensions, so the ODIN and
   Abkhaz examples build on top of default-xigt.rnc rather than xigt.rnc.
 * The xigt.sh script now uses `python` instead of `python3`
+* XigtContainerMixin.select()
+  - Now allows any model attributes (`id`, `type`, etc.) to be selection
+    criteria. This was done to allow non-modeled attributes on things
+    like MetaChild objects.
+  - If the `namespace` attribute is used, its value will be replaced
+    with the appropriately mapped namespace via `nsmap`, if a mapping
+    exists.
 
 ### Removed
 

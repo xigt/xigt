@@ -50,15 +50,12 @@ class XigtContainerMixin(object):
             pass
         return default
 
-    def select(self, id=None, type=None,
-               alignment=None, content=None, segmentation=None):
-        match = lambda x: (
-            (id is None or x.id == id) and
-            (type is None or x.type == type) and
-            (alignment is None or x.alignment == alignment) and
-            (content is None or x.content == content) and
-            (segmentation is None or x.segmentation == segmentation)
-        )
+    def select(self, **kwargs):
+        # handle namespace separately so we can lookup the nsmap
+        if 'namespace' in kwargs and kwargs['namespace'] in self.nsmap:
+            kwargs['namespace'] = self.nsmap[kwargs['namespace']]
+        def match(x):
+            return all(getattr(x, k, None) == v for k, v in kwargs.items())
         return filter(match, self)
 
     def _assert_type(self, obj):
@@ -174,7 +171,7 @@ class XigtAttributeMixin(object):
             value = dict(value or [])
         self._nsmap = value
 
-    
+
 
     # no validation for type yet, so the property isn't necessary
     # @property

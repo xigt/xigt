@@ -80,34 +80,59 @@ def _step(objs, steps):
 
 def _find_child(obj, name):
     results = []
-    if name == '*' and hasattr(obj, '__iter__'):
-        results = iter(obj)
-    elif name == 'igt' and hasattr(obj, 'igts'):
-        results = iter(obj.igts)
-    elif name == 'tier' and hasattr(obj, 'tiers'):
-        results = iter(obj.tiers)
-    elif name == 'item' and hasattr(obj, 'items'):
-        results = iter(obj.items)
-    elif name == 'metadata' and hasattr(obj, 'metadata'):
-        results = iter(obj.metadata)
-    elif name == 'meta' and hasattr(obj, 'metas'):
-        results = iter(obj.metas)
-    elif isinstance(obj, (Meta, MetaChild)):
-        results = (mc for mc in obj if getattr(mc, 'name', None) == name)
-    elif name == 'text()':
+    # function children
+    if name == 'text()':
         results = [obj.text]
     elif name == 'value()':
         results = [obj.value()]
+    else:
+        # node children
+        kwargs = {}
+        if ':' in name:
+            namespace, name = name.split(':', 1)
+            kwargs['namespace'] = namespace
+        # simple case
+        if (name == '*' and hasattr(obj, '__iter__') or
+            name == 'igt' and hasattr(obj, 'igts') or
+            name == 'tier' and hasattr(obj, 'tiers') or
+            name == 'item' and hasattr(obj, 'items') or
+            name == 'meta' and hasattr(obj, 'metas')):
+            # select should just work on the containers as normal
+            results = obj.select(**kwargs)
+        elif name == 'metadata' and hasattr(obj, 'metadata'):
+            # for metadata we need to filter by namespace ourselves (but
+            # we don't really expect for <metadata> elements to have a
+            # namespace, so maybe this is unnecessary?)
+            results = iter(obj.metadata)
+            if 'namespace' in kwargs:
+                results = filter(
+                    lambda x: getattr(x, 'namespace', None) == namespace,
+                    results
+                )
+        elif isinstance(obj, (Meta, MetaChild)):
+            # for MetaChild objects, we need to give the name as well
+            kwargs['name'] = name
+            results = obj.select(**kwargs)
     for res in results:
         yield res
 
 def _find_attr(obj, attr):
-    val = None
+    vals = []
+    # pseudo-attributes (members in the model, attrs in the xml and path)
     if attr in ('type', 'id', 'name'):
         val = getattr(obj, attr, None)
-    if val is None:
-        val = obj.attributes.get(attr, None)
-    if val is not None:
+        if val is not None:
+            vals.append(val)
+    else:
+        namespace = None
+        if ':' in attr:
+            namespace, attr = attr.split(':', 1)
+        if attr == '*':
+            vals.extend(obj.get_attribute(attrkey, namespace=namespace)
+                        for attrkey in obj.attributes)
+        else:
+            vals.append(obj.get_attribute(attr, namespace=namespace))
+    for val in vals:
         yield val
 
 def _find_descendant_or_self(obj, name):

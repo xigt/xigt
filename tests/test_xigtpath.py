@@ -9,7 +9,7 @@ from xigt import (
 # )
 
 from .example_corpora import (
-    xc1, xc2, xc3, xc4, xc5
+    xc1, xc1m, xc2, xc3, xc4, xc5
 )
 
 class TestTokenizer(unittest.TestCase):
@@ -83,6 +83,8 @@ class TestXigtPath(unittest.TestCase):
                          xc1[0][1])
         self.assertEqual(xp.find(xc1, '//tier[@type="phrases"]/item'),
                          xc1[0][0][0])
+        self.assertEqual(xp.find(xc1, '//item[../@type="translations"]'),
+                         xc1[0][1][0])
 
     def test_text(self):
         self.assertEqual(xp.find(xc1, '//item/text()'),
@@ -91,3 +93,35 @@ class TestXigtPath(unittest.TestCase):
     def test_value(self):
         self.assertEqual(xp.find(xc3, '//tier[@type="words"]/item/value()'),
                          'inu=ga')
+
+    def test_find_metadata(self):
+        self.assertEqual(xp.find(xc1m, 'igt/metadata'),
+                         xc1m[0].metadata[0])
+        self.assertEqual(xp.findall(xc1m, 'igt/metadata'),
+                         [xc1m[0].metadata[0]])
+        self.assertEqual(xp.find(xc1m, 'igt/metadata/meta'),
+                         xc1m[0].metadata[0][0])
+        self.assertEqual(xp.findall(xc1m, 'igt/metadata/meta'),
+                         [xc1m[0].metadata[0][0]])
+        self.assertEqual(xp.find(xc1m, 'igt/metadata/meta/*'),
+                         xc1m[0].metadata[0][0][0])
+        self.assertEqual(
+            xp.findall(xc1m, 'igt/metadata/meta/*'),
+            [xc1m[0].metadata[0][0][0], xc1m[0].metadata[0][0][1]]
+        )
+        self.assertEqual(
+            xp.find(xc1m, 'igt/metadata/meta/dc:subject'),
+            xc1m[0].metadata[0][0][0]
+        )
+        self.assertEqual(
+            xp.find(xc1m, 'igt/metadata/meta/dc:subject/@olac:code'),
+            'jpn'
+        )
+        self.assertEqual(
+            xp.find(xc1m, 'igt/metadata/meta/dc:subject/text()'),
+            'Japanese'
+        )
+        self.assertEqual(
+            xp.findall(xc1m, 'igt/metadata/meta/dc:*/@olac:code'),
+            ['jpn', 'eng']
+        )
