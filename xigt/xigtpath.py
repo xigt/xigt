@@ -3,7 +3,7 @@ import re
 from collections import namedtuple, deque
 from itertools import chain
 
-from xigt import XigtCorpus, Meta, MetaChild
+from xigt import (XigtCorpus, Meta, MetaChild, ref)
 from xigt.errors import XigtError
 
 
@@ -14,10 +14,11 @@ xp_tokenizer_re = re.compile(
     r'//?|'  # // descendant-or-self or / descendant
     r'\.\.?|'  # .. parent or . self axes
     r'@|'  # attribute axis
+    r'>|<|'  # referrent and referrer
     r'\[|\]|'  # predicate
     r'\(|\)|'  # groups
     r'!=|=|'  # comparisons
-    r'(?:text|value|referents|referrers|ancestors|descendants)\([^)]*\)|'
+    r'(?:text|value|referents|referrers)\([^)]*\)|'
     r'\*|[^.\/\[\]!=]+'  # .., *, igt, tier, item, etc.
 )
 
@@ -61,6 +62,19 @@ def _step(objs, steps):
             results = (obj._parent for obj in objs)
         elif step == '.':
             results = objs
+        elif step in ('>', '<'):
+            find_refs = _find_referents if step == '>' else _find_referrers
+            if not steps or steps[0] in ('/', '//'):
+                refattrs = None
+            elif len(steps) >= 2 and steps[0] == '@':
+                _, attr = steps.popleft(), steps.popleft()
+                refattrs = [attr]
+            else:
+                raise XigtPathError(
+                    'Invalid referrent path: {}'
+                    .format(''.join(steps))
+                )
+            results = (r for obj in objs for r in find_refs(obj, refattrs))
         else:
             results = (res for obj in objs for res in _find_child(obj, step))
         # predicates
@@ -73,8 +87,10 @@ def _step(objs, steps):
                     steps.popleft()
                 results = _step(results, steps)
             else:
-                raise XigtPathError('Subpath has no valid initial delimiter:',
-                                    ''.join(steps))
+                raise XigtPathError(
+                    'Subpath has no valid initial delimiter: {}'
+                    .format(''.join(steps))
+                )
         for obj in results:
             yield obj
 
@@ -148,6 +164,24 @@ def _find_descendant_or_self(obj, name):
     for child in _find_child(obj, '*'):
         for desc in _find_descendant_or_self(child, name):
             yield desc
+
+def _find_referents(obj, refattrs):
+    refs = []
+    igt = obj.igt if hasattr(obj, 'igt') else obj
+    refd = ref.referents(igt, obj.id, refattrs=refattrs)
+    # sort for now because ref.referents doesn't return document order
+    for ra, ids in sorted(refd.items()):
+        refs.extend(igt.get_any(_id) for _id in ids)
+    return refs
+
+def _find_referrers(obj, refattrs):
+    refs = []
+    igt = obj.igt if hasattr(obj, 'igt') else obj
+    refd = ref.referrers(igt, obj.id, refattrs=refattrs)
+    # sort for now because ref.referents doesn't return document order
+    for ra, ids in sorted(refd.items()):
+        refs.extend(igt.get_any(_id) for _id in ids)
+    return refs
 
 def _make_predicate_test(steps):
     steps.popleft()  # '['
