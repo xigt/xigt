@@ -172,7 +172,6 @@ class XigtAttributeMixin(object):
         self._nsmap = value
 
 
-
     # no validation for type yet, so the property isn't necessary
     # @property
     # def type(self):
@@ -183,18 +182,7 @@ class XigtAttributeMixin(object):
 
 
 class XigtReferenceAttributeMixin(object):
-
-    _tier_refattrs = {
-        None: (ALIGNMENT, CONTENT, SEGMENTATION)
-    }
-    _item_refattrs = {
-        None: {
-            None: (ALIGNMENT, CONTENT, SEGMENTATION)
-        }
-    }
-
     def __init__(self, alignment=None, content=None, segmentation=None):
-
         if segmentation and (content or alignment):
             raise XigtError(
                 'The "segmentation" reference attribute cannot co-occur with '
@@ -242,16 +230,3 @@ class XigtReferenceAttributeMixin(object):
     @segmentation.setter
     def segmentation(self, value):
         self.attributes[SEGMENTATION] = value
-
-    def allowed_reference_attributes(self):
-        # tiers just get _tier_refattrs[tier.type], items get
-        # _item_refattrs[tier.type][item.type]. If a type is not
-        # specified, it defaults to None.
-        try:
-            tier_type = self.tier.type
-        except AttributeError:
-            return self._tier_refattrs.get(self.type, self._tier_refattrs[None])
-        else:
-            ras = self._item_refattrs.get(tier_type, self._item_refattrs[None])
-            return ras.get(self.type, ras[None])
-

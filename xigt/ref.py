@@ -173,7 +173,7 @@ def ids(expression):
     ['a1', 'a2', 'a3']
 
     """
-    return [_id for _, _id, _ in robust_ref_re.findall(expression) if _id]
+    return [_id for _id in id_re.findall(expression) if _id]
 
 
 # operations with interpretation

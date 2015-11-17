@@ -5,11 +5,13 @@
 # so take note of the class inheritance below.
 #
 
+from collections import defaultdict
+from itertools import chain
 import logging
 import warnings
-from itertools import chain
 
 from xigt.consts import (
+    ALIGNMENT,
     CONTENT,
     SEGMENTATION,
     FULL,
@@ -137,59 +139,40 @@ class Igt(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
         if tiers:
             self.refresh_index()  # from XigtContainerMxin
 
-        if items is True:
-            items = [i for t in self.tiers for i in t.items]
-        up = self._update_item_index
-        for item in items:
-            up(item)
+        xs = [i for t in self.tiers for i in t.items]
+        if items:
+            idict = self._itemdict
+            for item in xs:
+                i_id = item.id
+                if idict.get(i_id, item) != item:
+                    warnings.warn(
+                        'Item "{}" already exists in Igt.'.format(i_id),
+                        XigtWarning
+                    )
+                idict[i_id] = item
 
-        if referents is True:
-            referents = self.tiers + [i for t in self.tiers for i in t.items]
-        up = self._update_referent_index
-        for r in referents:
-            up(r)
+        ids = ref.ids
+        xs = self.tiers + xs
+        if referents or referrers:
+            # both use IDS in refattrs, so precompute once
+            ids_map = {}
+            for obj in xs:
+                if obj.id is None:
+                    continue
+                ids_map[obj.id] = ra_map = {}
+                for refattr in obj.allowed_reference_attributes():
+                    ra_map[refattr] = ids(obj.attributes.get(refattr, ''))
 
-        if referrers is True:
-            referrers = self.tiers + [i for t in self.tiers for i in t.items]
-        up = self._update_referrer_index
-        for r in referrers:
-            up(r)
+            if referents:
+                self._referent_cache = ids_map
 
-    def _update_item_index(self, item):
-        idict = self._itemdict
-        i_id = item.id
-        if i_id in idict and idict[i_id] != item:
-            warnings.warn(
-                'Item "{}" already exists in Igt.'.format(i_id),
-                XigtWarning
-            )
-        idict[i_id] = item
-
-    def _update_referent_index(self, obj):
-        if obj.id is None:
-            warnings.warn(
-                'Cannot cache referents for an object with no id.',
-                XigtWarning
-            )
-            return
-        rdict = self._referent_cache.setdefault(obj.id, {})
-        for refattr in obj.allowed_reference_attributes():
-            rdict[refattr] = ref.ids(obj.attributes.get(refattr, ''))
-
-    def _update_referrer_index(self, obj):
-        o_id = obj.id
-        if o_id is None:
-            warnings.warn(
-                'Cannot cache referrers for an object with no id.',
-                XigtWarning
-            )
-            return
-        rdict = self._referrer_cache
-        attrget = obj.attributes.get  # just loop optimization
-        for refattr in obj.allowed_reference_attributes():
-            ids = ref.ids(attrget(refattr, ''))
-            for id in ids:
-                rdict.setdefault(id, {}).setdefault(refattr, []).append(o_id)
+            if referrers:
+                inv_ids_map = defaultdict(lambda: defaultdict(list))
+                for obj_id, ra_map in ids_map.items():
+                    for refattr, ref_ids in ra_map.items():
+                        for ref_id in ref_ids:
+                            inv_ids_map[ref_id][refattr].append(obj_id)
+                self._referrer_cache = inv_ids_map
 
     @property
     def corpus(self):
@@ -228,6 +211,11 @@ class Tier(XigtContainerMixin, XigtAttributeMixin,
     A tier of IGT data. A tier should contain homogenous Items of
     data, such as all words or all glosses.
     """
+
+    _allowed_refattrs = {
+        None: (ALIGNMENT, CONTENT, SEGMENTATION)
+    }
+
     def __init__(self, id=None, type=None,
                  alignment=None, content=None, segmentation=None,
                  attributes=None, metadata=None,
@@ -271,6 +259,13 @@ class Tier(XigtContainerMixin, XigtAttributeMixin,
         self.clear()
         self.extend(value or [])
 
+    def allowed_reference_attributes(self):
+        # tiers get _tier_refattrs[tier.type]; if a type is not
+        # specified, it defaults to None.
+        return self._allowed_refattrs.get(
+            self.type, self._allowed_refattrs[None]
+        )
+
 
 class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
     """
@@ -278,6 +273,13 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
     or glosses, but may be phrases, translations, or (via extensions)
     more complex data like syntax nodes or dependencies.
     """
+
+    _allowed_refattrs = {
+        None: {
+            None: (ALIGNMENT, CONTENT, SEGMENTATION)
+        }
+    }
+
     def __init__(self, id=None, type=None,
                  alignment=None, content=None, segmentation=None,
                  attributes=None, text=None, tier=None,
@@ -355,6 +357,15 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
         if c is None:
             return None
         return c[start:end]
+
+    def allowed_reference_attributes(self):
+        # items get _item_refattrs[tier.type][item.type]. If a type is
+        # not specified, it defaults to None.
+        ars = self._allowed_refattrs.get(
+            self.tier.type,
+            self._allowed_refattrs[None]
+        )
+        return ars.get(self.type, ars[None])
 
     # deprecated methods
 

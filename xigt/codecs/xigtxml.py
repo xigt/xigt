@@ -1,6 +1,6 @@
 
+from io import StringIO
 from xml.etree.ElementTree import (
-    fromstring,
     tostring,
     iterparse,
     Element,
@@ -56,8 +56,8 @@ def load(fh, mode='full'):
 
 
 def loads(s):
-    elem = fromstring(s)
-    return decode_xigtcorpus(elem.find('.'))
+    if hasattr(s, 'decode'): s = s.decode('utf-8')
+    return load(StringIO(s))
 
 
 def dump(f, xc, encoding='utf-8', indent=2):
@@ -243,6 +243,7 @@ def default_decode_xigtcorpus(elem, igts=None, mode='full'):
         id=elem.get('id'),
         attributes=get_attributes(elem, ignore=('id',)),
         metadata=[decode_metadata(md) for md in elem.findall('metadata')],
+        # NOTE: possible bug here; does nsiterparse run with elem.findall?
         igts=igts or [decode_igt(igt) for igt in elem.findall('igt')],
         mode=mode,
         namespace=ns,
