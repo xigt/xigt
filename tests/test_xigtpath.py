@@ -14,7 +14,7 @@ from .example_corpora import (
 
 class TestTokenizer(unittest.TestCase):
     def test_tokenize(self):
-        t = xp.xp_tokenizer_re.findall
+        t = xp.tokenize
         self.assertEqual(t(''), [])
         self.assertEqual(t('/'), ['/'])
         self.assertEqual(t('//'), ['//'])
@@ -26,11 +26,15 @@ class TestTokenizer(unittest.TestCase):
         self.assertEqual(t('one[@attr="val"]'),
                          ['one', '[', '@', 'attr', '=', '"val"', ']'])
         self.assertEqual(t('one/text()'), ['one', '/', 'text()'])
-        self.assertEqual(t('one/referrents("alignment")'),
-                         ['one', '/', 'referrents("alignment")'])
+        # self.assertEqual(t('one/referrents("alignment")'),
+        #                  ['one', '/', 'referrents("alignment")'])
         self.assertEqual(t('one/>'), ['one', '/', '>'])
         self.assertEqual(t('one/>@alignment'),
                          ['one', '/', '>', '@', 'alignment'])
+        self.assertEqual(
+            t('one/(two | three)/four'),
+            ['one', '/', '(', 'two', '|', 'three', ')', '/', 'four']
+        )
 
 
 class TestXigtPath(unittest.TestCase):
@@ -194,4 +198,26 @@ class TestXigtPath(unittest.TestCase):
             xp.findall(xc3, '//item[../@type="words"]/<@segmentation'),
             [xc3[0][2][0], xc3[0][2][1], xc3[0][2][2],
              xc3[0][2][3], xc3[0][2][4], xc3[0][2][5]]
+        )
+
+    def test_disjunction(self):
+        self.assertEqual(
+            xp.find(xc1, '(/igt/tier[@type="phrases"] | /igt/tier[@type="translations"])'),
+            xc1[0][0]
+        )
+        self.assertEqual(
+            xp.findall(xc1, '(/igt/tier[@type="phrases"] | /igt/tier[@type="translations"])'),
+            [xc1[0][0], xc1[0][1]]
+        )
+        self.assertEqual(
+            xp.find(xc1, 'igt/(tier[@type="phrases"] | tier[@type="translations"])'),
+            xc1[0][0]
+        )
+        self.assertEqual(
+            xp.findall(xc1, 'igt/(tier[@type="phrases"] | tier[@type="translations"])'),
+            [xc1[0][0], xc1[0][1]]
+        )
+        self.assertEqual(
+            xp.findall(xc1, 'igt/(tier[@type="phrases"] | tier[@type="translations"])/item'),
+            [xc1[0][0][0], xc1[0][1][0]]
         )

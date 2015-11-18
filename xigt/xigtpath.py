@@ -6,21 +6,43 @@ from itertools import chain
 from xigt import (XigtCorpus, Meta, MetaChild, ref)
 from xigt.errors import XigtError
 
+# XigtPath Grammar
+#
+# Expr :=
+# AbsoluteLocationPath := '/' LocationPath
+# LocationPath = Step | LocationPath '/' Step
+# Step := Node Predicate*
+# Node := Axis NodeTest | AbbreviatedNode
+# Axis := AxisName '::' | AbbreviatedAxis
+# AxisName := 'self'
+#           | 'parent'
+#           | 'child'
+#           | 'descendant-or-self'
+#           | 'attribute'
+#           | 'referent'
+#           | 'referrer'
+# AbbreviatedAxis := '' | '//' | '@' | '>' | '<'
+# AbbreviatedNode := '.' | '..'
+
 
 class XigtPathError(XigtError): pass
 
 xp_tokenizer_re = re.compile(
     r'"(?:\\.|[^\\"])*"|'  # double-quoted strings (allow escaped quotes \")
+    r'(?:text|value)\([^)]*\)|'
     r'//?|'  # // descendant-or-self or / descendant
     r'\.\.?|'  # .. parent or . self axes
     r'@|'  # attribute axis
     r'>|<|'  # referrent and referrer
     r'\[|\]|'  # predicate
     r'\(|\)|'  # groups
+    r'\||'  # union
     r'!=|=|'  # comparisons
-    r'(?:text|value|referents|referrers)\([^)]*\)|'
-    r'\*|[^.\/\[\]!=]+'  # .., *, igt, tier, item, etc.
+    r'\*|[^.\/\[\]!=|()]+'  # .., *, igt, tier, item, etc.
 )
+
+def tokenize(path):
+    return [t.strip() for t in xp_tokenizer_re.findall(path) if t.strip()]
 
 def find(obj, path):
     return next(iterfind(obj, path), None)
@@ -31,18 +53,52 @@ def findall(obj, path):
 def iterfind(obj, path):
     if path.endswith('/'):
         raise XigtPathError('XigtPaths cannot end with "/"')
-    steps = deque(xp_tokenizer_re.findall(path))
+    steps = deque(tokenize(path))
     if not steps:
         return
-    # elif steps[0] == '(':  # handle disjunctions here eventually
-    if steps[0] in ('/', '//'):
-        if steps[0] == '/':
-            steps.popleft()
-        results = _step([_get_corpus(obj)], steps)
-    else:
-        results = _step([obj], steps)
+    results = _expr([obj], steps)
+    if steps:
+        pass  # why is this not working?
+        # raise XigtPathError(
+        #     'Unexpected termination at {} of invalid path {}'
+        #     .format(''.join(steps), path)
+        # )
     for result in results:
         yield result
+
+def _expr(objs, steps):
+    if steps[0] == '(':
+        steps.popleft()
+        results = _disjunction(objs, steps)
+    elif steps[0] in ('/', '//'):
+        if steps[0] == '/':
+            steps.popleft()
+        results = _step([_get_corpus(objs[0])], steps)
+    else:
+        results = _step(objs, steps)
+    for result in results:
+        yield result
+
+def _disjunction(objs, steps):
+    results = []
+    # NOTE: on the first pass, steps is the original deque, so it is
+    #       modified in-place. Afterwards, the copy is reused.
+    orig_steps = deque(steps)
+    for obj in objs:
+        while True:
+            results.extend(r for r in _expr([obj], steps))
+            next_ = steps.popleft()
+            if next_ == '|':
+                continue
+            elif next_ == ')':
+                break
+            else:
+                raise XigtPathError(
+                    'expected "|" or ")": {}'.format(''.join(steps))
+                )
+        steps = deque(orig_steps)
+    # don't yield here; lazy eval screws up the steps deque
+    return results
 
 def _step(objs, steps):
     if not steps:
@@ -51,7 +107,9 @@ def _step(objs, steps):
     else:
         step = steps.popleft()
         # axis and nodetests
-        if step == '//':
+        if step == '(':
+            results = _disjunction(objs, steps)
+        elif step == '//':
             name = steps.popleft()
             results = (d for obj in objs
                          for d in _find_descendant_or_self(obj, name))
@@ -81,16 +139,10 @@ def _step(objs, steps):
         while steps and steps[0] == '[':
             predtest = _make_predicate_test(steps)
             results = filter(predtest, results)
-        if steps:
-            if steps[0] in ('/', '//'):
+        if steps and steps[0] in ('/', '//'):
                 if steps[0] == '/':
                     steps.popleft()
                 results = _step(results, steps)
-            else:
-                raise XigtPathError(
-                    'Subpath has no valid initial delimiter: {}'
-                    .format(''.join(steps))
-                )
         for obj in results:
             yield obj
 
