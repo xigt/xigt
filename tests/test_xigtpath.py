@@ -25,12 +25,11 @@ class TestTokenizer(unittest.TestCase):
         self.assertEqual(t('one/@attr'), ['one', '/', '@', 'attr'])
         self.assertEqual(t('one[@attr="val"]'),
                          ['one', '[', '@', 'attr', '=', '"val"', ']'])
-        self.assertEqual(t('one/text()'), ['one', '/', 'text()'])
-        # self.assertEqual(t('one/referrents("alignment")'),
-        #                  ['one', '/', 'referrents("alignment")'])
-        self.assertEqual(t('one/>'), ['one', '/', '>'])
-        self.assertEqual(t('one/>@alignment'),
-                         ['one', '/', '>', '@', 'alignment'])
+        self.assertEqual(t('one/text()'), ['one', '/', 'text', '(', ')'])
+        self.assertEqual(t('one/referent()'),
+                         ['one', '/', 'referent', '(', ')'])
+        self.assertEqual(t('one/referrer("alignment")'),
+                         ['one', '/', 'referrer', '(', '"alignment"', ')'])
         self.assertEqual(
             t('one/(two | three)/four'),
             ['one', '/', '(', 'two', '|', 'three', ')', '/', 'four']
@@ -140,62 +139,65 @@ class TestXigtPath(unittest.TestCase):
         )
 
     def test_find_referent(self):
-        self.assertEqual(xp.find(xc3, '//tier[@type="words"]/>'), xc3[0][0])
         self.assertEqual(
-            xp.find(xc3, '//tier[@type="words"]/>@alignment'),
-            None
-        )
-        self.assertEqual(
-            xp.find(xc3, '//tier[@type="words"]/>@segmentation'),
+            xp.find(xc3, '//tier[@type="words"]/referent()'),
             xc3[0][0]
         )
         self.assertEqual(
-            xp.find(xc3, '//item[../@type="words"]/>'),
+            xp.find(xc3, '//tier[@type="words"]/referent("alignment")'),
+            None
+        )
+        self.assertEqual(
+            xp.find(xc3, '//tier[@type="words"]/referent("segmentation")'),
+            xc3[0][0]
+        )
+        self.assertEqual(
+            xp.find(xc3, '//item[../@type="words"]/referent()'),
             xc3[0][0][0]
         )
         self.assertEqual(
-            xp.findall(xc3, '//item[../@type="words"]/>'),
+            xp.findall(xc3, '//item[../@type="words"]/referent()'),
             [xc3[0][0][0], xc3[0][0][0], xc3[0][0][0]]
         )
         self.assertEqual(
-            xp.findall(xc3, '//item[../@type="words"]/>@alignment'),
+            xp.findall(xc3, '//item[../@type="words"]/referent("alignment")'),
             []
         )
         self.assertEqual(
-            xp.findall(xc3, '//item[../@type="words"]/>@segmentation'),
+            xp.findall(xc3, '//item[../@type="words"]/referent("segmentation")'),
             [xc3[0][0][0], xc3[0][0][0], xc3[0][0][0]]
         )
 
     def test_find_referrer(self):
-        self.assertEqual(xp.find(xc3, '//tier[@type="phrases"]/<'),
+        self.assertEqual(xp.find(xc3, '//tier[@type="phrases"]/referrer()'),
             xc3[0][5]  # because "alignment" comes before "segmentation"
         )
         self.assertEqual(
-            xp.findall(xc3, '//tier[@type="phrases"]/<'),
+            xp.findall(xc3, '//tier[@type="phrases"]/referrer()'),
             [xc3[0][5], xc3[0][1]]
         )
         self.assertEqual(
-            xp.find(xc3, '//tier[@type="phrases"]/<@segmentation'),
+            xp.find(xc3, '//tier[@type="phrases"]/referrer("segmentation")'),
             xc3[0][1]
         )
         self.assertEqual(
-            xp.find(xc3, '//tier[@type="phrases"]/<@alignment'),
+            xp.find(xc3, '//tier[@type="phrases"]/referrer("alignment")'),
             xc3[0][5]
         )
         self.assertEqual(
-            xp.find(xc3, '//item[../@type="phrases"]/<'),
+            xp.find(xc3, '//item[../@type="phrases"]/referrer()'),
             xc3[0][5][0]
         )
         self.assertEqual(
-            xp.findall(xc3, '//item[../@type="phrases"]/<'),
+            xp.findall(xc3, '//item[../@type="phrases"]/referrer()'),
             [xc3[0][5][0], xc3[0][1][0], xc3[0][1][1], xc3[0][1][2]]
         )
         self.assertEqual(
-            xp.findall(xc3, '//item[../@type="phrases"]/<@alignment'),
+            xp.findall(xc3, '//item[../@type="phrases"]/referrer("alignment")'),
             [xc3[0][5][0]]
         )
         self.assertEqual(
-            xp.findall(xc3, '//item[../@type="words"]/<@segmentation'),
+            xp.findall(xc3, '//item[../@type="words"]/referrer("segmentation")'),
             [xc3[0][2][0], xc3[0][2][1], xc3[0][2][2],
              xc3[0][2][3], xc3[0][2][4], xc3[0][2][5]]
         )

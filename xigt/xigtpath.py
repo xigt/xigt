@@ -19,25 +19,27 @@ from xigt.errors import XigtError
 #           | 'child'
 #           | 'descendant-or-self'
 #           | 'attribute'
-#           | 'referent'
-#           | 'referrer'
-# AbbreviatedAxis := '' | '//' | '@' | '>' | '<'
+# AbbreviatedAxis := '' | '//' | '@'
 # AbbreviatedNode := '.' | '..'
+# NodeTest := NodeName | Function
+# Function := FunctionName '(' FunctionParams ')'
+# FunctionName := 'referent'
+#               | 'referrer'
+
 
 
 class XigtPathError(XigtError): pass
 
 xp_tokenizer_re = re.compile(
     r'"(?:\\.|[^\\"])*"|'  # double-quoted strings (allow escaped quotes \")
-    r'(?:text|value)\([^)]*\)|'
     r'//?|'  # // descendant-or-self or / descendant
     r'\.\.?|'  # .. parent or . self axes
     r'@|'  # attribute axis
-    r'>|<|'  # referrent and referrer
     r'\[|\]|'  # predicate
     r'\(|\)|'  # groups
     r'\||'  # union
     r'!=|=|'  # comparisons
+    r'(?:text|value|referent|referrer)|'
     r'\*|[^.\/\[\]!=|()]+'  # .., *, igt, tier, item, etc.
 )
 
@@ -120,19 +122,13 @@ def _step(objs, steps):
             results = (obj._parent for obj in objs)
         elif step == '.':
             results = objs
-        elif step in ('>', '<'):
-            find_refs = _find_referents if step == '>' else _find_referrers
-            if not steps or steps[0] in ('/', '//'):
-                refattrs = None
-            elif len(steps) >= 2 and steps[0] == '@':
-                _, attr = steps.popleft(), steps.popleft()
-                refattrs = [attr]
-            else:
-                raise XigtPathError(
-                    'Invalid referrent path: {}'
-                    .format(''.join(steps))
-                )
-            results = (r for obj in objs for r in find_refs(obj, refattrs))
+        elif step in ('text', 'value', 'referent', 'referrer'):
+            steps.popleft()  # (
+            args = []
+            while steps and steps[0] != ')':
+                args.append(steps.popleft())
+            steps.popleft()  # )
+            results = (r for obj in objs for r in _function(obj, step, args))
         else:
             results = (res for obj in objs for res in _find_child(obj, step))
         # predicates
@@ -146,41 +142,50 @@ def _step(objs, steps):
         for obj in results:
             yield obj
 
+def _function(obj, func, args):
+    # function children
+    if func == 'text':
+        results = [obj.text]  # ignore args?
+    elif func == 'value':
+        results = [obj.value()]  # ignore args?
+    elif func in ('referent', 'referrer'):
+        find_refs = _find_referent if func == 'referent' else _find_referrer
+        refattrs = None
+        if args:
+            refattrs = [ra.strip('"') for ra in args if ra != ',']
+        results = find_refs(obj, refattrs)
+    for result in results:
+        yield result
+
 def _find_child(obj, name):
     results = []
-    # function children
-    if name == 'text()':
-        results = [obj.text]
-    elif name == 'value()':
-        results = [obj.value()]
-    else:
-        # node children
-        kwargs = {}
-        if ':' in name:
-            namespace, name = name.split(':', 1)
-            kwargs['namespace'] = namespace
-        # simple case
-        if (name == '*' and hasattr(obj, '__iter__') or
-            name == 'igt' and hasattr(obj, 'igts') or
-            name == 'tier' and hasattr(obj, 'tiers') or
-            name == 'item' and hasattr(obj, 'items') or
-            name == 'meta' and hasattr(obj, 'metas')):
-            # select should just work on the containers as normal
-            results = obj.select(**kwargs)
-        elif name == 'metadata' and hasattr(obj, 'metadata'):
-            # for metadata we need to filter by namespace ourselves (but
-            # we don't really expect for <metadata> elements to have a
-            # namespace, so maybe this is unnecessary?)
-            results = iter(obj.metadata)
-            if 'namespace' in kwargs:
-                results = filter(
-                    lambda x: getattr(x, 'namespace', None) == namespace,
-                    results
-                )
-        elif isinstance(obj, (Meta, MetaChild)):
-            # for MetaChild objects, we need to give the name as well
-            kwargs['name'] = name
-            results = obj.select(**kwargs)
+    # node children
+    kwargs = {}
+    if ':' in name:
+        namespace, name = name.split(':', 1)
+        kwargs['namespace'] = namespace
+    # simple case
+    if (name == '*' and hasattr(obj, '__iter__') or
+        name == 'igt' and hasattr(obj, 'igts') or
+        name == 'tier' and hasattr(obj, 'tiers') or
+        name == 'item' and hasattr(obj, 'items') or
+        name == 'meta' and hasattr(obj, 'metas')):
+        # select should just work on the containers as normal
+        results = obj.select(**kwargs)
+    elif name == 'metadata' and hasattr(obj, 'metadata'):
+        # for metadata we need to filter by namespace ourselves (but
+        # we don't really expect for <metadata> elements to have a
+        # namespace, so maybe this is unnecessary?)
+        results = iter(obj.metadata)
+        if 'namespace' in kwargs:
+            results = filter(
+                lambda x: getattr(x, 'namespace', None) == namespace,
+                results
+            )
+    elif isinstance(obj, (Meta, MetaChild)):
+        # for MetaChild objects, we need to give the name as well
+        kwargs['name'] = name
+        results = obj.select(**kwargs)
     for res in results:
         yield res
 
@@ -217,7 +222,7 @@ def _find_descendant_or_self(obj, name):
         for desc in _find_descendant_or_self(child, name):
             yield desc
 
-def _find_referents(obj, refattrs):
+def _find_referent(obj, refattrs):
     refs = []
     igt = obj.igt if hasattr(obj, 'igt') else obj
     refd = ref.referents(igt, obj.id, refattrs=refattrs)
@@ -226,7 +231,7 @@ def _find_referents(obj, refattrs):
         refs.extend(igt.get_any(_id) for _id in ids)
     return refs
 
-def _find_referrers(obj, refattrs):
+def _find_referrer(obj, refattrs):
     refs = []
     igt = obj.igt if hasattr(obj, 'igt') else obj
     refd = ref.referrers(igt, obj.id, refattrs=refattrs)
