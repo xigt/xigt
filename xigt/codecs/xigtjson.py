@@ -65,7 +65,7 @@ def decode_igt(obj):
         type=obj.get('type'),
         attributes=obj.get('attributes', {}),
         metadata=[decode_metadata(md) for md in obj.get('metadata', [])],
-        tiers=[decode_tier(tier) for tier in obj.get('tier', [])],
+        tiers=[decode_tier(tier) for tier in obj.get('tiers', [])],
         namespace=obj.get('namespace'),
         nsmap=obj.get('namespaces')
     )
@@ -78,7 +78,7 @@ def decode_tier(obj):
         type=obj.get('type'),
         attributes=obj.get('attributes', {}),
         metadata=[decode_metadata(md) for md in obj.get('metadata', [])],
-        items=[decode_item(item) for item in obj.get('item', [])],
+        items=[decode_item(item) for item in obj.get('items', [])],
         namespace=obj.get('namespace'),
         nsmap=obj.get('namespaces')
     )
@@ -102,7 +102,7 @@ def decode_metadata(obj):
         id=obj.get('id'),
         type=obj.get('type'),
         attributes=obj.get('attributes', {}),
-        metas=[decode_meta(meta) for meta in obj.get('meta', [])],
+        metas=[decode_meta(meta) for meta in obj.get('metas', [])],
         namespace=obj.get('namespace'),
         nsmap=obj.get('namespaces')
     )
@@ -136,59 +136,77 @@ def decode_metachild(obj):
     )
     return mc
 
+
 # Encoding #############################################################
 
-def _make_obj(x):
+def _make_obj(x, nscontext=None):
+    if nscontext is None: nscontext = {}
+    active_nsmap = dict(nscontext)
+    active_nsmap.update(x.nsmap)
+    inv_nsmap = {uri: pre for pre, uri in active_nsmap.items()}
+    nsmap = dict(set(active_nsmap.items()).difference(nscontext.items()))
     obj = {}
     if x.id: obj['id'] = x.id
     if x.type: obj['type'] = x.type
-    if x.attributes: obj['attributes'] = x.attributes
+    # might need to re-add prefixes to namespaced attribute keys
+    if x.attributes:
+        attrs = {}
+        for k, v in x.attributes.items():
+            if k.startswith('{'):
+                uri, key = k[1:].split('}', 1)
+                try:
+                    k = '{}:{}'.format(inv_nsmap[uri], key)
+                except KeyError:
+                    pass  # don't change key if no namespace mapping
+            attrs[k] = v
+        obj['attributes'] = attrs
     if x.namespace: obj['namespace'] = x.namespace
-    if x.nsmap: obj['namespaces'] = x.nsmap
-    return obj
+    if nsmap: obj['namespaces'] = nsmap
+    return obj, active_nsmap
 
 def encode(xc):
-    obj = _make_obj(xc)
+    obj, ns = _make_obj(xc)
     if xc.metadata:
-        obj['metadata'] = [encode_metadata(md) for md in xc.metadata]
-    obj['igts'] = [encode_igt(igt) for igt in xc.igts]
+        obj['metadata'] = [encode_metadata(md, ns) for md in xc.metadata]
+    obj['igts'] = [encode_igt(igt, ns) for igt in xc.igts]
     return obj
 
-def encode_metadata(md):
-    obj = _make_obj(md)
-    obj['metas'] = [encode_meta(m) for m in md.metas]
+def encode_metadata(md, nscontext=None):
+    obj, ns = _make_obj(md, nscontext)
+    obj['metas'] = [encode_meta(m, ns) for m in md.metas]
     return obj
 
-def encode_meta(m):
-    obj = _make_obj(m)
+def encode_meta(m, nscontext=None):
+    obj, ns = _make_obj(m, nscontext)
     if m.text is not None: obj['text'] = m.text
     if m.children:
-        obj['children'] = [encode_metachild(mc) for mc in m.children]
+        obj['children'] = [encode_metachild(mc, ns) for mc in m.children]
     return obj
 
-def encode_metachild(mc):
-    obj = _make_obj(mc)
+def encode_metachild(mc, nscontext=None):
+    obj, ns = _make_obj(mc, nscontext)
     obj['name'] = mc.name
     if mc.text is not None: obj['text'] = mc.text
     if mc.children:
-        obj['children'] = [encode_metachild(mc) for mc in mc.children]
+        obj['children'] = [encode_metachild(mc, ns) for mc in mc.children]
     return obj
 
-def encode_igt(igt):
-    obj = _make_obj(igt)
+def encode_igt(igt, nscontext=None):
+    obj, ns = _make_obj(igt, nscontext)
     if igt.metadata:
-        obj['metadata'] = [encode_metadata(md) for md in igt.metadata]
-    obj['tiers'] = [encode_tier(t) for t in igt.tiers]
+        obj['metadata'] = [encode_metadata(md, ns) for md in igt.metadata]
+    obj['tiers'] = [encode_tier(t, ns) for t in igt.tiers]
     return obj
 
-def encode_tier(tier):
-    obj = _make_obj(tier)
+def encode_tier(tier, nscontext=None):
+    obj, ns = _make_obj(tier, nscontext)
     if tier.metadata:
-        obj['metadata'] = [encode_metadata(md) for md in tier.metadata]
-    obj['items'] = [encode_item(t) for t in tier.items]
+        obj['metadata'] = [encode_metadata(md, ns) for md in tier.metadata]
+    obj['items'] = [encode_item(t, ns) for t in tier.items]
     return obj
 
-def encode_item(item):
-    obj = _make_obj(item)
+def encode_item(item, nscontext=None):
+    obj, ns = _make_obj(item, nscontext)
     if item.text: obj['text'] = item.text
     return obj
+
