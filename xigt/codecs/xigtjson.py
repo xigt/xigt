@@ -65,7 +65,7 @@ def decode_igt(obj):
         type=obj.get('type'),
         attributes=obj.get('attributes', {}),
         metadata=[decode_metadata(md) for md in obj.get('metadata', [])],
-        tiers=[decode_tier(tier) for tier in obj.get('tier', [])],
+        tiers=[decode_tier(tier) for tier in obj.get('tiers', [])],
         namespace=obj.get('namespace'),
         nsmap=obj.get('namespaces')
     )
@@ -78,7 +78,7 @@ def decode_tier(obj):
         type=obj.get('type'),
         attributes=obj.get('attributes', {}),
         metadata=[decode_metadata(md) for md in obj.get('metadata', [])],
-        items=[decode_item(item) for item in obj.get('item', [])],
+        items=[decode_item(item) for item in obj.get('items', [])],
         namespace=obj.get('namespace'),
         nsmap=obj.get('namespaces')
     )
@@ -102,7 +102,7 @@ def decode_metadata(obj):
         id=obj.get('id'),
         type=obj.get('type'),
         attributes=obj.get('attributes', {}),
-        metas=[decode_meta(meta) for meta in obj.get('meta', [])],
+        metas=[decode_meta(meta) for meta in obj.get('metas', [])],
         namespace=obj.get('namespace'),
         nsmap=obj.get('namespaces')
     )
