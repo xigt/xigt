@@ -10,7 +10,11 @@ from xigt.errors import XigtError
 
 
 def load(fh, mode='full'):
-    return decode(json.load(fh), mode=mode)
+    if hasattr(fh, 'read'):
+        return decode(json.load(fh), mode=mode)
+    else:
+        with open(fh, 'r') as fh_:
+            return decode(json.load(fh_), mode=mode)
 
 
 def loads(s):
@@ -22,7 +26,7 @@ def dump(f, xc, encoding='utf-8', indent=2):
         raise XigtError(
             'Second argument of dump() must be an instance of XigtCorpus.'
         )
-    json.dump(f, encode(xc), indent=indent)
+    json.dump(encode(xc), f, indent=indent)
 
 def dumps(xc, encoding='unicode', indent=2):
     if not isinstance(xc, XigtCorpus):
@@ -48,44 +52,54 @@ def validate(f):
 
 # Decoding #############################################################
 
-def decode(obj, mode='full'):
+def decode(obj, mode='full', nsmap=None):
+    nsmap = active_namespaces(obj, nsmap)
     return XigtCorpus(
         id=obj.get('id'),
         attributes=obj.get('attributes', {}),
-        metadata=[decode_metadata(md) for md in obj.get('metadata', [])],
-        igts=[decode_igt(igt) for igt in obj.get('igts', [])],
+        metadata=[decode_metadata(md, nsmap)
+                  for md in obj.get('metadata', [])],
+        igts=[decode_igt(igt, nsmap)
+              for igt in obj.get('igts', [])],
         mode=mode,
         namespace=obj.get('namespace'),
         nsmap=obj.get('namespaces')
     )
 
-def decode_igt(obj):
+def decode_igt(obj, nsmap=None):
+    nsmap = active_namespaces(obj, nsmap)
     igt = Igt(
         id=obj.get('id'),
         type=obj.get('type'),
         attributes=obj.get('attributes', {}),
-        metadata=[decode_metadata(md) for md in obj.get('metadata', [])],
-        tiers=[decode_tier(tier) for tier in obj.get('tiers', [])],
+        metadata=[decode_metadata(md, nsmap)
+                  for md in obj.get('metadata', [])],
+        tiers=[decode_tier(tier, nsmap)
+               for tier in obj.get('tiers', [])],
         namespace=obj.get('namespace'),
         nsmap=obj.get('namespaces')
     )
     return igt
 
 
-def decode_tier(obj):
+def decode_tier(obj, nsmap=None):
+    nsmap = active_namespaces(obj, nsmap)
     tier = Tier(
         id=obj.get('id'),
         type=obj.get('type'),
         attributes=obj.get('attributes', {}),
-        metadata=[decode_metadata(md) for md in obj.get('metadata', [])],
-        items=[decode_item(item) for item in obj.get('items', [])],
+        metadata=[decode_metadata(md, nsmap)
+                  for md in obj.get('metadata', [])],
+        items=[decode_item(item, nsmap)
+               for item in obj.get('items', [])],
         namespace=obj.get('namespace'),
         nsmap=obj.get('namespaces')
     )
     return tier
 
 
-def decode_item(obj):
+def decode_item(obj, nsmap=None):
+    nsmap = active_namespaces(obj, nsmap)
     item = Item(
         id=obj.get('id'),
         type=obj.get('type'),
@@ -97,19 +111,22 @@ def decode_item(obj):
     return item
 
 
-def decode_metadata(obj):
+def decode_metadata(obj, nsmap=None):
+    nsmap = active_namespaces(obj, nsmap)
     metadata = Metadata(
         id=obj.get('id'),
         type=obj.get('type'),
         attributes=obj.get('attributes', {}),
-        metas=[decode_meta(meta) for meta in obj.get('metas', [])],
+        metas=[decode_meta(meta, nsmap)
+               for meta in obj.get('metas', [])],
         namespace=obj.get('namespace'),
         nsmap=obj.get('namespaces')
     )
     return metadata
 
 
-def decode_meta(obj):
+def decode_meta(obj, nsmap=None):
+    nsmap = active_namespaces(obj, nsmap)
     # a meta can simply have text, which is the easy case, or it can
     # have nested XML. In the latter case, store the XML in very basic
     # MetaChild objects
@@ -118,32 +135,50 @@ def decode_meta(obj):
         type=obj.get('type'),
         attributes=obj.get('attributes', {}),
         text=obj.get('text'),
-        children=[decode_metachild(mc) for mc in obj.get('children', [])],
+        children=[decode_metachild(mc, nsmap)
+                  for mc in obj.get('children', [])],
         namespace=obj.get('namespace'),
         nsmap=obj.get('namespaces')
     )
     return meta
 
 
-def decode_metachild(obj):
+def decode_metachild(obj, nsmap=None):
+    nsmap = active_namespaces(obj, nsmap)
+    name = obj['name']
+    if ':' in name:
+        prefix, name = name.split(':', 1)
+        namespace = nsmap.get(prefix, prefix)
+    else:
+        namespace = obj.get('namespace')  # possibly None
     mc = MetaChild(
-        obj['name'],
+        name,
         attributes=obj.get('attributes', {}),
         text=obj.get('text'),
-        children=[decode_metachild(mc) for mc in obj.get('children', [])],
-        namespace=obj.get('namespace'),
+        children=[decode_metachild(mc, nsmap)
+                  for mc in obj.get('children', [])],
+        namespace=namespace,
         nsmap=obj.get('namespaces')
     )
     return mc
 
 
+def active_namespaces(obj, nsmap):
+    nsmap = {} if nsmap is None else dict(nsmap)
+    nsmap.update(obj.get('namespaces', {}))
+    return nsmap
+
+
 # Encoding #############################################################
+
+inv_nsmap = {}
 
 def _make_obj(x, nscontext=None):
     if nscontext is None: nscontext = {}
     active_nsmap = dict(nscontext)
     active_nsmap.update(x.nsmap)
-    inv_nsmap = {uri: pre for pre, uri in active_nsmap.items()}
+    inv_nsmap.clear()
+    inv_nsmap.update((uri, pre) for pre, uri in active_nsmap.items())
     nsmap = dict(set(active_nsmap.items()).difference(nscontext.items()))
     obj = {}
     if x.id: obj['id'] = x.id
@@ -185,7 +220,11 @@ def encode_meta(m, nscontext=None):
 
 def encode_metachild(mc, nscontext=None):
     obj, ns = _make_obj(mc, nscontext)
-    obj['name'] = mc.name
+    if obj.get('namespace') in inv_nsmap:
+        obj['name'] = '{}:{}'.format(inv_nsmap[obj['namespace']], mc.name)
+        del obj['namespace']
+    else:
+        obj['name'] = mc.name
     if mc.text is not None: obj['text'] = mc.text
     if mc.children:
         obj['children'] = [encode_metachild(mc, ns) for mc in mc.children]
