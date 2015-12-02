@@ -6,6 +6,10 @@
 
 * xigt.xigtpath - an XPath-like query language that is aware of Xigt
   references and structure.
+* xigt.codecs.xigtjson - a JSON serialization format for the Xigt
+  data model (useful for Xigt-based web apps)
+* `xigt sort` command for sorting IGTs in a corpus
+* `xigt partition` command for (re)grouping IGTs on some criterion
 
 ### Fixed
 
@@ -32,10 +36,15 @@
   - If the `namespace` attribute is used, its value will be replaced
     with the appropriately mapped namespace via `nsmap`, if a mapping
     exists.
+* xigt.importers.toolbox
+  - the config schema has changed: see comments at the top of
+    [xigt/importers/toolbox.py]
+  - phrase tiers can be created from words tiers
 
 ### Removed
 
 * xigt.importers.odin functions for cleaning and normalization
+* `xigt process` command (see `xigt partition` under **Added**)
 
 ## [v1.0] - 2015.04.24
 

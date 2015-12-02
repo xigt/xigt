@@ -1,136 +1,186 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from __future__ import print_function
 import argparse
-from collections import defaultdict
-from xigt import XigtCorpus, Igt
+from collections import Counter, defaultdict
+import string
+import logging
+
+from xigt import XigtCorpus, Igt, xigtpath as xp
 from xigt.codecs import xigtxml
 
 
-def print_stats(args):
-    def new_stats():
-        return {
-            'languages': set(),
-            'iso-639-3': defaultdict(lambda: defaultdict(int)),
-            'instances': 0,
-            'igts': defaultdict(int),
-            'tiers': defaultdict(int),
-            'items': defaultdict(int),
-        }
-    stats = new_stats()
-    lg_condition = lambda m: 'phrases' in m.attributes.get('tiers', '')
-    num_files = 0
-    for f in args.files:
-        with open(f, 'r') as fh:
-            num_files += 1
-            cur_stats = new_stats()
-            xc = xigtxml.load(fh, mode='transient')
-            for igt in xc:
-                stats['instances'] += 1
-                cur_stats['instances'] += 1
-                # language is in a meta element
-                lgs = igt.get_meta('language', conditions=[lg_condition])
-                if lgs:
-                    lg_name = lgs[0].attributes.get('name', '???').strip()
-                    lg_iso = lgs[0].attributes.get('iso-639-3', '???').strip()
+# see here: http://stackoverflow.com/a/34033230/1441112
+class SafeFormatter(string.Formatter):
+    def vformat(self, format_string, args, kwargs):
+        args_len = len(args)  # for checking IndexError
+        tokens = []
+        for (lit, name, spec, conv) in self.parse(format_string):
+            # re-escape braces that parse() unescaped
+            lit = lit.replace('{', '{{').replace('}', '}}')
+            # only lit is non-None at the end of the string
+            if name is None:
+                tokens.append(lit)
+            else:
+                # but conv and spec are None if unused
+                conv = '!' + conv if conv else ''
+                spec = ':' + spec if spec else ''
+                # name includes indexing ([blah]) and attributes (.blah)
+                # so get just the first part
+                fp = name.split('[')[0].split('.')[0]
+                # treat as normal if fp is empty (an implicit
+                # positional arg), a digit (an explicit positional
+                # arg) or if it is in kwargs
+                if not fp or fp.isdigit() or fp in kwargs:
+                    tokens.extend([lit, '{', name, conv, spec, '}'])
+                # otherwise escape the braces
                 else:
-                    lg_name = ''
-                    lg_iso = ''
-                stats['languages'].add(lg_name.lower())
-                cur_stats['languages'].add(lg_name.lower())
-                stats['iso-639-3'][lg_iso][lg_name] += 1
-                cur_stats['iso-639-3'][lg_iso][lg_name] += 1
-                # count tiers and items by types, IGTs by tier types
-                all_tier_types = set()
-                for tier in igt:
-                    stats['tiers'][tier.type] += 1
-                    cur_stats['tiers'][tier.type] += 1
-                    all_tier_types.add(tier.type)
-                    for item in tier:
-                        stats['items'][item.type] += 1
-                        cur_stats['items'][item.type] += 1
-                stats['igts'][tuple(sorted(all_tier_types))] += 1
-                cur_stats['igts'][tuple(sorted(all_tier_types))] += 1
+                    tokens.extend([lit, '{{', name, conv, spec, '}}'])
+        format_string = ''.join(tokens)  # put the string back together
+        # finally call the default formatter
+        return string.Formatter.vformat(self, format_string, args, kwargs)
 
-        if args.summarize_each:
-            print_summary('{} summary:'.format(f), cur_stats)
-        if args.languages_each:
-            print_languages('Languages used in {}:'.format(f),
-                            cur_stats['iso-639-3'])
-    if args.summarize:
-        print_summary('Overall summary ({} file{}):'
-                      .format(num_files, 's' if num_files != 1 else ''),
-                      stats)
-    if args.languages:
-        print_languages('Languages used overall ({} file{}):'
-                        .format(num_files, 's' if num_files != 1 else ''),
-                        stats['iso-639-3'])
+safe_format = SafeFormatter().format
 
 
-def print_summary(title, stats):
-    print(title)
-    st = stats
-    maxlen = max(
-        map(lambda x: len(str(x)),
-            [len(st['languages']), len(st['iso-639-3']), st['instances']] +
-            list(st['igts'].values()) +
-            list(st['tiers'].values()) +
-            list(st['items'].values()))
-    )
-    template = ' {{:>{}}} {{}}'.format(maxlen)
-    print(template.format(st['instances'], 'IGT instances'))
-    print(template.format(len(st['languages']), 'languages (by name)'))
-    print(template.format(len(st['iso-639-3']),
-                          'languages (by ISO-639-3 language code)'))
-    for igt_type in st['igts']:
-        print(template.format(st['igts'][igt_type],
-                              'IGTs with tiers: {}'.format(
-                                  ', '.join(igt_type))))
-    for tier_type in st['tiers']:
-        print(template.format(st['tiers'][tier_type],
-                              'tiers of type: {}'.format(tier_type)))
-    for item_type in st['items']:
-        print(template.format(st['items'][item_type],
-                              'items of type: {}'.format(
-                                  item_type or '(None)')))
-    print()  # just always put a blank line at the end
+# Just so {match!s} prints a simple comma-separated list
+class CSTuple(tuple):
+    def __str__(self):
+        return ', '.join(map(str, self))
 
 
-def print_languages(title, lg_stats):
-    lgs = sorted(((code, name, count)
-                  for code in lg_stats
-                  for name, count in lg_stats[code].items()),
-                 key=lambda x: (-x[2], x[1]))
-    print(title)
-    for code, name, count in lgs:
-        print('  {}\t{}\t{}'.format(code, name, count))
-    print()
+def run(args):
+    job = make_job(args)
+    agenda = job['agenda']
+    global_c = defaultdict
+    for infile in args.infiles:
+        print(job['file_description'].format(filename=infile))
+        xc = xigtxml.load(infile)
+        results = process_agenda(xc, agenda)
+        print_results(results)
+        print()
+
+def make_job(args):
+    job = {"agenda": []}  # load from json file?
+    if args.file_description:
+        job['file_description'] = args.file_description
+    elif not job.get('file_description'):
+        job['file_description'] = '{filename}:'
+
+    agenda = job['agenda']
+    for action, vals in args.agenda:
+        if action == 'description' and agenda:
+            agendum = agenda[-1]
+            agendum['description'] = safe_format(
+                vals, query=agendum['query'], subquery=agendum.get('subquery')
+            )
+        else:
+            if action in ('find', 'unique'):
+                query, subquery = vals[0], ''
+                description = '{query}\t{match!s}'
+            elif action == 'tally':
+                query, subquery = vals
+                description = '{query}\t{subquery}\t{match!s}'
+            agenda.append({
+                'action': action,
+                'query': query,
+                'subquery': subquery,
+                'description': safe_format(
+                    description, query=query, subquery=subquery
+                )
+            })
+    return job
+
+
+def process_agenda(xc, agenda):
+    results = []
+    for agendum in agenda:
+        agendum['result'] = None
+        action = agendum['action']
+        if action == 'find':
+            find_pattern(xc, agendum)
+        elif action == 'tally':
+            results.extend(tally_pattern(xc, agendum))
+        elif action == 'unique':
+            results.append(unique_pattern(xc, agendum))
+    return results
+
+
+def find_pattern(xc, agendum):
+    for match in xp.findall(xc, agendum['query']):
+        print(' ', agendum['description'].format(match=match))
+
+
+def tally_pattern(xc, agendum):
+    counts = Counter()
+    for match in xp.findall(xc, agendum['query']):
+        group = CSTuple(xp.findall(match, agendum['subquery']))
+        counts[group] += 1
+    return [
+        (count, agendum['description'].format(match=match))
+        for match, count in counts.most_common()
+    ]
+
+
+def unique_pattern(xc, agendum):
+    counts = Counter(xp.findall(xc, agendum['query']))
+    return (len(counts), agendum['description'].format(match=''))
+
+
+def print_results(results):
+    if results:
+        max_len = max(len(str(cnt)) for cnt, _ in results)
+        for cnt, desc in results:
+            print(' {}\t{}'.format(str(cnt).rjust(max_len), desc))
+
+class AgendaAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        if 'agenda' not in namespace:
+            namespace.agenda = []
+        namespace.agenda.append((self.dest, values))
 
 
 def main(arglist=None):
     parser = argparse.ArgumentParser(
-        description='Query Xigt documents.'
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='Query Xigt documents.',
+        epilog='examples:\n'
+            '    xigt query --find \'igt/tier[@type="words"]/item/value()\' x.xml\n'
+            '    xigt query --tally \'igt\' \'.//item[value()="dog"]\'\n'
+            '               --description "IGTs with \'dog\' tokens" x.xml'
     )
-    parser.add_argument(
-        '-S', '--summarize', action='store_true',
-        help='Produce a summary of all input files.')
-    parser.add_argument(
-        '-s', '--summarize-each', action='store_true',
-        help='Produce a summary for each input file.')
-    parser.add_argument(
-        '-L', '--languages', action='store_true',
-        help='List the languages used in the input files with their counts.')
-    parser.add_argument(
-        '-l', '--languages-each', action='store_true',
-        help='List the languages used in each input file with their counts.')
-    #parser.add_argument('-m' '--xigt-meta')
-    parser.add_argument('files', nargs='+')
+    parser.add_argument('-v', '--verbose',
+        action='count', dest='verbosity', default=2,
+        help='increase the verbosity (can be repeated: -vvv)'
+    )
+    parser.add_argument('infiles', nargs='+')
+    parser.add_argument('-f', '--find',
+        nargs=1, metavar='QUERY', action=AgendaAction,
+        help='find matches for XigtPath XP'
+    )
+    parser.add_argument('-t', '--tally',
+        nargs=2, metavar=('QUERY', 'SUBQUERY'), action=AgendaAction,
+        help='count results of QUERY grouped by results of SUBQUERY'
+    )
+    parser.add_argument('-u', '--unique',
+        nargs=1, metavar='QUERY', action=AgendaAction,
+        help='count unique matches of QUERY'
+    )
+    parser.add_argument('-d', '--description',
+        metavar='DESC', action=AgendaAction,
+        help='description for each result (can use {query}, {subquery} '
+             'and {match})'
+    )
+    parser.add_argument('-D', '--file-description',
+        metavar='DESC',
+        help='description header for each file (can use {filename})'
+    )
     args = parser.parse_args(arglist)
-
-    if args.summarize or args.summarize_each or \
-       args.languages or args.languages_each:
-        print_stats(args)
-
+    agenda = getattr(args, 'agenda', [])
+    if agenda and agenda[0][0] == 'description':
+        parser.error('--description must follow an action (e.g., --tally)')
+    logging.basicConfig(level=50-(args.verbosity*10))
+    run(args)
 
 if __name__ == '__main__':
     main()
