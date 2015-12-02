@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 from setuptools import setup
 
 long_description='''\
@@ -11,15 +12,20 @@ structure of an IGT. This architecture allows for interesting extensions
 to the standard IGT tiers, such as for parse trees, dependencies,
 bilingual alignments, and more.'''
 
+base_dir = os.path.dirname(__file__)
+about = {}
+with open(os.path.join(base_dir, "xigt", "__about__.py")) as f:
+    exec(f.read(), about)
+
 setup(
-    name='Xigt',
-    version='1.0',
-    description='A framework for eXtensible Interlinear Glossed Text',
+    name=about['__title__'],
+    version=about['__version__'],
+    description=about['__summary__'],
     long_description=long_description,
-    url='https://github.com/goodmami/xigt',
-    author='Michael Wayne Goodman',
-    author_email='goodman.m.w@gmail.com',
-    license='MIT',
+    url=about['__uri__'],
+    author=about['__author__'],
+    author_email=about['__email__'],
+    license=about['__license__'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',

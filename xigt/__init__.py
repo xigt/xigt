@@ -1,4 +1,6 @@
 
+from xigt.__about__ import __version__
+
 from xigt.model import (
     XigtCorpus,
     Igt,
