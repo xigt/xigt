@@ -26,7 +26,7 @@ Tier.subtype = attribute type { Tier.type }?,
 Tier.type = notAllowed
 Tier.attrs = parent Tier.attrs
 
-Tier.metadata = (Metadata | LocalMetadata)*
+Tier.metadata = (parent Tier.metadata | Metadata | LocalMetadata)*
 Tier.items = (Item | LocalItem)*
 
 LocalItem = grammar { include "xigt-item.rnc" }
@@ -58,3 +58,4 @@ Metadata.attrs = parent Metadata.attrs
 Meta.id = parent Meta.id
 Meta.type = parent Meta.type
 Meta.attrs = parent Meta.attrs
+

@@ -7,14 +7,14 @@
 # The id and ref attributes are used by <tier> and <item> elements to establish
 # alignments amongst the data. <item> elements may use Alignment Expressions to
 # establish one-to-many relationships.
-Id = xsd:string { pattern="[A-Za-z][\-.\w]*" }
+Id = xsd:string { pattern="[A-Za-z][\-_.\w]*" }
 
-IdRef = xsd:string { pattern="[A-Za-z][\-.\w]*" }
+IdRef = xsd:string { pattern="[A-Za-z][\-_.\w]*" }
 
-IdRefs = xsd:string { pattern="[A-Za-z][\-.\w]*(\s+[A-Za-z][\-.\w]*)*" }
+IdRefs = xsd:string { pattern="[A-Za-z][\-_.\w]*(\s+[A-Za-z][\-_.\w]*)*" }
 
 AlgnExpr = xsd:string {
-    pattern="[A-Za-z][\-.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?([,+][A-Za-z][\-.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?)*"
+    pattern="[A-Za-z][\-_.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?([,+][A-Za-z][\-_.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?)*"
 }
 
 #--- Base Attributes (inherited from any level and overridable)
@@ -37,7 +37,6 @@ Item.alnref = AlgnExpr
 Item.cntref = AlgnExpr
 Item.segref = AlgnExpr
 Item.attrs = empty
-Item.metadata = Metadata*
 Item = notAllowed
 
 Tier.id = Id

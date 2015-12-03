@@ -13,7 +13,7 @@ Igt.subtype =
     Igt.tiers
 Igt.type = parent Igt.type
 Igt.attrs = parent Igt.attrs
-Igt.metadata = (Metadata | LocalMetadata)*
+Igt.metadata = (parent Igt.metadata | Metadata | LocalMetadata)*
 Igt.tiers = (Tier | LocalTier)*
 
 LocalTier = grammar { include "xigt-tier.rnc" }
@@ -39,6 +39,7 @@ Tier.alnref = parent Tier.alnref
 Tier.cntref = parent Tier.cntref
 Tier.segref = parent Tier.segref
 Tier.attrs = parent Tier.attrs
+Tier.metadata = parent Tier.metadata
 
 Item.id = parent Item.id
 Item.type = parent Item.type
@@ -54,3 +55,4 @@ Metadata.attrs = parent Metadata.attrs
 Meta.id = parent Meta.id
 Meta.type = parent Meta.type
 Meta.attrs = parent Meta.attrs
+

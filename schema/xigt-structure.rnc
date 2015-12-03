@@ -1,10 +1,10 @@
 
 # Common patterns
 
-Id = xsd:string { pattern="[a-zA-Z][\-.\w]*" }
-Ref = xsd:string { pattern="[a-zA-Z][\-.\w]*" }
+Id = xsd:string { pattern="[a-zA-Z][\-_.\w]*" }
+Ref = xsd:string { pattern="[a-zA-Z][\-_.\w]*" }
 AlgnExpr = xsd:string {
-    pattern="[a-zA-Z][-.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?([,+][a-zA-Z][-.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?)*"
+    pattern="[a-zA-Z][\-_.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?([,+][a-zA-Z][\-_.\w]*(\[\d+:\d+([,+]\d+:\d+)*\])?)*"
 }
 
 
@@ -72,3 +72,4 @@ Item = element item {
     AnyAttr*,
     text
 }
+

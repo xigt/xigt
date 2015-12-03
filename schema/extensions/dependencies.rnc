@@ -2,11 +2,11 @@ include "xigt.rnc" {
     Tier |= grammar { include "xigt-tier.rnc" {
       Tier.type = "dependencies"
       # setting refs to empty blocks content/alignment/segmentation
-      Tier.refs = attribute dep { Ref }
-                , attribute head { Ref }
+      Tier.refs = attribute dep { IdRef }
+                , attribute head { IdRef }
       Item = grammar { include "xigt-item.rnc" {
         Item.refs = attribute dep { AlgnExpr }
-                  , attribute head { AlgnExpr }
+                  , attribute head { AlgnExpr }?
       }}
     }}
 }
