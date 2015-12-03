@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from os.path import basename
 import argparse
 from collections import Counter, defaultdict
 import string
@@ -54,7 +55,8 @@ def run(args):
     agenda = job['agenda']
     global_c = defaultdict
     for infile in args.infiles:
-        print(job['file_description'].format(filename=infile))
+        filename = basename(infile) if args.basename else infile
+        print(job['file_description'].format(filename=filename))
         xc = xigtxml.load(infile)
         results = process_agenda(xc, agenda)
         print_results(results)
@@ -174,6 +176,10 @@ def main(arglist=None):
     parser.add_argument('-D', '--file-description',
         metavar='DESC',
         help='description header for each file (can use {filename})'
+    )
+    parser.add_argument('--basename',
+        action='store_true',
+        help='use the basename of {filename} in --file-description'
     )
     args = parser.parse_args(arglist)
     agenda = getattr(args, 'agenda', [])
