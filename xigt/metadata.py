@@ -24,6 +24,12 @@ class XigtMetadataMixin(object):
         if metadata is not None:
             self.metadata = metadata
 
+    def __eq__(self, other):
+        try:
+            return self._md == other._md
+        except AttributeError:
+            return False
+
     @property
     def metadata(self):
         return self._md
@@ -96,6 +102,12 @@ class Metadata(XigtContainerMixin, XigtAttributeMixin):
             str(self.id or '--'), len(self), str(id(self))
         )
 
+    def __eq__(self, other):
+        return (
+            XigtContainerMixin.__eq__(self, other)
+            and XigtAttributeMixin.__eq__(self, other)
+        )
+
     @property
     def metas(self):
         return self._list
@@ -134,6 +146,16 @@ class Meta(XigtContainerMixin, XigtAttributeMixin):
             str(self.id or '--'), str(id(self))
         )
 
+    def __eq__(self, other):
+        try:
+            return (
+                self.text == other.text
+                and XigtContainerMixin.__eq__(self, other)
+                and XigtAttributeMixin.__eq__(self, other)
+            )
+        except AttributeError:
+            return False
+
     @property
     def children(self):
         return self._list
@@ -163,6 +185,17 @@ class MetaChild(XigtContainerMixin, XigtAttributeMixin):
         return '<MetaChild object (name: {}) at {}>'.format(
             str(self.name or '--'), str(id(self))
         )
+
+    def __eq__(self, other):
+        try:
+            return (
+                self.name == other.name
+                and self.text == other.text
+                and XigtContainerMixin.__eq__(self, other)
+                and XigtAttributeMixin.__eq__(self, other)
+            )
+        except AttributeError:
+            return False
 
     @property
     def children(self):

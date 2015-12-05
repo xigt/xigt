@@ -85,6 +85,13 @@ class XigtCorpus(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
             str(self.id or '--'), len(self), str(id(self))
         )
 
+    def __eq__(self, other):
+        return (
+            XigtMetadataMixin.__eq__(self, other)
+            and XigtContainerMixin.__eq__(self, other)
+            and XigtAttributeMixin.__eq__(self, other)
+        )
+
     def __iter__(self):
         if self.mode == FULL:
             for igt in XigtContainerMixin.__iter__(self):
@@ -132,6 +139,13 @@ class Igt(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
     def __repr__(self):
         return '<Igt object (id: {}) with {} Tiers at {}>'.format(
             str(self.id or '--'), len(self), str(id(self))
+        )
+
+    def __eq__(self, other):
+        return (
+            XigtMetadataMixin.__eq__(self, other)
+            and XigtContainerMixin.__eq__(self, other)
+            and XigtAttributeMixin.__eq__(self, other)
         )
 
     def refresh_indices(self, tiers=False, items=True,
@@ -240,6 +254,13 @@ class Tier(XigtContainerMixin, XigtAttributeMixin,
             str(self.id or '--'), self.type, len(self), str(id(self))
         )
 
+    def __eq__(self, other):
+        return (
+            XigtMetadataMixin.__eq__(self, other)
+            and XigtContainerMixin.__eq__(self, other)
+            and XigtAttributeMixin.__eq__(self, other)
+        )
+
     @property
     def igt(self):
         return self._parent
@@ -300,6 +321,15 @@ class Item(XigtAttributeMixin, XigtReferenceAttributeMixin):
         return '<Item object (id: {}) with value "{}" at {}>'.format(
             str(self.id or '--'), self.value(), str(id(self))
         )
+
+    def __eq__(self, other):
+        try:
+            return (
+                self.text == other.text
+                and XigtAttributeMixin.__eq__(self, other)
+            )
+        except AttributeError:
+            return False
 
     @property
     def tier(self):

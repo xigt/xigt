@@ -29,6 +29,17 @@ class XigtContainerMixin(object):
         self._contained_type = contained_type
         self._container = container if container is not None else self
 
+    def __eq__(self, other):
+        try:
+            return (
+                # quick check for comparing, e.g., XigtCorpus and Igt
+                self._contained_type == other._contained_type
+                and len(self._list) == len(other._list)
+                and all(a == b for a, b in zip(self._list, other._list))
+            )
+        except AttributeError:
+            return False
+
     def __iter__(self):
         return iter(self._list)
 
@@ -128,6 +139,18 @@ class XigtAttributeMixin(object):
         #     self.attributes[ID] = id
         # if type is not None or TYPE not in self.attributes:
         #     self.attributes[TYPE] = type
+
+    def __eq__(self, other):
+        try:
+            return (
+                self.id == other.id
+                and self.type == other.type
+                and self.attributes == other.attributes
+                and self.namespace == other.namespace
+                # and self.nsmap == other.nsmap
+            )
+        except AttributeError:
+            return False
 
     def get_attribute(self, key, default=None, inherit=False, namespace=None):
         if not key.startswith('{') and ':' in key:
