@@ -34,6 +34,7 @@ xp_tokenizer_re = re.compile(
     r'"(?:\\.|[^\\"])*"|'  # double-quoted strings (allow escaped quotes \")
     r'//?|'  # // descendant-or-self or / descendant
     r'\.\.?|'  # .. parent or . self axes
+    #r'::|'  # axis separator
     r'@|'  # attribute axis
     r'\[|\]|'  # predicate
     r'\(|\)|'  # groups
@@ -122,6 +123,8 @@ def _step(objs, steps):
             results = (obj._parent for obj in objs)
         elif step == '.':
             results = objs
+        # elif steps and steps[0] == '::':
+
         elif step in ('text', 'value', 'referent', 'referrer'):
             steps.popleft()  # (
             args = []
@@ -165,11 +168,13 @@ def _find_child(obj, name):
         namespace, name = name.split(':', 1)
         kwargs['namespace'] = namespace
     # simple case
-    if (name == '*' and hasattr(obj, '__iter__') or
-        name == 'igt' and hasattr(obj, 'igts') or
-        name == 'tier' and hasattr(obj, 'tiers') or
-        name == 'item' and hasattr(obj, 'items') or
-        name == 'meta' and hasattr(obj, 'metas')):
+    if name == '*' and hasattr(obj, '__iter__'):
+        results = list(getattr(obj, 'metadata', []))
+        results.extend(obj.select(**kwargs))
+    elif (name == 'igt' and hasattr(obj, 'igts') or
+          name == 'tier' and hasattr(obj, 'tiers') or
+          name == 'item' and hasattr(obj, 'items') or
+          name == 'meta' and hasattr(obj, 'metas')):
         # select should just work on the containers as normal
         results = obj.select(**kwargs)
     elif name == 'metadata' and hasattr(obj, 'metadata'):

@@ -61,6 +61,7 @@ class TestXigtPath(unittest.TestCase):
         self.assertEqual(xp.find(xc1[0], './/item'), xc1[0][0][0])
         self.assertEqual(xp.find(xc1[0][1], './/item'), xc1[0][1][0])
         self.assertEqual(xp.find(xc1[0][1], '//item'), xc1[0][0][0])
+        self.assertEqual(xp.find(xc1m, '//meta'), xc1m[0].metadata[0][0])
 
     def test_find_simple_path(self):
         self.assertEqual(xp.find(xc1, '/igt'), xc1[0])
@@ -81,6 +82,18 @@ class TestXigtPath(unittest.TestCase):
                          [xc1[0][0][0], xc1[0][1][0]])
         self.assertEqual(xp.findall(xc1, '//item'),
                          [xc1[0][0][0], xc1[0][1][0]])
+        self.assertEqual(xp.findall(xc1m, '//meta'),
+                         list(xc1m[0].metadata[0]))
+
+    def test_star(self):
+        self.assertEqual(xp.findall(xc1, '/*'), [xc1[0]])
+        self.assertEqual(xp.findall(xc1, '/*/*'), [xc1[0][0], xc1[0][1]])
+        self.assertEqual(xp.findall(xc1, '//tier/*'),
+                         [xc1[0][0][0], xc1[0][1][0]])
+        # star includes metadata
+        self.assertEqual(xp.findall(xc1m, '/igt/*'),
+                         list(xc1m[0].metadata) + [xc1m[0][0], xc1m[0][1]])
+
 
     def test_predicate(self):
         self.assertEqual(xp.find(xc1, '//tier[@type="phrases"]'),
@@ -223,3 +236,6 @@ class TestXigtPath(unittest.TestCase):
             xp.findall(xc1, 'igt/(tier[@type="phrases"] | tier[@type="translations"])/item'),
             [xc1[0][0][0], xc1[0][1][0]]
         )
+
+    # def test_axes(self):
+    #     self.assertEqual(xp.find(xc1, '/igt'), xp.find(xc1, '/child::igt'))
