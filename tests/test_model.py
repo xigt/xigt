@@ -7,11 +7,12 @@ class TestMetadata(unittest.TestCase):
     def setUp(self):
         self.md1 = Metadata()
 
+        self.m1 = Meta(id='meta1', text='meta')
         self.md2 = Metadata(
             id='md2',
             type='basic',
             attributes={'attr':'val'},
-            metas=[Meta(id='meta1', text='meta')]
+            metas=[self.m1]
         )
 
     def test_init(self):
@@ -37,6 +38,40 @@ class TestMetadata(unittest.TestCase):
         self.assertEqual(self.md1.attributes, dict())
 
         self.assertEqual(self.md2.attributes, {'attr':'val'})
+
+    def test_eq(self):
+        self.assertEqual(self.md1, self.md1)
+        self.assertEqual(self.md2, self.md2)
+        self.assertNotEqual(self.md1, self.md2)
+
+    def test_getitem(self):
+        self.assertEqual(self.md2[0], self.m1)
+        self.assertEqual(self.md2['meta1'], self.m1)
+        self.assertEqual(self.md2['0'], self.m1)
+        self.assertRaises(IndexError, self.md2.__getitem__, 1)
+        self.assertRaises(IndexError, self.md2.__getitem__, '1')
+        self.assertRaises(KeyError, self.md2.__getitem__, 'm2')
+
+    def test_setitem(self):
+        md = Metadata(metas=[Meta(id='meta1'), Meta(id='meta2')])
+        md[0] = Meta(id='meta3')
+        self.assertEqual(len(md), 2)
+        self.assertEqual(md[0].id, 'meta3')
+        self.assertRaises(KeyError, md.__getitem__, 'meta1')
+        self.assertRaises(
+            ValueError, md.__setitem__, 'meta2', Meta(id='meta2')
+        )
+
+    def test_delitem(self):
+        md = Metadata(metas=[Meta(id='meta1'), Meta(id='meta2')])
+        self.assertEqual(len(md), 2)
+        del md[0]
+        self.assertEqual(len(md), 1)
+        self.assertEqual(md[0].id, 'meta2')
+        self.assertRaises(KeyError, md.__getitem__, 'meta1')
+        del md['meta2']
+        self.assertEqual(len(md), 0)
+        self.assertRaises(KeyError, md.__getitem__, 'meta2')
 
     def test_get(self):
         self.assertIs(self.md1.get(0), None)
@@ -91,6 +126,14 @@ class TestMetadata(unittest.TestCase):
         self.assertEqual(md[0].id, 'meta1')
         self.assertEqual(md[1].id, 'meta2')
         self.assertEqual(md[2].id, 'meta3')
+
+    def test_remove(self):
+        md = Metadata(metas=[Meta(id='m1'), Meta(id='m2')])
+        self.assertEqual(len(md), 2)
+        md.remove(md[0])
+        self.assertEqual(len(md), 1)
+        self.assertEqual(md[0].id, 'm2')
+        self.assertRaises(KeyError, md.__getitem__, 'm1')
 
     def test_clear(self):
         md = Metadata()
@@ -168,6 +211,11 @@ class TestMeta(unittest.TestCase):
         )
         self.assertEqual(m.get_attribute('two', inherit=True), 2)
 
+    def test_eq(self):
+        self.assertEqual(self.m1, self.m1)
+        self.assertEqual(self.m2, self.m2)
+        self.assertNotEqual(self.m1, self.m2)
+
     def test_text(self):
         self.assertIs(self.m1.text, None)
 
@@ -231,6 +279,11 @@ class TestMetaChild(unittest.TestCase):
             metas=[m]
         )
         self.assertEqual(mc.get_attribute('two', inherit=True), 2)
+
+    def test_eq(self):
+        self.assertEqual(self.mc1, self.mc1)
+        self.assertEqual(self.mc2, self.mc2)
+        self.assertNotEqual(self.mc1, self.mc2)
 
     def test_text(self):
         self.assertIs(self.mc1.text, None)
@@ -328,6 +381,11 @@ class TestItem(unittest.TestCase):
         self.assertEqual(self.i_t.tier, self.t_b)
         self.assertEqual(self.i_t.igt, self.igt)
         self.assertEqual(self.i_t.corpus, self.xc)
+
+    def test_eq(self):
+        self.assertEqual(self.i1, self.i1)
+        self.assertEqual(self.i2, self.i2)
+        self.assertNotEqual(self.i1, self.i2)
 
     def test_attributes(self):
         self.assertEqual(self.i1.attributes, dict())
@@ -455,12 +513,14 @@ class TestTier(unittest.TestCase):
     def setUp(self):
         self.t1 = Tier()
 
+        self.i1 = Item(id='t1')
+        self.i2 = Item(id='t2')
         self.t2 = Tier(
             id='t',
             type='basic',
             attributes={'attr':'val'},
             metadata=[Metadata(type='meta', metas=[Meta(text='meta')])],
-            items=[Item(id='t1'), Item(id='t2')]
+            items=[self.i1, self.i2]
         )
 
     def test_init(self):
@@ -480,7 +540,7 @@ class TestTier(unittest.TestCase):
         self.assertEqual(self.t2.type, 'basic')
 
     def test_items(self):
-        self.assertEqual(len(self.t1._list), 0)
+        self.assertEqual(len(self.t1.items), 0)
         self.assertEqual(self.t1.items, [])
 
         self.assertEqual(len(self.t2.items), 2)
@@ -519,6 +579,41 @@ class TestTier(unittest.TestCase):
         self.assertIs(self.t2.alignment, None)
         self.assertIs(self.t2.content, None)
         self.assertIs(self.t2.segmentation, None)
+
+    def test_eq(self):
+        self.assertEqual(self.t1, self.t1)
+        self.assertEqual(self.t2, self.t2)
+        self.assertNotEqual(self.t1, self.t2)
+
+    def test_getitem(self):
+        self.assertEqual(self.t2[0], self.i1)
+        self.assertEqual(self.t2['t1'], self.i1)
+        self.assertEqual(self.t2['0'], self.i1)
+        self.assertEqual(self.t2[1], self.i2)
+        self.assertRaises(IndexError, self.t2.__getitem__, 2)
+        self.assertRaises(IndexError, self.t2.__getitem__, '2')
+        self.assertRaises(KeyError, self.t2.__getitem__, 't3')
+
+    def test_setitem(self):
+        t = Tier(items=[Item(id='a1'), Item(id='a2')])
+        t[0] = Item(id='a3')
+        self.assertEqual(len(t), 2)
+        self.assertEqual(t[0].id, 'a3')
+        self.assertRaises(KeyError, t.__getitem__, 'a1')
+        self.assertRaises(
+            ValueError, t.__setitem__, 'a2', Item(id='a3')
+        )
+
+    def test_delitem(self):
+        t = Tier(items=[Item(id='a1'), Item(id='a2')])
+        self.assertEqual(len(t), 2)
+        del t[0]
+        self.assertEqual(len(t), 1)
+        self.assertEqual(t[0].id, 'a2')
+        self.assertRaises(KeyError, t.__getitem__, 'a1')
+        del t['a2']
+        self.assertEqual(len(t), 0)
+        self.assertRaises(KeyError, t.__getitem__, 'a2')
 
     def test_get(self):
         self.assertIs(self.t1.get(0), None)
@@ -574,6 +669,14 @@ class TestTier(unittest.TestCase):
         self.assertEqual(t[1].id, 't2')
         self.assertEqual(t[2].id, 't3')
 
+    def test_remove(self):
+        t = Tier(items=[Item(id='i1'), Item(id='i2')])
+        self.assertEqual(len(t), 2)
+        t.remove(t[0])
+        self.assertEqual(len(t), 1)
+        self.assertEqual(t[0].id, 'i2')
+        self.assertRaises(KeyError, t.__getitem__, 'i1')
+
     def test_clear(self):
         t = Tier()
         t.extend([Item(id='t1'), Item(id='t2'), Item(id='t3')])
@@ -597,14 +700,15 @@ class TestIgt(unittest.TestCase):
     def setUp(self):
         self.i1 = Igt()
 
+        self.t1 = Tier(id='a', items=[Item(id='a1'), Item(id='a2')])
+        self.t2 = Tier(id='b', items=[Item(id='b1'), Item(id='b2')])
         self.i2 = Igt(
             id='i1',
             type='basic',
             attributes={'attr':'val'},
             metadata=[Metadata(type='meta',
                                metas=[Meta(text='meta')])],
-            tiers=[Tier(id='a', items=[Item(id='a1'), Item(id='a2')]),
-                   Tier(id='b', items=[Item(id='b1'), Item(id='b2')])]
+            tiers=[self.t1, self.t2]
         )
 
     def test_init(self):
@@ -647,6 +751,41 @@ class TestIgt(unittest.TestCase):
         self.assertEqual(self.i1.attributes, dict())
 
         self.assertEqual(self.i2.attributes, {'attr':'val'})
+
+    def test_eq(self):
+        self.assertEqual(self.i1, self.i1)
+        self.assertEqual(self.i2, self.i2)
+        self.assertNotEqual(self.i1, self.i2)
+
+    def test_getitem(self):
+        self.assertEqual(self.i2[0], self.t1)
+        self.assertEqual(self.i2['a'], self.t1)
+        self.assertEqual(self.i2['0'], self.t1)
+        self.assertEqual(self.i2[1], self.t2)
+        self.assertRaises(IndexError, self.i2.__getitem__, 2)
+        self.assertRaises(IndexError, self.i2.__getitem__, '2')
+        self.assertRaises(KeyError, self.i2.__getitem__, 'c')
+
+    def test_setitem(self):
+        igt = Igt(tiers=[Tier(id='a'), Tier(id='b')])
+        igt[0] = Tier(id='c')
+        self.assertEqual(len(igt), 2)
+        self.assertEqual(igt[0].id, 'c')
+        self.assertRaises(KeyError, igt.__getitem__, 'a')
+        self.assertRaises(
+            ValueError, igt.__setitem__, 'b', Tier(id='d')
+        )
+
+    def test_delitem(self):
+        igt = Igt(tiers=[Tier(id='a'), Tier(id='b')])
+        self.assertEqual(len(igt), 2)
+        del igt[0]
+        self.assertEqual(len(igt), 1)
+        self.assertEqual(igt[0].id, 'b')
+        self.assertRaises(KeyError, igt.__getitem__, 'a')
+        del igt['b']
+        self.assertEqual(len(igt), 0)
+        self.assertRaises(KeyError, igt.__getitem__, 'b')
 
     def test_get(self):
         self.assertIs(self.i1.get(0), None)
@@ -718,6 +857,14 @@ class TestIgt(unittest.TestCase):
         self.assertEqual(igt[1].id, 'x')
         self.assertEqual(igt[2].id, 'y')
 
+    def test_remove(self):
+        igt = Igt(tiers=[Tier(id='a'), Tier(id='b')])
+        self.assertEqual(len(igt), 2)
+        igt.remove(igt[0])
+        self.assertEqual(len(igt), 1)
+        self.assertEqual(igt[0].id, 'b')
+        self.assertRaises(KeyError, igt.__getitem__, 'a')
+
     def test_clear(self):
         igt = Igt()
         igt.extend([Tier(id='t'), Tier(id='x'), Tier(id='y')])
@@ -742,12 +889,14 @@ class TestXigtCorpus(unittest.TestCase):
     def setUp(self):
         self.c1 = XigtCorpus()
 
+        self.i1 = Igt(id='i1')
+        self.i2 = Igt(id='i2')
         self.c2 = XigtCorpus(
             id='xc1',
             type='basic',
             attributes={'attr':'val'},
             metadata=[Metadata(type='meta', metas=[Meta(text='meta')])],
-            igts=[Igt(id='i1'), Igt(id='i2')]
+            igts=[self.i1, self.i2]
         )
 
     def test_init(self):
@@ -786,6 +935,41 @@ class TestXigtCorpus(unittest.TestCase):
         self.assertEqual(self.c2.metadata[0].type, 'meta')
         self.assertEqual(len(self.c2.metadata[0].metas), 1)
         self.assertEqual(self.c2.metadata[0][0].text, 'meta')
+
+    def test_eq(self):
+        self.assertEqual(self.c1, self.c1)
+        self.assertEqual(self.c2, self.c2)
+        self.assertNotEqual(self.c1, self.c2)
+
+    def test_getitem(self):
+        self.assertEqual(self.c2[0], self.i1)
+        self.assertEqual(self.c2['i1'], self.i1)
+        self.assertEqual(self.c2['0'], self.i1)
+        self.assertEqual(self.c2[1], self.i2)
+        self.assertRaises(IndexError, self.c2.__getitem__, 2)
+        self.assertRaises(IndexError, self.c2.__getitem__, '2')
+        self.assertRaises(KeyError, self.c2.__getitem__, 'i3')
+
+    def test_setitem(self):
+        xc = XigtCorpus(igts=[Igt(id='i1'), Igt(id='i2')])
+        xc[0] = Igt(id='i3')
+        self.assertEqual(len(xc), 2)
+        self.assertEqual(xc[0].id, 'i3')
+        self.assertRaises(KeyError, xc.__getitem__, 'i1')
+        self.assertRaises(
+            ValueError, xc.__setitem__, 'i2', Igt(id='i3')
+        )
+
+    def test_delitem(self):
+        xc = XigtCorpus(igts=[Igt(id='i1'), Igt(id='i2')])
+        self.assertEqual(len(xc), 2)
+        del xc[0]
+        self.assertEqual(len(xc), 1)
+        self.assertEqual(xc[0].id, 'i2')
+        self.assertRaises(KeyError, xc.__getitem__, 'i1')
+        del xc['i2']
+        self.assertEqual(len(xc), 0)
+        self.assertRaises(KeyError, xc.__getitem__, 'i2')
 
     def test_get(self):
         self.assertIs(self.c1.get(0), None)
@@ -840,6 +1024,14 @@ class TestXigtCorpus(unittest.TestCase):
         self.assertEqual(xc[0].id, 'i1')
         self.assertEqual(xc[1].id, 'i2')
         self.assertEqual(xc[2].id, 'i3')
+
+    def test_remove(self):
+        xc = XigtCorpus(igts=[Igt(id='i1'), Igt(id='i2')])
+        self.assertEqual(len(xc), 2)
+        xc.remove(xc[0])
+        self.assertEqual(len(xc), 1)
+        self.assertEqual(xc[0].id, 'i2')
+        self.assertRaises(KeyError, xc.__getitem__, 'i1')
 
     def test_clear(self):
         xc = XigtCorpus()

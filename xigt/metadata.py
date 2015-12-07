@@ -110,7 +110,7 @@ class Metadata(XigtContainerMixin, XigtAttributeMixin):
 
     @property
     def metas(self):
-        return self._list
+        return list(self)
     @metas.setter
     def metas(self, value):
         self.clear()
@@ -158,7 +158,7 @@ class Meta(XigtContainerMixin, XigtAttributeMixin):
 
     @property
     def children(self):
-        return self._list
+        return list(self)
     @children.setter
     def children(self, value):
         self.clear()
@@ -199,7 +199,7 @@ class MetaChild(XigtContainerMixin, XigtAttributeMixin):
 
     @property
     def children(self):
-        return self._list
+        return list(self)
     @children.setter
     def children(self, value):
         self.clear()

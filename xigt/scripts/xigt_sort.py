@@ -11,14 +11,14 @@ from xigt import XigtCorpus, Igt, xigtpath as xp
 def run(args):
     xc = xigtxml.load(args.infile)
     if args.igt_key:
-        xc._list.sort(key=make_sortkey(args.igt_key))
+        xc.sort(key=make_sortkey(args.igt_key))
     if args.tier_key:
         for igt in xc:
-            igt._list.sort(key=make_sortkey(args.tier_key))
+            igt.sort(key=make_sortkey(args.tier_key))
     if args.item_key:
         for igt in xc:
             for tier in igt:
-                tier._list.sort(key=make_sortkey(args.item_key))
+                tier.sort(key=make_sortkey(args.item_key))
     if args.in_place:
         xigtxml.dump(args.infile, xc)
     else:

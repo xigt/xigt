@@ -18,13 +18,12 @@ def _has_parent(obj):
     return hasattr(obj, '_parent') and obj._parent is not None
 
 
-class XigtContainerMixin(object):
+class XigtContainerMixin(list):
     """
     Common methods for accessing subelements in XigtCorpus, Igt, and
     Tier objects.
     """
     def __init__(self, container=None, contained_type=None):
-        self._list = []
         self._dict = {}
         self._contained_type = contained_type
         self._container = container if container is not None else self
@@ -34,25 +33,42 @@ class XigtContainerMixin(object):
             return (
                 # quick check for comparing, e.g., XigtCorpus and Igt
                 self._contained_type == other._contained_type
-                and len(self._list) == len(other._list)
-                and all(a == b for a, b in zip(self._list, other._list))
+                and len(self) == len(other)
+                and all(a == b for a, b in zip(self, other))
             )
         except AttributeError:
             return False
 
-    def __iter__(self):
-        return iter(self._list)
-
-    def __len__(self):
-        return len(self._list)
-
     def __getitem__(self, obj_id):
-        try:
-            # attempt list indexing
-            obj_id = int(obj_id)
-            return self._list[obj_id]
-        except ValueError:
+        if isinstance(obj_id, int):
+            return list.__getitem__(self, obj_id)
+        elif obj_id in self._dict:
             return self._dict[obj_id]
+        else:
+            try:
+                return list.__getitem__(self, int(obj_id))
+            except ValueError:
+                pass
+        raise KeyError(obj_id)
+
+    def __setitem__(self, idx, obj):
+        # only allow list indices, not dict keys (IDs)
+        # NOTE: this method is destructive. check for broken refs here?
+        self._assert_type(obj)
+        try:
+            cur_obj = list.__getitem__(self, idx)
+        except TypeError:
+            idx = int(idx)
+            cur_obj = list.__getitem__(self, idx)
+        if cur_obj.id is not None:
+            del self._dict[cur_obj.id]
+        self._create_id_mapping(obj)
+        list.__setitem__(self, idx, obj)
+
+    def __delitem__(self, obj_id):
+        # NOTE: this method is destructive. check for broken refs here?
+        obj = self[obj_id]
+        self.remove(obj)
 
     def get(self, obj_id, default=None):
         try:
@@ -80,17 +96,27 @@ class XigtContainerMixin(object):
         self._assert_type(obj)
         obj._parent = self._container
         self._create_id_mapping(obj)
-        self._list.append(obj)
+        list.append(self, obj)
 
     def insert(self, i, obj):
         self._assert_type(obj)
         obj._parent = self._container
         self._create_id_mapping(obj)
-        self._list.insert(i, obj)
+        list.insert(self, i, obj)
 
     def extend(self, objs):
         for obj in objs:
             self.append(obj)
+
+    def remove(self, obj):
+        # NOTE: this method is destructive. check for broken refs here?
+        if obj.id is not None:
+            del self._dict[obj.id]
+        list.remove(self, obj)
+
+    def clear(self):
+        self._dict.clear()
+        list.clear(self)
 
     def _create_id_mapping(self, obj):
         if obj.id is not None:
@@ -102,12 +128,8 @@ class XigtContainerMixin(object):
 
     def refresh_index(self):
         self._dict = {}
-        for obj in self._list:
+        for obj in self:
             self._create_id_mapping(obj)
-
-    def clear(self):
-        self._dict = {}
-        self._list = []
 
     # deprecated methods
 

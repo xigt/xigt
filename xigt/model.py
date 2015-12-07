@@ -108,7 +108,7 @@ class XigtCorpus(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
 
     @property
     def igts(self):
-        return self._list
+        return list(self)
     @igts.setter
     def igts(self, value):
         self.clear()
@@ -194,7 +194,7 @@ class Igt(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
 
     @property
     def tiers(self):
-        return self._list
+        return list(self)
     @tiers.setter
     def tiers(self, value):
         self.clear()
@@ -274,7 +274,7 @@ class Tier(XigtContainerMixin, XigtAttributeMixin,
 
     @property
     def items(self):
-        return self._list
+        return list(self)
     @items.setter
     def items(self, value):
         self.clear()
