@@ -14,6 +14,14 @@ from xigt.errors import (
 )
 from xigt.ref import id_re
 
+# list.clear() doesn't exist in Python2, but del list[:] has other problems
+try:
+    [].clear
+except AttributeError:
+    def listclear(x): del x[:]
+else:
+    def listclear(x): list.clear(x)
+
 def _has_parent(obj):
     return hasattr(obj, '_parent') and obj._parent is not None
 
@@ -40,7 +48,7 @@ class XigtContainerMixin(list):
             return False
 
     def __getitem__(self, obj_id):
-        if isinstance(obj_id, int):
+        if isinstance(obj_id, (int, slice)):
             return list.__getitem__(self, obj_id)
         elif obj_id in self._dict:
             return self._dict[obj_id]
@@ -116,7 +124,9 @@ class XigtContainerMixin(list):
 
     def clear(self):
         self._dict.clear()
-        list.clear(self)
+        # list.clear doesn't exist in Python2
+        # list.clear(self)
+        listclear(self)
 
     def _create_id_mapping(self, obj):
         if obj.id is not None:
