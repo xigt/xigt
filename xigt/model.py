@@ -218,6 +218,27 @@ class Igt(XigtContainerMixin, XigtAttributeMixin, XigtMetadataMixin):
         else:
             return ref.referrers(self, id, refattrs=refattrs)
 
+    def sort_tiers(self, refattrs=(SEGMENTATION, ALIGNMENT, CONTENT)):
+        idx = {t.id: i+1 for i, t in enumerate(self)}  # initial index
+        pr = {}  # prioritized referent
+        for t in self:
+            ra_i = next(
+                ((ra, i) for i, ra in enumerate(refattrs)
+                 if ra in t.attributes),
+                None
+            )
+            if ra_i is not None:
+                pr[t.id] = (t.get_attribute(ra_i[0]), ra_i[1])
+        dfi = {}  # depth-first index
+        for t in self:
+            key = [(idx[t.id],0)]  # default value
+            tmp = pr.get(t.id)
+            while tmp:  # iterative depth first
+                key.append((idx[tmp[0]], tmp[1]))
+                tmp = pr.get(tmp[0])
+            dfi[t.id] = tuple(reversed(key))  # highest ancestor first
+        self.sort(key=lambda t: dfi[t.id])
+
 
 class Tier(XigtContainerMixin, XigtAttributeMixin,
            XigtReferenceAttributeMixin, XigtMetadataMixin):

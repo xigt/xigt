@@ -185,6 +185,11 @@ class XigtAttributeMixin(object):
             return False
 
     def get_attribute(self, key, default=None, inherit=False, namespace=None):
+        if key is None:
+            raise ValueError(
+                'Attribute key must be of type str, not '
+                + key.__class__.__name__
+            )
         if not key.startswith('{') and ':' in key:
             prefix, suffix = key.split(':', 1)
             key = '{%s}%s' % (self.nsmap[prefix], suffix)
