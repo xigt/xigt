@@ -9,7 +9,7 @@
 * xigt.codecs.xigtjson - a JSON serialization format for the Xigt
   data model (useful for Xigt-based web apps)
 * Igt.sort_tiers() for sorting tiers based on their reference dependencies
-* `xigt sort` command for sorting IGTs in a corpus
+* `xigt sort` command for sorting IGTs or tiers in a corpus
 * `xigt partition` command for (re)grouping IGTs on some criterion
 
 ### Fixed

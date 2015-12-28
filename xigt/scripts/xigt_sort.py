@@ -11,11 +11,19 @@ from xigt import XigtCorpus, Igt, xigtpath as xp
 def run(args):
     xc = xigtxml.load(args.infile)
     if args.igt_key:
+        logging.info('Sorting %s IGTs' % args.infile)
         xc.sort(key=make_sortkey(args.igt_key))
     if args.tier_key:
+        logging.info('Sorting %s tiers by key' % args.infile)
         for igt in xc:
             igt.sort(key=make_sortkey(args.tier_key))
+    elif args.tier_deps:
+        logging.info('Sorting %s tiers by ref-dependencies' % args.infile)
+        refattrs = [ra.strip() for ra in args.tier_deps.split(',')]
+        for igt in xc:
+            igt.sort_tiers(refattrs=refattrs)
     if args.item_key:
+        logging.info('Sorting %s items by key' % args.infile)
         for igt in xc:
             for tier in igt:
                 tier.sort(key=make_sortkey(args.item_key))
@@ -42,7 +50,8 @@ def main(arglist=None):
         description="Sort Igts, Tiers, or Items in Xigt corpora",
         epilog='examples:\n'
             '    xigt sort --igt-key=\'@doc-id\' --igt-key=\'@id\' in.xml > out.xml\n'
-            '    xigt sort --tier-key=\'@type\' in.xml > out.xml'
+            '    xigt sort --tier-key=\'@type\' in.xml > out.xml\n'
+            '    xigt sort --tier-deps="segmentation,alignment,content" in.xml > out.xml'
     )
     parser.add_argument('-v', '--verbose',
         action='count', dest='verbosity', default=2,
@@ -60,20 +69,23 @@ def main(arglist=None):
         help='the XigtPath query for IGTs (must result in a string, so '
             'it should end with an @attribute, text(), or value())'
     )
-    parser.add_argument('--tier-key',
+    tiergroup = parser.add_mutually_exclusive_group()
+    tiergroup.add_argument('--tier-key',
         metavar='XIGTPATH', action='append',
         help='the XigtPath query for Tiers (must result in a string, so '
             'it should end with an @attribute, text(), or value())'
+    )
+    tiergroup.add_argument('--tier-deps',
+        metavar='REFATTRS',
+        help='sort tiers by reference dependencies; argument is a '
+            'comma-separated prioritized list of considered reference '
+            'attributes'
     )
     parser.add_argument('--item-key',
         metavar='XIGTPATH', action='append',
         help='the XigtPath query for Items (must result in a string, so '
             'it should end with an @attribute, text(), or value())'
     )
-    # parser.add_argument('--tier-deps',
-    #     action='store_true',
-    #     help='sort tiers by reference dependencies'
-    # )
     # parser.add_argument('--item-deps',
     #     action='store_true',
     #     help='sort items by reference dependencies'
