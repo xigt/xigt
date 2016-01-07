@@ -1,85 +1,105 @@
-include "default-xigt.rnc" {
-    Igt.attrs =
-        attribute doc-id { text },
-        attribute line-range { text },
-        attribute tag-types { text }
+
+namespace dc = "http://purl.org/dc/elements/1.1/"
+namespace olac = "http://www.language-archives.org/OLAC/1.1/"
+namespace xsi = "http://www.w3.org/2001/XMLSchema-instance"
+
+include "xigt.rnc" {
+    # OLAC metadata on IGTs
+    Igt.metadata = grammar { include "xigt-metadata.rnc" {
+        Metadata.metas = grammar { include "xigt-meta.rnc" {
+            Meta.content = (
+                element dc:subject {
+                    attribute olac:code { string }
+                  , attribute xsi:type { "olac:language" }
+                  , text
+                }
+              | element dc:language {
+                    attribute olac:code { string }
+                  , attribute xsi:type { "olac:language" }
+                  , text
+                }
+            )
+        }}
+    }}
+    # ODIN attributes
+    Igt.attrs = attribute doc-id { string }
+              , attribute line-range { string }
+              , attribute tag-types { string }
+              , attribute judgment { string }?
+    # INTENT metadata (allow for all tiers, even though only used by some)
+    Tier.metadata = grammar { include "xigt-metadata.rnc" {
+        Metadata.type = "xigt-meta"
+        Meta.type = "data-provenance"
+        Meta.attrs = attribute date { xsd:dateTime }
+                   , attribute method { string }
+                   , attribute source { string }
+                   , attribute projected-from { string }?
+    }} | grammar { include "xigt-metadata.rnc" {
+        Metadata.type = "intent-meta"
+        Meta.type = "extended-data"
+        Meta.attrs = attribute date { xsd:dateTime }
+                   , attribute token-type { string }
+    }}
+    Item.attrs = attribute judgment { string }?
 }
 
+# odin tier types
 Tier |= grammar { include "xigt-tier.rnc" {
     Tier.type = "odin"
     Tier.attrs = attribute state { "raw" | "cleaned" | "normalized" }
-    Item.attrs =
-        attribute line { text },
-        attribute tag { text }
+    Item.attrs = parent Item.attrs
+               , attribute line { string }
+               , attribute tag { string }
 }}
 
-Tier |= grammar { include "xigt-tier.rnc" {
-    Tier.type = "pos"
-}}
+# default tier types; no additions
+Tier |= grammar { include "xigt-tier.rnc" { Tier.type = "phrases" }}
+Tier |= grammar { include "xigt-tier.rnc" { Tier.type = "words" }}
+Tier |= grammar { include "xigt-tier.rnc" { Tier.type = "morphemes" }}
+Tier |= grammar { include "xigt-tier.rnc" { Tier.type = "glosses" }}
+Tier |= grammar { include "xigt-tier.rnc" { Tier.type = "translations" }}
+
+# enriched tier types
+
+Tier |= grammar { include "xigt-tier.rnc" { Tier.type = "pos" }}
 
 Tier |= grammar { include "xigt-tier.rnc" {
     Tier.type = "bilingual-alignments"
-    Tier.attrs =
-        attribute source { IdRef },
-        attribute target { IdRef }
-    Item.attrs =
-        attribute source { AlgnExpr },
-        attribute target { AlgnExpr }?  # no target means it's unaligned
+    # setting refs to empty blocks content/alignment/segmentation
+    Tier.refs = attribute source { IdRef }
+              , attribute target { IdRef }
+    Item = grammar { include "xigt-item.rnc" {
+        Item.refs = attribute source { AlgnExpr }
+                  , attribute target { AlgnExpr }?
+    }}
 }}
 
 Tier |= grammar { include "xigt-tier.rnc" {
     Tier.type = "phrase-structure"
-    Tier.attrs = attribute children { IdRef }
-    Item.attrs = attribute index { text }?
-    #Item |= grammar { include "xigt-item.rnc" }
-    Item |= grammar { include "xigt-item.rnc" {
-        Item.alnref = empty
-        Item.attrs =
-            attribute children { IdRefs },
-            attribute index { text }?
-    }}
-    Item |= grammar { include "xigt-item.rnc" {
-        Item.type = "null"
-        Item.alnref = empty
-        Item.attrs =
-            attribute ec-type { text },
-            attribute index { text }?
+    # setting refs to empty blocks content/segmentation
+    Tier.refs = attribute alignment { IdRef }
+              , attribute children { IdRef }
+              , attribute content { IdRef }?
+    Item = grammar { include "xigt-item.rnc" {
+        Item.refs =
+            (
+                attribute alignment { AlgnExpr }
+              | attribute children { list { IdRef* } }
+            )
+            , attribute content { AlgnExpr }?
     }}
 }}
 
 Tier |= grammar { include "xigt-tier.rnc" {
     Tier.type = "dependencies"
-    Tier.alnref = empty
-    Tier.segref = empty
-    Tier.attrs =
-        attribute head { IdRef },
-        attribute dep { IdRef }
-    Item.alnref = empty
-    Item.segref = empty
-    Item.attrs =
-        attribute head { IdRef }?,  # a dep without a head is the root
-        attribute dep { IdRef }
+    # setting refs to empty blocks content/alignment/segmentation
+    Tier.refs = attribute dep { IdRef }
+              , attribute head { IdRef }
+              , attribute content { IdRef }?
+    Item = grammar { include "xigt-item.rnc" {
+        Item.refs = attribute dep { AlgnExpr }
+                  , attribute head { AlgnExpr }?
+                  , attribute content { AlgnExpr }?
+    }}
 }}
 
-Tier |= grammar { include "xigt-tier.rnc" {
-    Tier.type = "dependencies"
-    Tier.alnref = empty
-    Tier.segref = empty
-    Tier.attrs =
-        attribute head { IdRef },
-        attribute dep { IdRef },
-        attribute ec-dep { IdRef },
-        attribute ec-head { IdRef }
-    Item.alnref = empty
-    Item.segref = empty
-    Item |= grammar { include "xigt-item.rnc" {
-        Item.attrs =
-            # a dep without a head is the root
-            ( attribute head { IdRef } | attribute ec-head { IdRef } )?,
-            ( attribute dep { IdRef } | attribute ec-dep { IdRef } )
-    }}
-    Item |= grammar { include "xigt-item.rnc" {
-        Item.type = "null"
-        Item.attrs = attribute ec-pos { text }?
-    }}
-}}

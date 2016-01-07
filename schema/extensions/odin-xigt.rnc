@@ -9,44 +9,47 @@ include "xigt.rnc" {
         Metadata.metas = grammar { include "xigt-meta.rnc" {
             Meta.content = (
                 element dc:subject {
-                    attribute olac:code { string },
-                    attribute xsi:type { "olac:language" },
-                    text
+                    attribute olac:code { string }
+                  , attribute xsi:type { "olac:language" }
+                  , text
                 }
               | element dc:language {
-                    attribute olac:code { string },
-                    attribute xsi:type { "olac:language" },
-                    text
+                    attribute olac:code { string }
+                  , attribute xsi:type { "olac:language" }
+                  , text
                 }
             )
         }}
     }}
     # ODIN attributes
-    Igt.attrs = attribute doc-id { string },
-                attribute line-range { string },
-                attribute tag-types { string }
+    Igt.attrs = attribute doc-id { string }
+              , attribute line-range { string }
+              , attribute tag-types { string }
+              , attribute judgment { string }?
     # INTENT metadata (allow for all tiers, even though only used by some)
     Tier.metadata = grammar { include "xigt-metadata.rnc" {
         Metadata.type = "xigt-meta"
         Meta.type = "data-provenance"
-        Meta.attrs = attribute date { xsd:dateTime },
-                     attribute method { string },
-                     attribute source { string },
-                     attribute projected-from { string }?
+        Meta.attrs = attribute date { xsd:dateTime }
+                   , attribute method { string }
+                   , attribute source { string }
+                   , attribute projected-from { string }?
     }} | grammar { include "xigt-metadata.rnc" {
         Metadata.type = "intent-meta"
         Meta.type = "extended-data"
-        Meta.attrs = attribute date { xsd:dateTime },
-                     attribute token-type { string }
+        Meta.attrs = attribute date { xsd:dateTime }
+                   , attribute token-type { string }
     }}
+    Item.attrs = attribute judgment { string }?
 }
 
 # odin tier types
 Tier |= grammar { include "xigt-tier.rnc" {
     Tier.type = "odin"
     Tier.attrs = attribute state { "raw" | "cleaned" | "normalized" }
-    Item.attrs = attribute line { string },
-                 attribute tag { string }
+    Item.attrs = parent Item.attrs
+               , attribute line { string }
+               , attribute tag { string }
 }}
 
 # default tier types; no additions
@@ -63,11 +66,11 @@ Tier |= grammar { include "xigt-tier.rnc" { Tier.type = "pos" }}
 Tier |= grammar { include "xigt-tier.rnc" {
     Tier.type = "bilingual-alignments"
     # setting refs to empty blocks content/alignment/segmentation
-    Tier.refs = attribute source { IdRef },
-                attribute target { IdRef }
+    Tier.refs = attribute source { IdRef }
+              , attribute target { IdRef }
     Item = grammar { include "xigt-item.rnc" {
-        Item.refs = attribute source { AlgnExpr },
-                    attribute target { AlgnExpr }
+        Item.refs = attribute source { AlgnExpr }
+                  , attribute target { AlgnExpr }?
     }}
 }}
 
@@ -76,9 +79,14 @@ Tier |= grammar { include "xigt-tier.rnc" {
     # setting refs to empty blocks content/segmentation
     Tier.refs = attribute alignment { IdRef }
               , attribute children { IdRef }
+              , attribute content { IdRef }?
     Item = grammar { include "xigt-item.rnc" {
-        Item.refs = attribute alignment { AlgnExpr }
-                  | attribute children { list { IdRef* } }
+        Item.refs =
+            (
+                attribute alignment { AlgnExpr }
+              | attribute children { list { IdRef* } }
+            )
+            , attribute content { AlgnExpr }?
     }}
 }}
 
@@ -87,9 +95,11 @@ Tier |= grammar { include "xigt-tier.rnc" {
     # setting refs to empty blocks content/alignment/segmentation
     Tier.refs = attribute dep { IdRef }
               , attribute head { IdRef }
+              , attribute content { IdRef }?
     Item = grammar { include "xigt-item.rnc" {
         Item.refs = attribute dep { AlgnExpr }
                   , attribute head { AlgnExpr }?
+                  , attribute content { AlgnExpr }?
     }}
 }}
 
