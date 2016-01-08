@@ -11,6 +11,7 @@
 * Igt.sort_tiers() for sorting tiers based on their reference dependencies
 * `xigt sort` command for sorting IGTs or tiers in a corpus
 * `xigt partition` command for (re)grouping IGTs on some criterion
+* Markdown tests for `xigtxml` and `xigtjson`
 
 ### Fixed
 
@@ -41,6 +42,7 @@
   - the config schema has changed: see comments at the top of
     [xigt/importers/toolbox.py]
   - phrase tiers can be created from words tiers
+* Unit tests have been converted to pytest
 
 ### Removed
 

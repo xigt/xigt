@@ -26,7 +26,12 @@ def dump(f, xc, encoding='utf-8', indent=2):
         raise XigtError(
             'Second argument of dump() must be an instance of XigtCorpus.'
         )
-    json.dump(encode(xc), f, indent=indent)
+    data = encode(xc)
+    if hasattr(f, 'write'):
+        json.dump(data, f, indent=indent)
+    else:
+        with open(f, 'w') as fh:
+            json.dump(data, fh, indent=indent)
 
 def dumps(xc, encoding='unicode', indent=2):
     if not isinstance(xc, XigtCorpus):
@@ -151,6 +156,8 @@ def decode_metachild(obj, nsmap=None):
         namespace = nsmap.get(prefix, prefix)
     else:
         namespace = obj.get('namespace')  # possibly None
+        if namespace is not None and namespace in nsmap:
+            namespace = nsmap[namespace]
     mc = MetaChild(
         name,
         attributes=obj.get('attributes', {}),
