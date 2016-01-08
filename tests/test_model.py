@@ -1,148 +1,144 @@
-import unittest
+import pytest
+
 from xigt import XigtCorpus, Igt, Tier, Item, Metadata, Meta, MetaChild
 from xigt.errors import XigtError, XigtStructureError
 
-class TestMetadata(unittest.TestCase):
+class TestMetadata():
 
-    def setUp(self):
-        self.md1 = Metadata()
+    md1 = Metadata()
 
-        self.m1 = Meta(id='meta1', text='meta')
-        self.md2 = Metadata(
-            id='md2',
-            type='basic',
-            attributes={'attr':'val'},
-            metas=[self.m1]
-        )
+    m1 = Meta(id='meta1', text='meta')
+    md2 = Metadata(
+        id='md2',
+        type='basic',
+        attributes={'attr':'val'},
+        metas=[m1]
+    )
 
     def test_init(self):
-        self.assertRaises(ValueError, Metadata, id='1')  # invalid id
+        with pytest.raises(ValueError): Metadata(id='1')  # invalid id
 
     def test_id(self):
-        self.assertIs(self.md1.id, None)
+        assert self.md1.id is None
 
-        self.assertIs(self.md2.id, 'md2')
+        assert self.md2.id is 'md2'
 
     def test_type(self):
-        self.assertIs(self.md1.type, None)
+        assert self.md1.type is None
 
-        self.assertEqual(self.md2.type, 'basic')
+        assert self.md2.type == 'basic'
 
     def test_metas(self):
-        self.assertEqual(self.md1.metas, [])
+        assert self.md1.metas == []
 
-        self.assertEqual(len(self.md2.metas), 1)
-        self.assertEqual(self.md2[0].text, 'meta')
+        assert len(self.md2.metas) == 1
+        assert self.md2[0].text == 'meta'
 
     def test_attributes(self):
-        self.assertEqual(self.md1.attributes, dict())
+        assert self.md1.attributes == dict()
 
-        self.assertEqual(self.md2.attributes, {'attr':'val'})
+        assert self.md2.attributes == {'attr':'val'}
 
     def test_eq(self):
-        self.assertEqual(self.md1, self.md1)
-        self.assertEqual(self.md2, self.md2)
-        self.assertNotEqual(self.md1, self.md2)
+        assert self.md1 == self.md1
+        assert self.md2 == self.md2
+        assert self.md1 != self.md2
 
     def test_getitem(self):
-        self.assertEqual(self.md2[0], self.m1)
-        self.assertEqual(self.md2['meta1'], self.m1)
-        self.assertEqual(self.md2['0'], self.m1)
-        self.assertRaises(IndexError, self.md2.__getitem__, 1)
-        self.assertRaises(IndexError, self.md2.__getitem__, '1')
-        self.assertRaises(KeyError, self.md2.__getitem__, 'm2')
+        assert self.md2[0] == self.m1
+        assert self.md2['meta1'] == self.m1
+        assert self.md2['0'] == self.m1
+        with pytest.raises(IndexError): self.md2[1]
+        with pytest.raises(IndexError): self.md2['1']
+        with pytest.raises(KeyError): self.md2['m2']
 
     def test_setitem(self):
         md = Metadata(metas=[Meta(id='meta1'), Meta(id='meta2')])
         md[0] = Meta(id='meta3')
-        self.assertEqual(len(md), 2)
-        self.assertEqual(md[0].id, 'meta3')
-        self.assertRaises(KeyError, md.__getitem__, 'meta1')
-        self.assertRaises(
-            ValueError, md.__setitem__, 'meta2', Meta(id='meta2')
-        )
+        assert len(md) == 2
+        assert md[0].id == 'meta3'
+        with pytest.raises(KeyError): md['meta1']
+        with pytest.raises(ValueError): md['meta2'] = Meta(id='meta2')
 
     def test_delitem(self):
         md = Metadata(metas=[Meta(id='meta1'), Meta(id='meta2')])
-        self.assertEqual(len(md), 2)
+        assert len(md) == 2
         del md[0]
-        self.assertEqual(len(md), 1)
-        self.assertEqual(md[0].id, 'meta2')
-        self.assertRaises(KeyError, md.__getitem__, 'meta1')
+        assert len(md) == 1
+        assert md[0].id == 'meta2'
+        with pytest.raises(KeyError): md['meta1']
         del md['meta2']
-        self.assertEqual(len(md), 0)
-        self.assertRaises(KeyError, md.__getitem__, 'meta2')
+        assert len(md) == 0
+        with pytest.raises(KeyError): md['meta2']
 
     def test_get(self):
-        self.assertIs(self.md1.get(0), None)
-        self.assertIs(self.md1.get('meta1'), None)
-        self.assertEqual(self.md1.get('meta1', default=1), 1)
+        assert self.md1.get(0) is None
+        assert self.md1.get('meta1') is None
+        assert self.md1.get('meta1', default=1) == 1
 
-        self.assertEqual(self.md2.get(0).id, 'meta1')
-        self.assertIs(self.md2.get(1), None)
-        self.assertEqual(self.md2.get('meta1').id, 'meta1')
-        self.assertEqual(
-            self.md2.get('meta1', default=Meta(id='meta2')).id, 'meta1'
-        )
+        assert self.md2.get(0).id == 'meta1'
+        assert self.md2.get(1) is None
+        assert self.md2.get('meta1').id == 'meta1'
+        assert self.md2.get('meta1', default=Meta(id='meta2')).id == 'meta1'
 
     def test_append(self):
         md = Metadata()
-        self.assertRaises(XigtStructureError, md.append, Item())
-        self.assertRaises(XigtStructureError, md.append, Tier())
-        self.assertRaises(XigtStructureError, md.append, Igt())
-        self.assertRaises(XigtStructureError, md.append, XigtCorpus())
-        self.assertRaises(XigtStructureError, md.append, Metadata())
-        self.assertEqual(len(md), 0)
+        with pytest.raises(XigtStructureError): md.append(Item())
+        with pytest.raises(XigtStructureError): md.append(Tier())
+        with pytest.raises(XigtStructureError): md.append(Igt())
+        with pytest.raises(XigtStructureError): md.append(XigtCorpus())
+        with pytest.raises(XigtStructureError): md.append(Metadata())
+        assert len(md) == 0
         md.append(Meta(id='meta1'))
-        self.assertEqual(len(md), 1)
-        self.assertRaises(XigtError, md.append, Meta(id='meta1'))
+        assert len(md) == 1
+        with pytest.raises(XigtError): md.append(Meta(id='meta1'))
         md.append(Meta(id='meta2'))
-        self.assertEqual(len(md), 2)
-        self.assertEqual(md[0].id, 'meta1')
-        self.assertEqual(md[1].id, 'meta2')
+        assert len(md) == 2
+        assert md[0].id == 'meta1'
+        assert md[1].id == 'meta2'
 
     def test_insert(self):
         md = Metadata()
-        self.assertEqual(len(md), 0)
+        assert len(md) == 0
         md.insert(0, Meta(id='meta1'))
-        self.assertEqual(len(md), 1)
-        self.assertRaises(XigtError, md.insert, 0, Meta(id='meta1'))
+        assert len(md) == 1
+        with pytest.raises(XigtError): md.insert(0, Meta(id='meta1'))
         md.insert(0, Meta(id='meta2'))
         md.insert(100, Meta(id='meta3'))
-        self.assertEqual(len(md), 3)
-        self.assertEqual(md[0].id, 'meta2')
-        self.assertEqual(md[1].id, 'meta1')
-        self.assertEqual(md[2].id, 'meta3')
+        assert len(md) == 3
+        assert md[0].id == 'meta2'
+        assert md[1].id == 'meta1'
+        assert md[2].id == 'meta3'
 
     def test_extend(self):
         md = Metadata()
-        self.assertEqual(len(md), 0)
+        assert len(md) == 0
         md.extend([Meta(id='meta1')])
-        self.assertEqual(len(md), 1)
+        assert len(md) == 1
         md.extend([])
-        self.assertEqual(len(md), 1)
+        assert len(md) == 1
         md.extend([Meta(id='meta2'), Meta(id='meta3')])
-        self.assertEqual(len(md), 3)
-        self.assertEqual(md[0].id, 'meta1')
-        self.assertEqual(md[1].id, 'meta2')
-        self.assertEqual(md[2].id, 'meta3')
+        assert len(md) == 3
+        assert md[0].id == 'meta1'
+        assert md[1].id == 'meta2'
+        assert md[2].id == 'meta3'
 
     def test_remove(self):
         md = Metadata(metas=[Meta(id='m1'), Meta(id='m2')])
-        self.assertEqual(len(md), 2)
+        assert len(md) == 2
         md.remove(md[0])
-        self.assertEqual(len(md), 1)
-        self.assertEqual(md[0].id, 'm2')
-        self.assertRaises(KeyError, md.__getitem__, 'm1')
+        assert len(md) == 1
+        assert md[0].id == 'm2'
+        with pytest.raises(KeyError): md['m1']
 
     def test_clear(self):
         md = Metadata()
         md.extend([Meta(id='meta1'), Meta(id='meta2'), Meta(id='meta3')])
-        self.assertEqual(len(md), 3)
+        assert len(md) == 3
         md.clear()
-        self.assertEqual(len(md), 0)
-        self.assertIs(md.get(0), None)
-        self.assertIs(md.get('meta1'), None)
+        assert len(md) == 0
+        assert md.get(0) is None
+        assert md.get('meta1') is None
 
     def test_get_attribute(self):
         md = Metadata(
@@ -150,127 +146,118 @@ class TestMetadata(unittest.TestCase):
             nsmap={'pre': 'http://namespace.org'}
         )
         igt = Igt(metadata=[md], attributes={'three': 3})
-        self.assertEqual(md.get_attribute('one'), 1)
-        self.assertEqual(md.get_attribute('two'), 2)
-        self.assertIs(md.get_attribute('three'), None)
-        self.assertEqual(
-            md.get_attribute('three', namespace='http://namespace.org'), 4
-        )
-        self.assertEqual(
-            md.get_attribute('three', namespace='pre'), 4
-        )
-        self.assertEqual(md.get_attribute('three', inherit=True), 3)
-        self.assertEqual(
-            md.get_attribute('three', namespace='pre', inherit=True), 4
-        )
-        self.assertEqual(md.get_attribute('three', default=5), 5)
+        assert md.get_attribute('one') == 1
+        assert md.get_attribute('two') == 2
+        assert md.get_attribute('three') is None
+        assert md.get_attribute('three', namespace='http://namespace.org') == 4
+        assert md.get_attribute('three', namespace='pre') == 4
+        assert md.get_attribute('three', inherit=True) == 3
+        assert md.get_attribute('three', namespace='pre', inherit=True) == 4
+        assert md.get_attribute('three', default=5) == 5
 
 
-class TestMeta(unittest.TestCase):
+class TestMeta():
 
-    def setUp(self):
-        self.m1 = Meta()
+    m1 = Meta()
 
-        self.m2 = Meta(
-            id='meta1',
-            type='metatype',
-            attributes={'one': 1},
-            text='metatext',
-            children=[MetaChild('child1'), MetaChild('child2')]
-        )
+    m2 = Meta(
+        id='meta1',
+        type='metatype',
+        attributes={'one': 1},
+        text='metatext',
+        children=[MetaChild('child1'), MetaChild('child2')]
+    )
 
     def test_init(self):
-        self.assertRaises(ValueError, Meta, id='1')  # invalid id
+        with pytest.raises(ValueError): Meta(id='1')  # invalid id
 
     def test_id(self):
-        self.assertIs(self.m1.id, None)
+        assert self.m1.id is None
 
-        self.assertEqual(self.m2.id, 'meta1')
+        assert self.m2.id == 'meta1'
 
     def test_type(self):
-        self.assertIs(self.m1.type, None)
+        assert self.m1.type is None
 
-        self.assertEqual(self.m2.type, 'metatype')
+        assert self.m2.type == 'metatype'
 
     def test_attributes(self):
-        self.assertEqual(self.m1.attributes, dict())
+        assert self.m1.attributes == dict()
 
-        self.assertEqual(self.m2.attributes, {'one': 1})
+        assert self.m2.attributes == {'one': 1}
 
     def test_get_attribute(self):
-        self.assertIs(self.m1.get_attribute('attr'), None)
-        self.assertEqual(self.m1.get_attribute('attr', 1), 1)
+        assert self.m1.get_attribute('attr') is None
+        assert self.m1.get_attribute('attr', 1) == 1
 
-        self.assertEqual(self.m2.get_attribute('one'), 1)
-        self.assertIs(self.m2.get_attribute('two'), None)
+        assert self.m2.get_attribute('one') == 1
+        assert self.m2.get_attribute('two') is None
 
         m = Meta(attributes={'one': 1})
         md = Metadata(
             attributes={'two': 2},
             metas=[m]
         )
-        self.assertEqual(m.get_attribute('two', inherit=True), 2)
+        assert m.get_attribute('two', inherit=True) == 2
 
     def test_eq(self):
-        self.assertEqual(self.m1, self.m1)
-        self.assertEqual(self.m2, self.m2)
-        self.assertNotEqual(self.m1, self.m2)
+        assert self.m1 == self.m1
+        assert self.m2 == self.m2
+        assert self.m1 != self.m2
 
     def test_text(self):
-        self.assertIs(self.m1.text, None)
+        assert self.m1.text is None
 
-        self.assertEqual(self.m2.text, 'metatext')
+        assert self.m2.text == 'metatext'
 
     def test_children(self):
-        self.assertEqual(self.m1.children, [])
+        assert self.m1.children == []
 
-        self.assertEqual(len(self.m2.children), 2)
-        self.assertEqual(self.m2.children[0].name, 'child1')
-        self.assertEqual(self.m2.children[1].name, 'child2')
+        assert len(self.m2.children) == 2
+        assert self.m2.children[0].name == 'child1'
+        assert self.m2.children[1].name == 'child2'
 
 
-class TestMetaChild(unittest.TestCase):
+class TestMetaChild():
 
-    def setUp(self):
-        self.mc1 = MetaChild('childname')
+    mc1 = MetaChild('childname')
 
-        self.mc2 = MetaChild(
-            'childname',
-            attributes={'id': 'mc2', 'type': 'childtype', 'one': 1},
-            text='childtext',
-            children=[MetaChild('grandchild1'), MetaChild('grandchild2')]
-        )
+    mc2 = MetaChild(
+        'childname',
+        attributes={'id': 'mc2', 'type': 'childtype', 'one': 1},
+        text='childtext',
+        children=[MetaChild('grandchild1'), MetaChild('grandchild2')]
+    )
 
     def test_init(self):
         # name (i.e. tag in XML) is mandatory
-        self.assertRaises(TypeError, MetaChild)
+        with pytest.raises(TypeError): MetaChild()
         # invalid names
-        self.assertRaises(ValueError, MetaChild, '1')
-        self.assertRaises(ValueError, MetaChild, 'a:1')
+        with pytest.raises(ValueError): MetaChild('1')
+        with pytest.raises(ValueError): MetaChild('a:1')
         # id and type not allowed as parameters (they can be attributes)
-        self.assertRaises(TypeError, MetaChild, 'mc0', id='mc1')
-        self.assertRaises(TypeError, MetaChild, 'mc0', type='childtype')
+        with pytest.raises(TypeError): MetaChild('mc0', id='mc1')
+        with pytest.raises(TypeError): MetaChild('mc0', type='childtype')
 
     def test_name(self):
-        self.assertEqual(self.mc1.name, 'childname')
+        assert self.mc1.name == 'childname'
 
-        self.assertEqual(self.mc2.name, 'childname')
+        assert self.mc2.name == 'childname'
 
     def test_attributes(self):
-        self.assertEqual(self.mc1.attributes, dict())
+        assert self.mc1.attributes == dict()
 
-        self.assertEqual(self.mc2.attributes,
-                         {'id': 'mc2', 'type': 'childtype', 'one': 1})
+        assert self.mc2.attributes == {'id': 'mc2', 'type': 'childtype', 'one': 1}
 
     def test_get_attribute(self):
-        self.assertIs(self.mc1.get_attribute('id'), None)
-        self.assertIs(self.mc1.get_attribute('attr'), None)
-        self.assertEqual(self.mc1.get_attribute('attr', 1), 1)
+        assert self.mc1.get_attribute('id') is None
+        assert self.mc1.get_attribute('attr') is None
+        assert self.mc1.get_attribute('attr', 1) == 1
 
-        self.assertEqual(self.mc2.get_attribute('id'), 'mc2')
-        self.assertEqual(self.mc2.get_attribute('type'), 'childtype')
-        self.assertEqual(self.mc2.get_attribute('one'), 1)
-        self.assertIs(self.mc2.get_attribute('two'), None)
+        assert self.mc2.get_attribute('id') == 'mc2'
+        assert self.mc2.get_attribute('type') == 'childtype'
+        assert self.mc2.get_attribute('one') == 1
+        assert self.mc2.get_attribute('two') is None
 
         mc = MetaChild('childname', attributes={'one': 1})
         m = Meta(children=[mc])
@@ -278,773 +265,755 @@ class TestMetaChild(unittest.TestCase):
             attributes={'two': 2},
             metas=[m]
         )
-        self.assertEqual(mc.get_attribute('two', inherit=True), 2)
+        assert mc.get_attribute('two', inherit=True) == 2
 
     def test_eq(self):
-        self.assertEqual(self.mc1, self.mc1)
-        self.assertEqual(self.mc2, self.mc2)
-        self.assertNotEqual(self.mc1, self.mc2)
+        assert self.mc1 == self.mc1
+        assert self.mc2 == self.mc2
+        assert self.mc1 != self.mc2
 
     def test_text(self):
-        self.assertIs(self.mc1.text, None)
+        assert self.mc1.text is None
 
-        self.assertEqual(self.mc2.text, 'childtext')
+        assert self.mc2.text == 'childtext'
 
     def test_children(self):
-        self.assertEqual(self.mc1.children, [])
+        assert self.mc1.children == []
 
-        self.assertEqual(len(self.mc2.children), 2)
-        self.assertEqual(self.mc2.children[0].name, 'grandchild1')
-        self.assertEqual(self.mc2.children[1].name, 'grandchild2')
+        assert len(self.mc2.children) == 2
+        assert self.mc2.children[0].name == 'grandchild1'
+        assert self.mc2.children[1].name == 'grandchild2'
 
 
-class TestItem(unittest.TestCase):
-    def setUp(self):
-        # empty
-        self.i1 = Item()
+class TestItem():
+    # empty
+    i1 = Item()
 
-        # basic info
-        self.i2 = Item(
-            id='i2',
-            type='basic',
-            attributes={'attr':'val'},
-            text='text'
-        )
+    # basic info
+    i2 = Item(
+        id='i2',
+        type='basic',
+        attributes={'attr':'val'},
+        text='text'
+    )
 
-        # alignment and content refs
-        self.i_ac = Item(
-            id='i_ac',
-            alignment='i2',
-            content='i2[0:2]'
-        )
+    # alignment and content refs
+    i_ac = Item(
+        id='i_ac',
+        alignment='i2',
+        content='i2[0:2]'
+    )
 
-        # segmentation ref
-        self.i_s = Item(
-            id='i_s',
-            segmentation='i2[2:4]'
-        )
+    # segmentation ref
+    i_s = Item(
+        id='i_s',
+        segmentation='i2[2:4]'
+    )
 
-        # override content ref with text
-        self.i_t = Item(
-            id='i_t',
-            content='i2',
-            text='something else'
-        )
+    # override content ref with text
+    i_t = Item(
+        id='i_t',
+        content='i2',
+        text='something else'
+    )
 
-        # contextual structure
-        self.t_a = Tier(id='t_a', items=[self.i2])
-        self.t_b = Tier(id='t_b', items=[self.i_ac, self.i_t],
-                        alignment='t_a', content='t_a')
-        self.t_c = Tier(id='t_c', items=[self.i_s], segmentation='t_a')
-        self.igt = Igt(tiers=[self.t_a, self.t_b, self.t_c])
-        self.xc = XigtCorpus(igts=[self.igt])
+    # contextual structure
+    t_a = Tier(id='t_a', items=[i2])
+    t_b = Tier(id='t_b', items=[i_ac, i_t],
+                    alignment='t_a', content='t_a')
+    t_c = Tier(id='t_c', items=[i_s], segmentation='t_a')
+    igt = Igt(tiers=[t_a, t_b, t_c])
+    xc = XigtCorpus(igts=[igt])
 
 
     def test_init(self):
-        self.assertRaises(ValueError, Item, id='1')  # invalid id
+        with pytest.raises(ValueError): Item(id='1')  # invalid id
 
     def test_id(self):
-        self.assertIs(self.i1.id, None)
+        assert self.i1.id is None
 
-        self.assertEqual(self.i2.id, 'i2')
+        assert self.i2.id == 'i2'
 
-        self.assertEqual(self.i_ac.id, 'i_ac')
-        self.assertEqual(self.i_s.id, 'i_s')
-        self.assertEqual(self.i_t.id, 'i_t')
+        assert self.i_ac.id == 'i_ac'
+        assert self.i_s.id == 'i_s'
+        assert self.i_t.id == 'i_t'
 
     def test_type(self):
-        self.assertIs(self.i1.type, None)
+        assert self.i1.type is None
 
-        self.assertEqual(self.i2.type, 'basic')
+        assert self.i2.type == 'basic'
 
-        self.assertIs(self.i_ac.type, None)
-        self.assertIs(self.i_s.type, None)
-        self.assertIs(self.i_t.type, None)
+        assert self.i_ac.type is None
+        assert self.i_s.type is None
+        assert self.i_t.type is None
 
     def test_parents(self):
-        self.assertIs(self.i1.tier, None)
-        self.assertIs(self.i1.igt, None)
-        self.assertIs(self.i1.corpus, None)
+        assert self.i1.tier is None
+        assert self.i1.igt is None
+        assert self.i1.corpus is None
 
-        self.assertIs(self.i2.tier, self.t_a)
-        self.assertIs(self.i2.igt, self.igt)
-        self.assertIs(self.i2.corpus, self.xc)
+        assert self.i2.tier is self.t_a
+        assert self.i2.igt is self.igt
+        assert self.i2.corpus is self.xc
 
-        self.assertEqual(self.i_ac.tier, self.t_b)
-        self.assertEqual(self.i_ac.igt, self.igt)
-        self.assertEqual(self.i_ac.corpus, self.xc)
+        assert self.i_ac.tier == self.t_b
+        assert self.i_ac.igt == self.igt
+        assert self.i_ac.corpus == self.xc
 
-        self.assertEqual(self.i_s.tier, self.t_c)
-        self.assertEqual(self.i_s.igt, self.igt)
-        self.assertEqual(self.i_s.corpus, self.xc)
+        assert self.i_s.tier == self.t_c
+        assert self.i_s.igt == self.igt
+        assert self.i_s.corpus == self.xc
 
-        self.assertEqual(self.i_t.tier, self.t_b)
-        self.assertEqual(self.i_t.igt, self.igt)
-        self.assertEqual(self.i_t.corpus, self.xc)
+        assert self.i_t.tier == self.t_b
+        assert self.i_t.igt == self.igt
+        assert self.i_t.corpus == self.xc
 
     def test_eq(self):
-        self.assertEqual(self.i1, self.i1)
-        self.assertEqual(self.i2, self.i2)
-        self.assertNotEqual(self.i1, self.i2)
+        assert self.i1 == self.i1
+        assert self.i2 == self.i2
+        assert self.i1 != self.i2
 
     def test_attributes(self):
-        self.assertEqual(self.i1.attributes, dict())
+        assert self.i1.attributes == dict()
 
-        self.assertEqual(self.i2.attributes, {'attr':'val'})
+        assert self.i2.attributes == {'attr':'val'}
 
-        self.assertEqual(self.i_ac.attributes,
-                         {'alignment': 'i2', 'content': 'i2[0:2]'})
-        self.assertEqual(self.i_s.attributes, {'segmentation': 'i2[2:4]'})
-        self.assertEqual(self.i_t.attributes, {'content': 'i2'})
+        assert self.i_ac.attributes == {'alignment': 'i2', 'content': 'i2[0:2]'}
+        assert self.i_s.attributes == {'segmentation': 'i2[2:4]'}
+        assert self.i_t.attributes == {'content': 'i2'}
 
     def test_reference_attributes(self):
         # segmentation cannot co-occur with alignment or content
-        self.assertRaises(XigtError, Item, alignment='a1', segmentation='b1')
-        self.assertRaises(XigtError, Item, content='a1', segmentation='b1')
+        with pytest.raises(XigtError): Item(alignment='a1', segmentation='b1')
+        with pytest.raises(XigtError): Item(content='a1', segmentation='b1')
 
-        self.assertIs(self.i1.alignment, None)
-        self.assertIs(self.i1.content, None)
-        self.assertIs(self.i1.segmentation, None)
+        assert self.i1.alignment is None
+        assert self.i1.content is None
+        assert self.i1.segmentation is None
 
-        self.assertIs(self.i2.alignment, None)
-        self.assertIs(self.i2.content, None)
-        self.assertIs(self.i2.segmentation, None)
+        assert self.i2.alignment is None
+        assert self.i2.content is None
+        assert self.i2.segmentation is None
 
-        self.assertEqual(self.i_ac.alignment, 'i2')
-        self.assertEqual(self.i_ac.content, 'i2[0:2]')
-        self.assertIs(self.i_ac.segmentation, None)
+        assert self.i_ac.alignment == 'i2'
+        assert self.i_ac.content == 'i2[0:2]'
+        assert self.i_ac.segmentation is None
 
-        self.assertIs(self.i_s.alignment, None)
-        self.assertIs(self.i_s.content, None)
-        self.assertEqual(self.i_s.segmentation, 'i2[2:4]')
+        assert self.i_s.alignment is None
+        assert self.i_s.content is None
+        assert self.i_s.segmentation == 'i2[2:4]'
 
-        self.assertEqual(self.i_t.alignment, None)
-        self.assertEqual(self.i_t.content, 'i2')
-        self.assertEqual(self.i_t.segmentation, None)
+        assert self.i_t.alignment == None
+        assert self.i_t.content == 'i2'
+        assert self.i_t.segmentation == None
 
     def test_text(self):
-        self.assertIs(self.i1.text, None)
+        assert self.i1.text is None
 
-        self.assertEqual(self.i2.text, 'text')
+        assert self.i2.text == 'text'
 
-        self.assertIs(self.i_ac.text, None)
-        self.assertIs(self.i_s.text, None)
-        self.assertEqual(self.i_t.text, 'something else')
+        assert self.i_ac.text is None
+        assert self.i_s.text is None
+        assert self.i_t.text == 'something else'
 
     def test_value(self):
-        self.assertIs(self.i1.value(), None)
+        assert self.i1.value() is None
 
-        self.assertEqual(self.i2.value(), 'text')
+        assert self.i2.value() == 'text'
 
-        self.assertEqual(self.i_ac.value(), 'te')
-        self.assertEqual(self.i_s.value(), 'xt')
-        self.assertEqual(self.i_t.value(), 'something else')
+        assert self.i_ac.value() == 'te'
+        assert self.i_s.value() == 'xt'
+        assert self.i_t.value() == 'something else'
 
     def test_resolve_ref(self):
         # item has no reference attribute
         b1 = Item(id='b1')
-        self.assertRaises(KeyError, b1.resolve_ref, 'alignment')
+        with pytest.raises(KeyError): b1.resolve_ref('alignment')
         # has a reference attribute, but is not contained by a tier
         b1.alignment = 'a1'
-        self.assertRaises(XigtStructureError, b1.resolve_ref, 'alignment')
+        with pytest.raises(XigtStructureError): b1.resolve_ref('alignment')
         # item in tier, but tier has no reference attribute
         t_b = Tier(id='b', items=[b1])
-        self.assertRaises(KeyError, b1.resolve_ref, 'alignment')
+        with pytest.raises(KeyError): b1.resolve_ref('alignment')
         # tier has reference attribute, but is not contained by an Igt
         t_b.alignment = 'a'
-        self.assertRaises(XigtStructureError, b1.resolve_ref, 'alignment')
+        with pytest.raises(XigtStructureError): b1.resolve_ref('alignment')
         # item in IGT, but referred tier doesn't exist
         igt = Igt(tiers=[t_b])
-        self.assertRaises(XigtStructureError, b1.resolve_ref, 'alignment')
+        with pytest.raises(XigtStructureError): b1.resolve_ref('alignment')
         # referred tier exists, but has no item referred by item's alignment
         t_a = Tier(id='a')
         igt.append(t_a)
-        self.assertRaises(XigtStructureError, b1.resolve_ref, 'alignment')
+        with pytest.raises(XigtStructureError): b1.resolve_ref('alignment')
         # referred item exists, but has no value (which resolves to '')
         a1 = Item(id='a1')
         t_a.append(a1)
-        self.assertEqual(b1.resolve_ref('alignment'), '')
+        assert b1.resolve_ref('alignment') == ''
         # referred item has a value
         a1.text = 'text'
-        self.assertEqual(b1.resolve_ref('alignment'), 'text')
+        assert b1.resolve_ref('alignment') == 'text'
 
         # stored item tests
-        self.assertRaises(KeyError, self.i1.resolve_ref, 'alignment')
+        with pytest.raises(KeyError): self.i1.resolve_ref('alignment')
 
-        self.assertRaises(KeyError, self.i2.resolve_ref, 'alignment')
+        with pytest.raises(KeyError): self.i2.resolve_ref('alignment')
 
-        self.assertEqual(self.i_ac.resolve_ref('alignment'), 'text')
-        self.assertEqual(self.i_ac.resolve_ref('content'), 'te')
+        assert self.i_ac.resolve_ref('alignment') == 'text'
+        assert self.i_ac.resolve_ref('content') == 'te'
 
-        self.assertEqual(self.i_s.resolve_ref('segmentation'), 'xt')
+        assert self.i_s.resolve_ref('segmentation') == 'xt'
 
-        self.assertEqual(self.i_t.resolve_ref('content'), 'text')
+        assert self.i_t.resolve_ref('content') == 'text'
 
     def test_span(self):
         # sub-spans of null content is also null content
-        self.assertIs(self.i1.span(0,1), None)
+        assert self.i1.span(0,1) is None
 
-        self.assertEqual(self.i2.span(0,1), 't')
+        assert self.i2.span(0,1) == 't'
 
-        self.assertEqual(self.i_ac.span(1,2), 'e')
-        self.assertEqual(self.i_s.span(1,2), 't')
-        self.assertEqual(self.i_t.span(1,2), 'o')
+        assert self.i_ac.span(1,2) == 'e'
+        assert self.i_s.span(1,2) == 't'
+        assert self.i_t.span(1,2) == 'o'
 
     def test_get_attribute(self):
         i = Item(id='i1')
-        self.assertEqual(i.get_attribute('attr'), None)
-        self.assertEqual(i.get_attribute('attr', 1), 1)
+        assert i.get_attribute('attr') == None
+        assert i.get_attribute('attr', 1) == 1
         i.attributes['attr'] = 'val'
-        self.assertEqual(i.get_attribute('attr', 1), 'val')
-        self.assertEqual(i.get_attribute('abc', inherit=True), None)
+        assert i.get_attribute('attr', 1) == 'val'
+        assert i.get_attribute('abc', inherit=True) == None
         t = Tier(id='t', items=[i], attributes={'abc': 'def'})
-        self.assertEqual(i.get_attribute('abc', inherit=True), 'def')
+        assert i.get_attribute('abc', inherit=True) == 'def'
 
-        self.assertEqual(self.i1.get_attribute('attr'), None)
-        self.assertEqual(self.i1.get_attribute('attr', 1), 1)
+        assert self.i1.get_attribute('attr') == None
+        assert self.i1.get_attribute('attr', 1) == 1
 
-        self.assertEqual(self.i2.get_attribute('attr'), 'val')
-        self.assertEqual(self.i2.get_attribute('attr', 1), 'val')
+        assert self.i2.get_attribute('attr') == 'val'
+        assert self.i2.get_attribute('attr', 1) == 'val'
 
-        self.assertEqual(self.i_ac.get_attribute('alignment'), 'i2')
+        assert self.i_ac.get_attribute('alignment') == 'i2'
 
 
-class TestTier(unittest.TestCase):
-    def setUp(self):
-        self.t1 = Tier()
+class TestTier():
+    t1 = Tier()
 
-        self.i1 = Item(id='t1')
-        self.i2 = Item(id='t2')
-        self.t2 = Tier(
-            id='t',
-            type='basic',
-            attributes={'attr':'val'},
-            metadata=[Metadata(type='meta', metas=[Meta(text='meta')])],
-            items=[self.i1, self.i2]
-        )
+    i1 = Item(id='t1')
+    i2 = Item(id='t2')
+    t2 = Tier(
+        id='t',
+        type='basic',
+        attributes={'attr':'val'},
+        metadata=[Metadata(type='meta', metas=[Meta(text='meta')])],
+        items=[i1, i2]
+    )
 
     def test_init(self):
-        self.assertRaises(ValueError, Tier, id='1')  # invalid id
+        with pytest.raises(ValueError): Tier(id='1')  # invalid id
         # don't allow multiple items with the same ID
-        self.assertRaises(XigtError, Tier, items=[Item(id='i1'),
-                                                  Item(id='i1')])
+        with pytest.raises(XigtError): Tier(items=[Item(id='i1'),
+                                                   Item(id='i1')])
 
     def test_id(self):
-        self.assertIs(self.t1.id, None)
+        assert self.t1.id is None
 
-        self.assertEqual(self.t2.id, 't')
+        assert self.t2.id == 't'
 
     def test_type(self):
-        self.assertIs(self.t1.type, None)
+        assert self.t1.type is None
 
-        self.assertEqual(self.t2.type, 'basic')
+        assert self.t2.type == 'basic'
 
     def test_items(self):
-        self.assertEqual(len(self.t1.items), 0)
-        self.assertEqual(self.t1.items, [])
+        assert len(self.t1.items) == 0
+        assert self.t1.items == []
 
-        self.assertEqual(len(self.t2.items), 2)
+        assert len(self.t2.items) == 2
         # contained Items should now have their tier specified
         for i in self.t2.items:
-            self.assertIs(i.tier, self.t2)
+            assert i.tier is self.t2
 
     def test_parents(self):
-        self.assertIs(self.t1.igt, None)
-        self.assertIs(self.t1.corpus, None)
+        assert self.t1.igt is None
+        assert self.t1.corpus is None
 
-        self.assertIs(self.t2.igt, None)
-        self.assertIs(self.t2.corpus, None)
+        assert self.t2.igt is None
+        assert self.t2.corpus is None
 
     def test_metadata(self):
-        self.assertEqual(len(self.t1.metadata), 0)
+        assert len(self.t1.metadata) == 0
 
-        self.assertEqual(self.t2.metadata[0].type, 'meta')
-        self.assertEqual(len(self.t2.metadata[0].metas), 1)
-        self.assertEqual(self.t2.metadata[0][0].text, 'meta')
+        assert self.t2.metadata[0].type == 'meta'
+        assert len(self.t2.metadata[0].metas) == 1
+        assert self.t2.metadata[0][0].text == 'meta'
 
     def test_attributes(self):
-        self.assertEqual(self.t1.attributes, dict())
+        assert self.t1.attributes == dict()
 
-        self.assertEqual(self.t2.attributes, {'attr':'val'})
+        assert self.t2.attributes == {'attr':'val'}
 
     def test_reference_attributes(self):
         # segmentation cannot co-occur with alignment or content
-        self.assertRaises(XigtError, Tier, alignment='a1', segmentation='b1')
-        self.assertRaises(XigtError, Tier, content='a1', segmentation='b1')
+        with pytest.raises(XigtError): Tier(alignment='a1', segmentation='b1')
+        with pytest.raises(XigtError): Tier(content='a1', segmentation='b1')
 
-        self.assertIs(self.t1.alignment, None)
-        self.assertIs(self.t1.content, None)
-        self.assertIs(self.t1.segmentation, None)
+        assert self.t1.alignment is None
+        assert self.t1.content is None
+        assert self.t1.segmentation is None
 
-        self.assertIs(self.t2.alignment, None)
-        self.assertIs(self.t2.content, None)
-        self.assertIs(self.t2.segmentation, None)
+        assert self.t2.alignment is None
+        assert self.t2.content is None
+        assert self.t2.segmentation is None
 
     def test_eq(self):
-        self.assertEqual(self.t1, self.t1)
-        self.assertEqual(self.t2, self.t2)
-        self.assertNotEqual(self.t1, self.t2)
+        assert self.t1 == self.t1
+        assert self.t2 == self.t2
+        assert self.t1 != self.t2
 
     def test_getitem(self):
-        self.assertEqual(self.t2[0], self.i1)
-        self.assertEqual(self.t2['t1'], self.i1)
-        self.assertEqual(self.t2['0'], self.i1)
-        self.assertEqual(self.t2[1], self.i2)
-        self.assertRaises(IndexError, self.t2.__getitem__, 2)
-        self.assertRaises(IndexError, self.t2.__getitem__, '2')
-        self.assertRaises(KeyError, self.t2.__getitem__, 't3')
+        assert self.t2[0] == self.i1
+        assert self.t2['t1'] == self.i1
+        assert self.t2['0'] == self.i1
+        assert self.t2[1] == self.i2
+        with pytest.raises(IndexError): self.t2[2]
+        with pytest.raises(IndexError): self.t2['2']
+        with pytest.raises(KeyError): self.t2['t3']
 
     def test_setitem(self):
         t = Tier(items=[Item(id='a1'), Item(id='a2')])
         t[0] = Item(id='a3')
-        self.assertEqual(len(t), 2)
-        self.assertEqual(t[0].id, 'a3')
-        self.assertRaises(KeyError, t.__getitem__, 'a1')
-        self.assertRaises(
-            ValueError, t.__setitem__, 'a2', Item(id='a3')
-        )
+        assert len(t) == 2
+        assert t[0].id == 'a3'
+        with pytest.raises(KeyError): t['a1']
+        with pytest.raises(ValueError): t['a2'] = Item(id='a3')
 
     def test_delitem(self):
         t = Tier(items=[Item(id='a1'), Item(id='a2')])
-        self.assertEqual(len(t), 2)
+        assert len(t) == 2
         del t[0]
-        self.assertEqual(len(t), 1)
-        self.assertEqual(t[0].id, 'a2')
-        self.assertRaises(KeyError, t.__getitem__, 'a1')
+        assert len(t) == 1
+        assert t[0].id == 'a2'
+        with pytest.raises(KeyError): t['a1']
         del t['a2']
-        self.assertEqual(len(t), 0)
-        self.assertRaises(KeyError, t.__getitem__, 'a2')
+        assert len(t) == 0
+        with pytest.raises(KeyError): t['a2']
 
     def test_get(self):
-        self.assertIs(self.t1.get(0), None)
-        self.assertIs(self.t1.get('t'), None)
-        self.assertEqual(self.t1.get('t', default=1), 1)
+        assert self.t1.get(0) is None
+        assert self.t1.get('t') is None
+        assert self.t1.get('t', default=1) == 1
 
-        self.assertEqual(self.t2.get(0).id, 't1')
-        self.assertIs(self.t2.get(2), None)
-        self.assertEqual(self.t2.get('t1').id, 't1')
-        self.assertEqual(
-            self.t2.get('t1', default=Item(id='x')).id, 't1'
-        )
+        assert self.t2.get(0).id == 't1'
+        assert self.t2.get(2) is None
+        assert self.t2.get('t1').id == 't1'
+        assert self.t2.get('t1', default=Item(id='x')).id == 't1'
 
     def test_append(self):
         t = Tier()
-        self.assertRaises(XigtStructureError, t.append, Tier())
-        self.assertRaises(XigtStructureError, t.append, Igt())
-        self.assertRaises(XigtStructureError, t.append, XigtCorpus())
-        self.assertRaises(XigtStructureError, t.append, Metadata())
-        self.assertRaises(XigtStructureError, t.append, Meta())
-        self.assertEqual(len(t), 0)
+        with pytest.raises(XigtStructureError): t.append(Tier())
+        with pytest.raises(XigtStructureError): t.append(Igt())
+        with pytest.raises(XigtStructureError): t.append(XigtCorpus())
+        with pytest.raises(XigtStructureError): t.append(Metadata())
+        with pytest.raises(XigtStructureError): t.append(Meta())
+        assert len(t) == 0
         t.append(Item(id='t1'))
-        self.assertEqual(len(t), 1)
-        self.assertRaises(XigtError, t.append, Item(id='t1'))
+        assert len(t) == 1
+        with pytest.raises(XigtError): t.append(Item(id='t1'))
         t.append(Item(id='t2'))
-        self.assertEqual(len(t), 2)
-        self.assertEqual(t[0].id, 't1')
-        self.assertEqual(t[1].id, 't2')
+        assert len(t) == 2
+        assert t[0].id == 't1'
+        assert t[1].id == 't2'
 
     def test_insert(self):
         t = Tier()
-        self.assertEqual(len(t), 0)
+        assert len(t) == 0
         t.insert(0, Item(id='t1'))
-        self.assertEqual(len(t), 1)
-        self.assertRaises(XigtError, t.insert, 0, Item(id='t1'))
+        assert len(t) == 1
+        with pytest.raises(XigtError): t.insert(0, Item(id='t1'))
         t.insert(0, Item(id='t2'))
         t.insert(100, Item(id='t3'))
-        self.assertEqual(len(t), 3)
-        self.assertEqual(t[0].id, 't2')
-        self.assertEqual(t[1].id, 't1')
-        self.assertEqual(t[2].id, 't3')
+        assert len(t) == 3
+        assert t[0].id == 't2'
+        assert t[1].id == 't1'
+        assert t[2].id == 't3'
 
     def test_extend(self):
         t = Tier()
-        self.assertEqual(len(t), 0)
+        assert len(t) == 0
         t.extend([Item(id='t1')])
-        self.assertEqual(len(t), 1)
+        assert len(t) == 1
         t.extend([])
-        self.assertEqual(len(t), 1)
+        assert len(t) == 1
         t.extend([Item(id='t2'), Item(id='t3')])
-        self.assertEqual(len(t), 3)
-        self.assertEqual(t[0].id, 't1')
-        self.assertEqual(t[1].id, 't2')
-        self.assertEqual(t[2].id, 't3')
+        assert len(t) == 3
+        assert t[0].id == 't1'
+        assert t[1].id == 't2'
+        assert t[2].id == 't3'
 
     def test_remove(self):
         t = Tier(items=[Item(id='i1'), Item(id='i2')])
-        self.assertEqual(len(t), 2)
+        assert len(t) == 2
         t.remove(t[0])
-        self.assertEqual(len(t), 1)
-        self.assertEqual(t[0].id, 'i2')
-        self.assertRaises(KeyError, t.__getitem__, 'i1')
+        assert len(t) == 1
+        assert t[0].id == 'i2'
+        with pytest.raises(KeyError): t['i1']
 
     def test_clear(self):
         t = Tier()
         t.extend([Item(id='t1'), Item(id='t2'), Item(id='t3')])
-        self.assertEqual(len(t), 3)
+        assert len(t) == 3
         t.clear()
-        self.assertEqual(len(t), 0)
-        self.assertIs(t.get(0), None)
-        self.assertIs(t.get('t1'), None)
+        assert len(t) == 0
+        assert t.get(0) is None
+        assert t.get('t1') is None
 
     def test_get_attribute(self):
         t = Tier(id='t', attributes={'one': 1, 'two': 2})
         igt = Igt(tiers=[t], attributes={'three': 3})
-        self.assertEqual(t.get_attribute('one'), 1)
-        self.assertEqual(t.get_attribute('two'), 2)
-        self.assertIs(t.get_attribute('three'), None)
-        self.assertEqual(t.get_attribute('three', inherit=True), 3)
-        self.assertEqual(t.get_attribute('three', default=4), 4)
+        assert t.get_attribute('one') == 1
+        assert t.get_attribute('two') == 2
+        assert t.get_attribute('three') is None
+        assert t.get_attribute('three', inherit=True) == 3
+        assert t.get_attribute('three', default=4) == 4
 
 
-class TestIgt(unittest.TestCase):
-    def setUp(self):
-        self.i1 = Igt()
+class TestIgt():
+    i1 = Igt()
 
-        self.t1 = Tier(id='a', items=[Item(id='a1'), Item(id='a2')])
-        self.t2 = Tier(id='b', items=[Item(id='b1'), Item(id='b2')])
-        self.i2 = Igt(
-            id='i1',
-            type='basic',
-            attributes={'attr':'val'},
-            metadata=[Metadata(type='meta',
-                               metas=[Meta(text='meta')])],
-            tiers=[self.t1, self.t2]
-        )
+    t1 = Tier(id='a', items=[Item(id='a1'), Item(id='a2')])
+    t2 = Tier(id='b', items=[Item(id='b1'), Item(id='b2')])
+    i2 = Igt(
+        id='i1',
+        type='basic',
+        attributes={'attr':'val'},
+        metadata=[Metadata(type='meta',
+                           metas=[Meta(text='meta')])],
+        tiers=[t1, t2]
+    )
 
     def test_init(self):
-        self.assertRaises(ValueError, Igt, id='1')  # invalid id
+        with pytest.raises(ValueError): Igt(id='1')  # invalid id
         # don't allow multiple tiers with the same ID
-        self.assertRaises(XigtError, Igt, tiers=[Tier(id='a'),
-                                                 Tier(id='a')])
+        with pytest.raises(XigtError): Igt(tiers=[Tier(id='a'), Tier(id='a')])
 
     def test_id(self):
-        self.assertIs(self.i1.id, None)
+        assert self.i1.id is None
 
-        self.assertEqual(self.i2.id, 'i1')
+        assert self.i2.id == 'i1'
 
     def test_type(self):
-        self.assertIs(self.i1.type, None)
+        assert self.i1.type is None
 
-        self.assertEqual(self.i2.type, 'basic')
+        assert self.i2.type == 'basic'
 
     def test_tiers(self):
-        self.assertEqual(len(self.i1.tiers), 0)
+        assert len(self.i1.tiers) == 0
 
-        self.assertEqual(len(self.i2.tiers), 2)
+        assert len(self.i2.tiers) == 2
         # contained Tiers should now have their igt specified
         for t in self.i2.tiers:
-            self.assertIs(t.igt, self.i2)
+            assert t.igt is self.i2
 
     def test_parents(self):
-        self.assertIs(self.i1.corpus, None)
+        assert self.i1.corpus is None
 
-        self.assertIs(self.i2.corpus, None)
+        assert self.i2.corpus is None
 
     def test_metadata(self):
-        self.assertEqual(len(self.i1.metadata), 0)
+        assert len(self.i1.metadata) == 0
 
-        self.assertEqual(self.i2.metadata[0].type, 'meta')
-        self.assertEqual(len(self.i2.metadata[0].metas), 1)
-        self.assertEqual(self.i2.metadata[0][0].text, 'meta')
+        assert self.i2.metadata[0].type == 'meta'
+        assert len(self.i2.metadata[0].metas) == 1
+        assert self.i2.metadata[0][0].text == 'meta'
 
     def test_attributes(self):
-        self.assertEqual(self.i1.attributes, dict())
+        assert self.i1.attributes == dict()
 
-        self.assertEqual(self.i2.attributes, {'attr':'val'})
+        assert self.i2.attributes == {'attr':'val'}
 
     def test_eq(self):
-        self.assertEqual(self.i1, self.i1)
-        self.assertEqual(self.i2, self.i2)
-        self.assertNotEqual(self.i1, self.i2)
+        assert self.i1 == self.i1
+        assert self.i2 == self.i2
+        assert self.i1 != self.i2
 
     def test_getitem(self):
-        self.assertEqual(self.i2[0], self.t1)
-        self.assertEqual(self.i2['a'], self.t1)
-        self.assertEqual(self.i2['0'], self.t1)
-        self.assertEqual(self.i2[1], self.t2)
-        self.assertRaises(IndexError, self.i2.__getitem__, 2)
-        self.assertRaises(IndexError, self.i2.__getitem__, '2')
-        self.assertRaises(KeyError, self.i2.__getitem__, 'c')
+        assert self.i2[0] == self.t1
+        assert self.i2['a'] == self.t1
+        assert self.i2['0'] == self.t1
+        assert self.i2[1] == self.t2
+        with pytest.raises(IndexError): self.i2[2]
+        with pytest.raises(IndexError): self.i2['2']
+        with pytest.raises(KeyError): self.i2['c']
 
     def test_setitem(self):
         igt = Igt(tiers=[Tier(id='a'), Tier(id='b')])
         igt[0] = Tier(id='c')
-        self.assertEqual(len(igt), 2)
-        self.assertEqual(igt[0].id, 'c')
-        self.assertRaises(KeyError, igt.__getitem__, 'a')
-        self.assertRaises(
-            ValueError, igt.__setitem__, 'b', Tier(id='d')
-        )
+        assert len(igt) == 2
+        assert igt[0].id == 'c'
+        with pytest.raises(KeyError): igt['a']
+        with pytest.raises(ValueError): igt['b'] = Tier(id='d')
 
     def test_delitem(self):
         igt = Igt(tiers=[Tier(id='a'), Tier(id='b')])
-        self.assertEqual(len(igt), 2)
+        assert len(igt) == 2
         del igt[0]
-        self.assertEqual(len(igt), 1)
-        self.assertEqual(igt[0].id, 'b')
-        self.assertRaises(KeyError, igt.__getitem__, 'a')
+        assert len(igt) == 1
+        assert igt[0].id == 'b'
+        with pytest.raises(KeyError): igt['a']
         del igt['b']
-        self.assertEqual(len(igt), 0)
-        self.assertRaises(KeyError, igt.__getitem__, 'b')
+        assert len(igt) == 0
+        with pytest.raises(KeyError): igt['b']
 
     def test_get(self):
-        self.assertIs(self.i1.get(0), None)
-        self.assertIs(self.i1.get('t'), None)
-        self.assertEqual(self.i1.get('t', default=1), 1)
+        assert self.i1.get(0) is None
+        assert self.i1.get('t') is None
+        assert self.i1.get('t', default=1) == 1
 
-        self.assertEqual(self.i2.get(0).id, 'a')
-        self.assertIs(self.i2.get(3), None)
-        self.assertEqual(self.i2.get('a').id, 'a')
-        self.assertEqual(
-            self.i2.get('a', default=Tier(id='x')).id, 'a'
-        )
+        assert self.i2.get(0).id == 'a'
+        assert self.i2.get(3) is None
+        assert self.i2.get('a').id == 'a'
+        assert self.i2.get('a', default=Tier(id='x')).id == 'a'
 
     def test_get_item(self):
-        self.assertIs(self.i1.get_item('a'), None)
-        self.assertIs(self.i1.get_item('a1'), None)
+        assert self.i1.get_item('a') is None
+        assert self.i1.get_item('a1') is None
 
-        self.assertIs(self.i2.get_item('a'), None)
-        self.assertEqual(self.i2.get_item('a1').id, 'a1')
-        self.assertEqual(self.i2.get_item('b2').id, 'b2')
+        assert self.i2.get_item('a') is None
+        assert self.i2.get_item('a1').id == 'a1'
+        assert self.i2.get_item('b2').id == 'b2'
 
     def test_get_any(self):
-        self.assertIs(self.i1.get_any('a'), None)
-        self.assertIs(self.i1.get_any('a1'), None)
+        assert self.i1.get_any('a') is None
+        assert self.i1.get_any('a1') is None
 
-        self.assertIs(self.i2.get_any('a').id, 'a')
-        self.assertEqual(self.i2.get_any('a1').id, 'a1')
-        self.assertEqual(self.i2.get_any('b2').id, 'b2')
+        assert self.i2.get_any('a').id is 'a'
+        assert self.i2.get_any('a1').id == 'a1'
+        assert self.i2.get_any('b2').id == 'b2'
 
     def test_append(self):
         igt = Igt()
-        self.assertRaises(XigtStructureError, igt.append, Item())
-        self.assertRaises(XigtStructureError, igt.append, Igt())
-        self.assertRaises(XigtStructureError, igt.append, XigtCorpus())
-        self.assertRaises(XigtStructureError, igt.append, Metadata())
-        self.assertRaises(XigtStructureError, igt.append, Meta())
-        self.assertEqual(len(igt), 0)
+        with pytest.raises(XigtStructureError): igt.append(Item())
+        with pytest.raises(XigtStructureError): igt.append(Igt())
+        with pytest.raises(XigtStructureError): igt.append(XigtCorpus())
+        with pytest.raises(XigtStructureError): igt.append(Metadata())
+        with pytest.raises(XigtStructureError): igt.append(Meta())
+        assert len(igt) == 0
         igt.append(Tier(id='t'))
-        self.assertEqual(len(igt), 1)
-        self.assertRaises(XigtError, igt.append, Tier(id='t'))
+        assert len(igt) == 1
+        with pytest.raises(XigtError): igt.append(Tier(id='t'))
         igt.append(Tier(id='x'))
-        self.assertEqual(len(igt), 2)
-        self.assertEqual(igt[0].id, 't')
-        self.assertEqual(igt[1].id, 'x')
+        assert len(igt) == 2
+        assert igt[0].id == 't'
+        assert igt[1].id == 'x'
 
     def test_insert(self):
         igt = Igt()
-        self.assertEqual(len(igt), 0)
+        assert len(igt) == 0
         igt.insert(0, Tier(id='t'))
-        self.assertEqual(len(igt), 1)
-        self.assertRaises(XigtError, igt.insert, 0, Tier(id='t'))
+        assert len(igt) == 1
+        with pytest.raises(XigtError): igt.insert(0, Tier(id='t'))
         igt.insert(0, Tier(id='x'))
         igt.insert(100, Tier(id='y'))
-        self.assertEqual(len(igt), 3)
-        self.assertEqual(igt[0].id, 'x')
-        self.assertEqual(igt[1].id, 't')
-        self.assertEqual(igt[2].id, 'y')
+        assert len(igt) == 3
+        assert igt[0].id == 'x'
+        assert igt[1].id == 't'
+        assert igt[2].id == 'y'
 
     def test_extend(self):
         igt = Igt()
-        self.assertEqual(len(igt), 0)
+        assert len(igt) == 0
         igt.extend([Tier(id='t')])
-        self.assertEqual(len(igt), 1)
+        assert len(igt) == 1
         igt.extend([])
-        self.assertEqual(len(igt), 1)
+        assert len(igt) == 1
         igt.extend([Tier(id='x'), Tier(id='y')])
-        self.assertEqual(len(igt), 3)
-        self.assertEqual(igt[0].id, 't')
-        self.assertEqual(igt[1].id, 'x')
-        self.assertEqual(igt[2].id, 'y')
+        assert len(igt) == 3
+        assert igt[0].id == 't'
+        assert igt[1].id == 'x'
+        assert igt[2].id == 'y'
 
     def test_remove(self):
         igt = Igt(tiers=[Tier(id='a'), Tier(id='b')])
-        self.assertEqual(len(igt), 2)
+        assert len(igt) == 2
         igt.remove(igt[0])
-        self.assertEqual(len(igt), 1)
-        self.assertEqual(igt[0].id, 'b')
-        self.assertRaises(KeyError, igt.__getitem__, 'a')
+        assert len(igt) == 1
+        assert igt[0].id == 'b'
+        with pytest.raises(KeyError): igt['a']
 
     def test_clear(self):
         igt = Igt()
         igt.extend([Tier(id='t'), Tier(id='x'), Tier(id='y')])
-        self.assertEqual(len(igt), 3)
+        assert len(igt) == 3
         igt.clear()
-        self.assertEqual(len(igt), 0)
-        self.assertIs(igt.get(0), None)
-        self.assertIs(igt.get('t'), None)
+        assert len(igt) == 0
+        assert igt.get(0) is None
+        assert igt.get('t') is None
 
     def test_get_attribute(self):
         igt = Igt(id='i1', attributes={'one': 1, 'two': 2})
         xc = XigtCorpus(igts=[igt], attributes={'three': 3})
-        self.assertEqual(igt.get_attribute('one'), 1)
-        self.assertEqual(igt.get_attribute('two'), 2)
-        self.assertIs(igt.get_attribute('three'), None)
-        self.assertEqual(igt.get_attribute('three', inherit=True), 3)
-        self.assertEqual(igt.get_attribute('three', default=4), 4)
+        assert igt.get_attribute('one') == 1
+        assert igt.get_attribute('two') == 2
+        assert igt.get_attribute('three') is None
+        assert igt.get_attribute('three', inherit=True) == 3
+        assert igt.get_attribute('three', default=4) == 4
 
 
-class TestXigtCorpus(unittest.TestCase):
+class TestXigtCorpus():
 
-    def setUp(self):
-        self.c1 = XigtCorpus()
+    c1 = XigtCorpus()
 
-        self.i1 = Igt(id='i1')
-        self.i2 = Igt(id='i2')
-        self.c2 = XigtCorpus(
-            id='xc1',
-            type='basic',
-            attributes={'attr':'val'},
-            metadata=[Metadata(type='meta', metas=[Meta(text='meta')])],
-            igts=[self.i1, self.i2]
-        )
+    i1 = Igt(id='i1')
+    i2 = Igt(id='i2')
+    c2 = XigtCorpus(
+        id='xc1',
+        type='basic',
+        attributes={'attr':'val'},
+        metadata=[Metadata(type='meta', metas=[Meta(text='meta')])],
+        igts=[i1, i2]
+    )
 
     def test_init(self):
-        self.assertRaises(ValueError, XigtCorpus, id='1')  # invalid id
+        with pytest.raises(ValueError): XigtCorpus(id='1')  # invalid id
 
         # don't allow multiple igts with the same ID
-        self.assertRaises(XigtError, XigtCorpus, igts=[Igt(id='i1'),
-                                                       Igt(id='i1')])
+        with pytest.raises(XigtError): XigtCorpus(igts=[Igt(id='i1'),
+                                                        Igt(id='i1')])
 
     def test_id(self):
-        self.assertIs(self.c1.id, None)
+        assert self.c1.id is None
 
-        self.assertEqual(self.c2.id, 'xc1')
+        assert self.c2.id == 'xc1'
 
     def test_type(self):
-        self.assertIs(self.c1.type, None)
+        assert self.c1.type is None
 
-        self.assertIs(self.c2.type, 'basic')
+        assert self.c2.type is 'basic'
 
     def test_igts(self):
-        self.assertEqual(len(self.c1.igts), 0)
+        assert len(self.c1.igts) == 0
 
-        self.assertEqual(len(self.c2.igts), 2)
+        assert len(self.c2.igts) == 2
         # contained Igts should now have their corpus specified
         for i in self.c2.igts:
-            self.assertIs(i.corpus, self.c2)
+            assert i.corpus is self.c2
 
     def test_attributes(self):
-        self.assertEqual(self.c1.attributes, dict())
+        assert self.c1.attributes == dict()
 
-        self.assertEqual(self.c2.attributes, {'attr':'val'})
+        assert self.c2.attributes == {'attr':'val'}
 
     def test_metadata(self):
-        self.assertEqual(len(self.c1.metadata), 0)
+        assert len(self.c1.metadata) == 0
 
-        self.assertEqual(self.c2.metadata[0].type, 'meta')
-        self.assertEqual(len(self.c2.metadata[0].metas), 1)
-        self.assertEqual(self.c2.metadata[0][0].text, 'meta')
+        assert self.c2.metadata[0].type == 'meta'
+        assert len(self.c2.metadata[0].metas) == 1
+        assert self.c2.metadata[0][0].text == 'meta'
 
     def test_eq(self):
-        self.assertEqual(self.c1, self.c1)
-        self.assertEqual(self.c2, self.c2)
-        self.assertNotEqual(self.c1, self.c2)
+        assert self.c1 == self.c1
+        assert self.c2 == self.c2
+        assert self.c1 != self.c2
 
     def test_getitem(self):
-        self.assertEqual(self.c2[0], self.i1)
-        self.assertEqual(self.c2['i1'], self.i1)
-        self.assertEqual(self.c2['0'], self.i1)
-        self.assertEqual(self.c2[1], self.i2)
-        self.assertRaises(IndexError, self.c2.__getitem__, 2)
-        self.assertRaises(IndexError, self.c2.__getitem__, '2')
-        self.assertRaises(KeyError, self.c2.__getitem__, 'i3')
+        assert self.c2[0] == self.i1
+        assert self.c2['i1'] == self.i1
+        assert self.c2['0'] == self.i1
+        assert self.c2[1] == self.i2
+        with pytest.raises(IndexError): self.c2[2]
+        with pytest.raises(IndexError): self.c2['2']
+        with pytest.raises(KeyError): self.c2['i3']
 
     def test_setitem(self):
         xc = XigtCorpus(igts=[Igt(id='i1'), Igt(id='i2')])
         xc[0] = Igt(id='i3')
-        self.assertEqual(len(xc), 2)
-        self.assertEqual(xc[0].id, 'i3')
-        self.assertRaises(KeyError, xc.__getitem__, 'i1')
-        self.assertRaises(
-            ValueError, xc.__setitem__, 'i2', Igt(id='i3')
-        )
+        assert len(xc) == 2
+        assert xc[0].id == 'i3'
+        with pytest.raises(KeyError): xc['i1']
+        with pytest.raises(ValueError): xc['i2'] = Igt(id='i3')
 
     def test_delitem(self):
         xc = XigtCorpus(igts=[Igt(id='i1'), Igt(id='i2')])
-        self.assertEqual(len(xc), 2)
+        assert len(xc) == 2
         del xc[0]
-        self.assertEqual(len(xc), 1)
-        self.assertEqual(xc[0].id, 'i2')
-        self.assertRaises(KeyError, xc.__getitem__, 'i1')
+        assert len(xc) == 1
+        assert xc[0].id == 'i2'
+        with pytest.raises(KeyError): xc['i1']
         del xc['i2']
-        self.assertEqual(len(xc), 0)
-        self.assertRaises(KeyError, xc.__getitem__, 'i2')
+        assert len(xc) == 0
+        with pytest.raises(KeyError): xc['i2']
 
     def test_get(self):
-        self.assertIs(self.c1.get(0), None)
-        self.assertIs(self.c1.get('i1'), None)
-        self.assertEqual(self.c1.get('i1', default=1), 1)
+        assert self.c1.get(0) is None
+        assert self.c1.get('i1') is None
+        assert self.c1.get('i1', default=1) == 1
 
-        self.assertEqual(self.c2.get(0).id, 'i1')
-        self.assertIs(self.c2.get(3), None)
-        self.assertEqual(self.c2.get('i1').id, 'i1')
-        self.assertEqual(
-            self.c2.get('i1', default=Igt(id='i3')).id, 'i1'
-        )
+        assert self.c2.get(0).id == 'i1'
+        assert self.c2.get(3) is None
+        assert self.c2.get('i1').id == 'i1'
+        assert self.c2.get('i1', default=Igt(id='i3')).id == 'i1'
 
     def test_append(self):
         xc = XigtCorpus()
-        self.assertRaises(XigtStructureError, xc.append, Item())
-        self.assertRaises(XigtStructureError, xc.append, Tier())
-        self.assertRaises(XigtStructureError, xc.append, XigtCorpus())
-        self.assertRaises(XigtStructureError, xc.append, Metadata())
-        self.assertRaises(XigtStructureError, xc.append, Meta())
-        self.assertEqual(len(xc), 0)
+        with pytest.raises(XigtStructureError): xc.append(Item())
+        with pytest.raises(XigtStructureError): xc.append(Tier())
+        with pytest.raises(XigtStructureError): xc.append(XigtCorpus())
+        with pytest.raises(XigtStructureError): xc.append(Metadata())
+        with pytest.raises(XigtStructureError): xc.append(Meta())
+        assert len(xc) == 0
         xc.append(Igt(id='i1'))
-        self.assertEqual(len(xc), 1)
-        self.assertRaises(XigtError, xc.append, Igt(id='i1'))
+        assert len(xc) == 1
+        with pytest.raises(XigtError): xc.append(Igt(id='i1'))
         xc.append(Igt(id='i2'))
-        self.assertEqual(len(xc), 2)
-        self.assertEqual(xc[0].id, 'i1')
-        self.assertEqual(xc[1].id, 'i2')
+        assert len(xc) == 2
+        assert xc[0].id == 'i1'
+        assert xc[1].id == 'i2'
 
     def test_insert(self):
         xc = XigtCorpus()
-        self.assertEqual(len(xc), 0)
+        assert len(xc) == 0
         xc.insert(0, Igt(id='i1'))
-        self.assertEqual(len(xc), 1)
-        self.assertRaises(XigtError, xc.insert, 0, Igt(id='i1'))
+        assert len(xc) == 1
+        with pytest.raises(XigtError): xc.insert(0, Igt(id='i1'))
         xc.insert(0, Igt(id='i2'))
         xc.insert(100, Igt(id='i3'))
-        self.assertEqual(len(xc), 3)
-        self.assertEqual(xc[0].id, 'i2')
-        self.assertEqual(xc[1].id, 'i1')
-        self.assertEqual(xc[2].id, 'i3')
+        assert len(xc) == 3
+        assert xc[0].id == 'i2'
+        assert xc[1].id == 'i1'
+        assert xc[2].id == 'i3'
 
     def test_extend(self):
         xc = XigtCorpus()
-        self.assertEqual(len(xc), 0)
+        assert len(xc) == 0
         xc.extend([Igt(id='i1')])
-        self.assertEqual(len(xc), 1)
+        assert len(xc) == 1
         xc.extend([])
-        self.assertEqual(len(xc), 1)
+        assert len(xc) == 1
         xc.extend([Igt(id='i2'), Igt(id='i3')])
-        self.assertEqual(len(xc), 3)
-        self.assertEqual(xc[0].id, 'i1')
-        self.assertEqual(xc[1].id, 'i2')
-        self.assertEqual(xc[2].id, 'i3')
+        assert len(xc) == 3
+        assert xc[0].id == 'i1'
+        assert xc[1].id == 'i2'
+        assert xc[2].id == 'i3'
 
     def test_remove(self):
         xc = XigtCorpus(igts=[Igt(id='i1'), Igt(id='i2')])
-        self.assertEqual(len(xc), 2)
+        assert len(xc) == 2
         xc.remove(xc[0])
-        self.assertEqual(len(xc), 1)
-        self.assertEqual(xc[0].id, 'i2')
-        self.assertRaises(KeyError, xc.__getitem__, 'i1')
+        assert len(xc) == 1
+        assert xc[0].id == 'i2'
+        with pytest.raises(KeyError): xc['i1']
 
     def test_clear(self):
         xc = XigtCorpus()
         xc.extend([Igt(id='i1'), Igt(id='i2'), Igt(id='i3')])
-        self.assertEqual(len(xc), 3)
+        assert len(xc) == 3
         xc.clear()
-        self.assertEqual(len(xc), 0)
-        self.assertIs(xc.get(0), None)
-        self.assertIs(xc.get('i1'), None)
+        assert len(xc) == 0
+        assert xc.get(0) is None
+        assert xc.get('i1') is None
 
     def test_get_attribute(self):
         xc = XigtCorpus(attributes={'one': 1, 'two': 2})
-        self.assertEqual(xc.get_attribute('one'), 1)
-        self.assertEqual(xc.get_attribute('two'), 2)
-        self.assertIs(xc.get_attribute('three'), None)
-        self.assertEqual(xc.get_attribute('three', inherit=True), None)
+        assert xc.get_attribute('one') == 1
+        assert xc.get_attribute('two') == 2
+        assert xc.get_attribute('three') is None
+        assert xc.get_attribute('three', inherit=True) == None
