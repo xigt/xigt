@@ -77,7 +77,7 @@ def make_job(args):
                 vals, query=agendum['query'], subquery=agendum.get('subquery')
             )
         else:
-            if action in ('find', 'unique'):
+            if action in ('find', 'unique', 'count'):
                 query, subquery = vals[0], ''
                 description = '{query}\t{match!s}'
             elif action == 'tally':
@@ -105,6 +105,8 @@ def process_agenda(xc, agenda):
             results.extend(tally_pattern(xc, agendum))
         elif action == 'unique':
             results.append(unique_pattern(xc, agendum))
+        elif action == 'count':
+            results.append(count_pattern(xc, agendum))
     return results
 
 
@@ -127,6 +129,11 @@ def tally_pattern(xc, agendum):
 def unique_pattern(xc, agendum):
     counts = Counter(xp.findall(xc, agendum['query']))
     return (len(counts), agendum['description'].format(match=''))
+
+
+def count_pattern(xc, agendum):
+    count = len(xp.findall(xc, agendum['query']))
+    return (count, agendum['description'].format(match=''))
 
 
 def print_results(results):
@@ -167,6 +174,10 @@ def main(arglist=None):
     parser.add_argument('-u', '--unique',
         nargs=1, metavar='QUERY', action=AgendaAction,
         help='count unique matches of QUERY'
+    )
+    parser.add_argument('-c', '--count',
+        nargs=1, metavar='QUERY', action=AgendaAction,
+        help='count total matches of QUERY'
     )
     parser.add_argument('-d', '--description',
         metavar='DESC', action=AgendaAction,
