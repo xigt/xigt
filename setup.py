@@ -10,7 +10,7 @@ class PyTest(TestCommand):
 
     def initialize_options(self):
         TestCommand.initialize_options(self)
-        self.pytest_args = ['--doctest-glob=tests/*.md']
+        self.pytest_args = ['--doctest-glob=tests/*.md', 'tests/']
 
     def finalize_options(self):
         TestCommand.finalize_options(self)
@@ -29,7 +29,8 @@ class PyTestCoverage(PyTest):
         self.pytest_args = [
             '--doctest-glob=tests/*.md',
             '--cov=xigt',
-            '--cov-report=html'
+            '--cov-report=html',
+            'tests/'
         ]
 
 
