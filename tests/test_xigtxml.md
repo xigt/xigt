@@ -45,7 +45,7 @@ First make a test corpus to load:
 ```python
 >>> tmpfile = pjoin(tmpdir, 'tmp.xml')
 >>> with open(tmpfile, 'w') as f:
-...     print('''<xigt-corpus>
+...     _ = f.write('''<xigt-corpus>
 ...   <metadata><meta id="md1">Some metadata</meta></metadata>
 ...   <metadata><meta id="md2"><element attr="val" /></meta></metadata>
 ...   <igt id="igt1">
@@ -62,7 +62,7 @@ First make a test corpus to load:
 ...     </tier>
 ...   </igt>
 ... </xigt-corpus>
-... ''', file=f)
+... ''')
 
 ```
 
@@ -75,10 +75,10 @@ xigtxml.**load**(_f_, _mode='full'_)
 1
 >>> len(xc.metadata)
 2
->>> xc[0].id
-'igt1'
->>> xc[0]['w']['w3'].value()
-'corre'
+>>> print(xc[0].id)
+igt1
+>>> print(xc[0]['w']['w3'].value())
+corre
 
 ```
 
@@ -87,8 +87,8 @@ xigtxml.**loads**(_s_)
 
 ```python
 >>> xc = xigtxml.loads(open(tmpfile).read())
->>> xc[0]['w']['w2'].value()
-'perro'
+>>> print(xc[0]['w']['w2'].value())
+perro
 
 ```
 

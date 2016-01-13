@@ -45,7 +45,7 @@ First make a test corpus to load:
 ```python
 >>> tmpfile = pjoin(tmpdir, 'tmp.json')
 >>> with open(tmpfile, 'w') as f:
-...     print('''{
+...     _ = f.write('''{
 ...   "namespaces": { "dc": "http://purl.org/dc/elements/1.1/" },
 ...   "metadata": [
 ...     {
@@ -107,7 +107,7 @@ First make a test corpus to load:
 ...     }
 ...   ]
 ... }
-... ''', file=f)
+... ''')
 
 ```
 
@@ -120,14 +120,14 @@ xigtjson.**load**(_f_, _mode='full'_)
 1
 >>> len(xc.metadata)
 2
->>> xc.metadata[1].metas[0].children[0].namespace
-'http://purl.org/dc/elements/1.1/'
->>> xc.metadata[1].metas[0].children[1].namespace
-'http://purl.org/dc/elements/1.1/'
->>> xc[0].id
-'igt1'
->>> xc[0]['w']['w3'].value()
-'corre'
+>>> print(xc.metadata[1].metas[0].children[0].namespace)
+http://purl.org/dc/elements/1.1/
+>>> print(xc.metadata[1].metas[0].children[1].namespace)
+http://purl.org/dc/elements/1.1/
+>>> print(xc[0].id)
+igt1
+>>> print(xc[0]['w']['w3'].value())
+corre
 
 ```
 
@@ -136,8 +136,8 @@ xigtjson.**loads**(_s_)
 
 ```python
 >>> xc = xigtjson.loads(open(tmpfile).read())
->>> xc[0]['w']['w2'].value()
-'perro'
+>>> print(xc[0]['w']['w2'].value())
+perro
 
 ```
 
@@ -195,14 +195,14 @@ xigtjson.**dump**(_f_, _xc_, _encoding='utf-8'_, _indent=2_)
 >>> tmpfile2 = pjoin(tmpdir, 'tmp2.json')
 >>> xigtjson.dump(tmpfile2, xc)
 >>> d = json.load(open(tmpfile2))
->>> sorted(d.keys())
-['igts', 'metadata', 'namespaces']
->>> sorted(d['metadata'][0]["metas"][0].keys())
-['id', 'text']
->>> d['igts'][0]['id']
-'igt1'
->>> d['igts'][0]['tiers'][0]['items'][0]['text']
-'La gata duerme.'
+>>> print(', '.join(sorted(d.keys())))
+igts, metadata, namespaces
+>>> print(', '.join(sorted(d['metadata'][0]["metas"][0].keys())))
+id, text
+>>> print(d['igts'][0]['id'])
+igt1
+>>> print(d['igts'][0]['tiers'][0]['items'][0]['text'])
+La gata duerme.
 
 ```
 
@@ -211,14 +211,14 @@ xigtjson.**dumps**(_xc_, _encoding='utf-8'_, _indent=2_)
 
 ```python
 >>> d = json.loads(xigtjson.dumps(xc))
->>> sorted(d.keys())
-['igts', 'metadata', 'namespaces']
->>> sorted(d['metadata'][0]["metas"][0].keys())
-['id', 'text']
->>> d['igts'][0]['id']
-'igt1'
->>> d['igts'][0]['tiers'][0]['items'][0]['text']
-'La gata duerme.'
+>>> print(', '.join(sorted(d.keys())))
+igts, metadata, namespaces
+>>> print(', '.join(sorted(d['metadata'][0]["metas"][0].keys())))
+id, text
+>>> print(d['igts'][0]['id'])
+igt1
+>>> print(d['igts'][0]['tiers'][0]['items'][0]['text'])
+La gata duerme.
 
 ```
 
