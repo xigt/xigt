@@ -1,6 +1,8 @@
 Xigt
 ====
 
+[![Build Status](https://travis-ci.org/xigt/xigt.svg?branch=develop)](https://travis-ci.org/xigt/xigt)
+
 A framework for *eXtensible Interlinear Glossed Text*
 ([IGT](http://en.wikipedia.org/wiki/Interlinear_gloss)).
 
