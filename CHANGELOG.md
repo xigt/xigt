@@ -153,4 +153,4 @@ report here.
 [v0.9]: https://github.com/xigt/xigt/releases/tag/v0.9
 [v1.0rc1]: https://github.com/xigt/xigt/releases/tag/v1.0rc1
 [v1.0]: https://github.com/xigt/xigt/releases/tag/v1.0
-[v1.1.1]: https://github.com/xigt/xigt/releases/tag/v1.1.1
+[v1.1.0]: https://github.com/xigt/xigt/releases/tag/v1.1.0
