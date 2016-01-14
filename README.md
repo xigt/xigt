@@ -1,13 +1,16 @@
 Xigt
 ====
 
-[![Build Status](https://travis-ci.org/xigt/xigt.svg?branch=develop)](https://travis-ci.org/xigt/xigt)
+| Branch | Status |
+| ------ | ------ |
+| [master](https://github.com/xigt/xigt/tree/master)  | [![Build Status](https://travis-ci.org/xigt/xigt.svg?branch=master)](https://travis-ci.org/xigt/xigt) |
+| [develop](https://github.com/xigt/xigt/tree/develop) | [![Build Status](https://travis-ci.org/xigt/xigt.svg?branch=develop)](https://travis-ci.org/xigt/xigt) |
 
 A framework for *eXtensible Interlinear Glossed Text*
 ([IGT](http://en.wikipedia.org/wiki/Interlinear_gloss)).
 
 * [Introduction](#introduction)
-* [Documentation](../../wiki)
+* [Documentation](https://github.com/xigt/xigt/wiki)
 * [Installation and Requirements](#installation-and-requirements)
 * [Features](#features)
 * [Acknowledgments](#acknowledgments)
@@ -16,18 +19,18 @@ A framework for *eXtensible Interlinear Glossed Text*
 ### Introduction
 
 The philosophy of Xigt is that IGT data should be
-[simple for the common cases](../../wiki/Basic-Schema)
+[simple for the common cases](https://github.com/xigt/xigt/wiki/Basic-Schema)
 while easily
-[scaling up](../../wiki/Schema-Extensions)
+[scaling up](https://github.com/xigt/xigt/wiki/Schema-Extensions)
 to accommodate different kinds of annotations. New
 annotations do not need to alter the original data, but instead can be
 applied on top of them. Furthermore, Xigt data is meant to be easily
-[processed by computers](../../wiki/Tutorials) so
+[processed by computers](https://github.com/xigt/xigt/wiki/Tutorials) so
 that it's easy to inspect, analyze, and modify IGT data.
 
 The Xigt framework includes a
-[data model and XML format](../../wiki/Data-Model)
-as well as a Python [API](../../wiki/API-Reference)
+[data model and XML format](https://github.com/xigt/xigt/wiki/Data-Model)
+as well as a Python [API](https://github.com/xigt/xigt/wiki/API-Reference)
 for working with Xigt data.
 
 Here is a small example of an IGT encoded in
@@ -55,7 +58,7 @@ Xigt's XML format:
 
 ### Installation and Requirements
 
-The [Xigt API](../../wiki/API-Reference) is
+The [Xigt API](https://github.com/xigt/xigt/wiki/API-Reference) is
 coded in [Python](http://python.org/download/) (targeting Python 3.3+,
 but it is tested to work with Python 2.7).
 
@@ -100,10 +103,10 @@ these features can be ignored for simpler IGT.
 
 ##### Alignment Expressions
 
-[Alignment expressions](../../wiki/Alignment-Expressions) are an
-expanded referencing system that allow some data to align to more than
-one target, and furthermore allows them to select substrings from the
-target(s).
+[Alignment expressions](https://github.com/xigt/xigt/wiki/Alignment-Expressions) 
+are an expanded referencing system that allow some data to align to more
+than one target, and furthermore allows them to select substrings from
+the target(s).
 
 Given:
 
@@ -124,7 +127,7 @@ a1[1:3]+a2[1:2+0:1] -> "newt"
 ```
 
 Alignment expressions are specified on
-[reference attributes](../../wiki/Data-Model#xigt-reference-attributes)
+[reference attributes](https://github.com/xigt/xigt/wiki/Data-Model#xigt-reference-attributes)
 at the item level.
 
 ##### Floating Alignments
