@@ -5,6 +5,7 @@ A framework for *eXtensible Interlinear Glossed Text*
 ([IGT](http://en.wikipedia.org/wiki/Interlinear_gloss)).
 
 * [Introduction](#introduction)
+* [Documentation](../../wiki)
 * [Installation and Requirements](#installation-and-requirements)
 * [Features](#features)
 * [Acknowledgments](#acknowledgments)
@@ -13,18 +14,18 @@ A framework for *eXtensible Interlinear Glossed Text*
 ### Introduction
 
 The philosophy of Xigt is that IGT data should be
-[simple for the common cases](https://github.com/goodmami/xigt/wiki/Basic-Schema)
+[simple for the common cases](../../wiki/Basic-Schema)
 while easily
-[scaling up](https://github.com/goodmami/xigt/wiki/Schema-Extensions)
+[scaling up](../../wiki/Schema-Extensions)
 to accommodate different kinds of annotations. New
 annotations do not need to alter the original data, but instead can be
 applied on top of them. Furthermore, Xigt data is meant to be easily
-[processed by computers](https://github.com/goodmami/xigt/wiki/Tutorials) so
+[processed by computers](../../wiki/Tutorials) so
 that it's easy to inspect, analyze, and modify IGT data.
 
 The Xigt framework includes a
-[data model and XML format](https://github.com/goodmami/xigt/wiki/Data-Model)
-as well as a Python [API](https://github.com/goodmami/xigt/wiki/API-Reference)
+[data model and XML format](../../wiki/Data-Model)
+as well as a Python [API](../../wiki/API-Reference)
 for working with Xigt data.
 
 Here is a small example of an IGT encoded in
@@ -52,9 +53,9 @@ Xigt's XML format:
 
 ### Installation and Requirements
 
-The [Xigt API](https://github.com/goodmami/xigt/wiki/API-Reference) is
+The [Xigt API](../../wiki/API-Reference) is
 coded in [Python](http://python.org/download/) (targeting Python 3.3+,
-but it should work with Python 2.7 and Python3.2 as well).
+but it is tested to work with Python 2.7).
 
 Xigt can be installed via [pip](https://docs.python.org/3/installing/)
 (see [PyPI](https://pypi.python.org/pypi/Xigt)):
@@ -68,7 +69,7 @@ pip install xigt
 Alternatively, you can get the latest Xigt from the GitHub repository:
 
 ```bash
-git clone https://github.com/goodmami/xigt.git
+git clone https://github.com/xigt/xigt.git
 ```
 
 After the cloning has finished, set up your
@@ -78,6 +79,7 @@ environment variable to point to this directory.
 The following extra features have their own requirements:
 * The Toolbox importer: get the [toolbox](http://github.com/goodmami/toolbox)
   module
+* The ODIN importer: get [odin-utils](https://github.com/xigt/odin-utils)
 * The [incr tsdb()] profile exporter: get
   [pyDelphin](https://github.com/goodmami/pydelphin)
 
@@ -86,7 +88,7 @@ For validating Xigt's XML format, I recommend
 
 Note: Xigt is primarily developed and tested on Linux. If you are having
 trouble installing on Windows, Mac, or some other operating system, please
-contact me or file an [issue report](https://github.com/goodmami/xigt/issues).
+contact me or file an [issue report](https://github.com/xigt/xigt/issues).
 
 
 ### Features ###
@@ -96,9 +98,10 @@ these features can be ignored for simpler IGT.
 
 ##### Alignment Expressions
 
-Alignment expressions are an expanded referencing system that allow some data
-to align to more than one target, and furthermore allows them to select
-substrings from the target(s).
+[Alignment expressions](../../wiki/Alignment-Expressions) are an
+expanded referencing system that allow some data to align to more than
+one target, and furthermore allows them to select substrings from the
+target(s).
 
 Given:
 
@@ -119,7 +122,7 @@ a1[1:3]+a2[1:2+0:1] -> "newt"
 ```
 
 Alignment expressions are specified on
-[reference attributes](https://github.com/goodmami/xigt/wiki/Data-Model#xigt-reference-attributes)
+[reference attributes](../../wiki/Data-Model#xigt-reference-attributes)
 at the item level.
 
 ##### Floating Alignments

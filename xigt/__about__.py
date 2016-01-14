@@ -8,7 +8,7 @@ __version_info__ = __version__.replace('.', ' ').replace('-', ' ').split()
 
 __title__ = 'Xigt'
 __summary__ = 'A framework for eXtensible Interlinear Glossed Text'
-__uri__ = 'https://github.com/goodmami/xigt'
+__uri__ = 'https://github.com/xigt/xigt'
 
 __author__ = 'Michael Wayne Goodman'
 __email__ = 'goodman.m.w@gmail.com'

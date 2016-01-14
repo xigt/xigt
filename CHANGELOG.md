@@ -2,6 +2,13 @@
 
 ## [Unreleased][unreleased]
 
+## [v1.1.0] - 2016.01.13
+
+This minor version change fixes a number of bugs from [v1.0] and
+introduces some new features, including XigtPath and the XigtJSON
+format. This version is also the first version hosted under the
+Xigt organization on Github: https://github.com/xigt/xigt
+
 ### Added
 
 * xigt.xigtpath - an XPath-like query language that is aware of Xigt
@@ -48,6 +55,11 @@
 
 * xigt.importers.odin functions for cleaning and normalization
 * `xigt process` command (see `xigt partition` under **Added**)
+
+### Compatibility
+
+* Python3.2 support is removed (Xigt still supports Python versions
+  2.7, 3.3, 3.4, and 3.5)
 
 ## [v1.0] - 2015.04.24
 
@@ -137,7 +149,8 @@ release. Since there are no prior releases, there aren't any "changes" to
 report here.
 
 
-[unreleased]: https://github.com/goodmami/xigt/tree/develop
-[v0.9]: https://github.com/goodmami/xigt/releases/tag/v0.9
-[v1.0rc1]: https://github.com/goodmami/xigt/releases/tag/v1.0rc1
-[v1.0]: https://github.com/goodmami/xigt/releases/tag/v1.0
+[unreleased]: https://github.com/xigt/xigt/tree/develop
+[v0.9]: https://github.com/xigt/xigt/releases/tag/v0.9
+[v1.0rc1]: https://github.com/xigt/xigt/releases/tag/v1.0rc1
+[v1.0]: https://github.com/xigt/xigt/releases/tag/v1.0
+[v1.1.1]: https://github.com/xigt/xigt/releases/tag/v1.1.1

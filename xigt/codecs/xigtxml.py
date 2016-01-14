@@ -174,7 +174,7 @@ def xigt_attrsort(attr):
 
 def ns_iterparse(fh, events=('start', 'end')):
     events = iter(
-        iterparse(fh, events=['start-ns', 'end-ns'] + list(events))
+        iterparse(fh, events=tuple(['start-ns', 'end-ns'] + list(events)))
     )
     # thanks: http://effbot.org/elementtree/iterparse.htm
     namespaces = []
