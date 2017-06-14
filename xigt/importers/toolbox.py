@@ -37,6 +37,8 @@
 #   "error_recovery_method": "ratio"
 # }
 
+from __future__ import absolute_import
+
 from collections import OrderedDict
 import logging
 import warnings
@@ -232,7 +234,7 @@ def make_phrase_tier(tier_id, aln_tokens):
         items=[
             Item(
                 id='{}1'.format(tier_id),
-                text=' '.join(t for aln in aln_tokens for t in aln[1])
+                text=' '.join(t for aln in aln_tokens for t in (aln[1] or []))
             )
         ]
     )
