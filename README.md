@@ -204,15 +204,15 @@ or showing the underlying form before phonological processes have occurred.
 
 ### Acknowledgments
 
-This material is based upon work supported by the National Science Foundation
-under Grant No.
-[1160274](http://www.nsf.gov/awardsearch/showAward?AWD_ID=1160274).Any opinions,
-findings, and conclusions or recommendations expressed in this material are
-those of the author(s) and do not necessarily reflect the views of the National
-Science Foundation.
+This material is based upon work supported by the National Science
+Foundation under Grant No.
+[1160274](http://www.nsf.gov/awardsearch/showAward?AWD_ID=1160274). Any
+opinions, findings, and conclusions or recommendations expressed in this
+material are those of the author(s) and do not necessarily reflect the
+views of the National Science Foundation.
 
-This project is also partially supported by the Affectedness project, under
-the Singapore Ministry of Education Tier 2 grant (grant number
+This project is also partially supported by the Affectedness project,
+under the Singapore Ministry of Education Tier 2 grant (grant number
 MOE2013-T2-1-016).
 
 Xigt was initially developed under the AGGREGATION project
