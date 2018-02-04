@@ -60,7 +60,7 @@ def loads(s):
     return load(StringIO(s))
 
 
-def dump(f, xc, encoding='utf-8', indent=2):
+def dump(f, xc, encoding='latin-1', indent=2):
     if not isinstance(xc, XigtCorpus):
         raise XigtError(
             'Second argument of dump() must be an instance of XigtCorpus.'
