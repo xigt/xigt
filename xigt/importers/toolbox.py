@@ -39,6 +39,7 @@
 
 from __future__ import absolute_import
 
+import codecs
 from collections import OrderedDict
 import logging
 import warnings
@@ -52,7 +53,7 @@ from xigt.codecs import xigtxml
 from xigt.errors import XigtImportError
 
 try:
-    import toolbox
+    import toolboxT as toolbox
 except ImportError:
     raise ImportError(
         'Could not import Toolbox module. Get it from here:\n'
@@ -118,14 +119,14 @@ def xigt_import(infile, outfile, options=None, encode=None):
     # assume 'latin-1' encoding for Toolbox files, otherwise open with specified encoding
     if encode is None:
         # read as 'latin-1', write as 'utf-8'
-        with open(infile, 'r', encoding='latin-1') as in_fh, open(outfile, 'w', encoding='utf-8') as out_fh:
+        with codecs.open(infile, 'r', encoding='latin-1') as in_fh, open(outfile, 'w') as out_fh:
             tb = toolbox.read_toolbox_file(in_fh)
             igts = toolbox_igts(tb, options)
             xc = XigtCorpus(igts=igts, mode='transient')
             xigtxml.dump(out_fh, xc)
     else:
         # read as encode, write as 'utf-8'
-        with open(infile, 'r', encoding=encode) as in_fh, open(outfile, 'w', encoding='utf-8') as out_fh:
+        with codecs.open(infile, 'r', encoding=encode) as in_fh, codecs(outfile, 'w') as out_fh:
             tb = toolbox.read_toolbox_file(in_fh)
             igts = toolbox_igts(tb, options)
             xc = XigtCorpus(igts=igts, mode='transient')
