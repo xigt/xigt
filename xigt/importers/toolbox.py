@@ -39,6 +39,8 @@
 
 from __future__ import absolute_import
 
+import io
+import re
 from collections import OrderedDict
 import logging
 import warnings
@@ -100,7 +102,7 @@ default_alignments = {
 default_error_recovery_method = 'ratio'
 
 
-def xigt_import(infile, outfile, options=None):
+def xigt_import(infile, outfile, options=None, encoding='utf-8'):
 
     if options is None:
         options = {}
@@ -113,10 +115,11 @@ def xigt_import(infile, outfile, options=None):
     options.setdefault('error_recovery_method', default_error_recovery_method)
 
     # just use existing info to create marker-based alignment info
-    options['tb_alignments'] = _make_tb_alignments(options)
+    options['tb_alignments'] = _make_tb_alignments(options) 
 
-    with open(infile, 'r') as in_fh, open(outfile, 'w') as out_fh:
-        tb = toolbox.read_toolbox_file(in_fh)
+    with open(infile, 'br') as in_fh, open(outfile, 'w') as out_fh:
+        in_lines = (_respace_decode(line, encoding) for line in in_fh)
+        tb = toolbox.read_toolbox_file(in_lines)
         igts = toolbox_igts(tb, options)
         xc = XigtCorpus(igts=igts, mode='transient')
         xigtxml.dump(out_fh, xc)
@@ -264,3 +267,12 @@ def make_tier(tier_type, tier_id, refattr, aln_tokens, algn_tier):
                 items.append(Item(id='{}{}'.format(tier_id, i), text=s))
                 i += 1
     return Tier(id=tier_id, type=tier_type, items=items, attributes=attrs)
+
+
+def _respace_decode(line, encoding):
+    toks = []
+    for match in re.finditer(b'\s*\S+\s*', line):
+        length = match.end() - match.start()
+        tok = match.group().decode(encoding).ljust(length)
+        toks.append(tok)
+    return ''.join(toks)

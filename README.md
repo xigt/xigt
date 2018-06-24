@@ -91,6 +91,11 @@ The following extra features have their own requirements:
 For validating Xigt's XML format, I recommend
 [Jing](http://www.thaiopensource.com/relaxng/jing.html).
 
+Depending on the importer, you may need to configure a `config.json`
+for your particular use case, and point Xigt's import function to it
+using the built-in commands. Templates for the respective
+configurations are found within the files in `xigt/importers`.
+
 Note: Xigt is primarily developed and tested on Linux. If you are having
 trouble installing on Windows, Mac, or some other operating system, please
 contact me or file an [issue report](https://github.com/xigt/xigt/issues).
@@ -103,7 +108,7 @@ these features can be ignored for simpler IGT.
 
 ##### Alignment Expressions
 
-[Alignment expressions](https://github.com/xigt/xigt/wiki/Alignment-Expressions) 
+[Alignment expressions](https://github.com/xigt/xigt/wiki/Alignment-Expressions)
 are an expanded referencing system that allow some data to align to more
 than one target, and furthermore allows them to select substrings from
 the target(s).
