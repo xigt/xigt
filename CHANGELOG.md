@@ -2,6 +2,11 @@
 
 ## [Unreleased][unreleased]
 
+### Changed
+
+* The Toolbox importer decodes files keeping multi-byte characters in
+  their byte position, to aid with alignment (see #48)
+
 ## [v1.1.0] - 2016.01.13
 
 This minor version change fixes a number of bugs from [v1.0] and
