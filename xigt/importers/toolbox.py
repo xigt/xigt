@@ -39,7 +39,7 @@
 
 from __future__ import absolute_import
 
-import codecs
+import io
 from collections import OrderedDict
 import logging
 import warnings
@@ -101,7 +101,7 @@ default_alignments = {
 default_error_recovery_method = 'ratio'
 
 
-def xigt_import(infile, outfile, options=None, encode=None):
+def xigt_import(infile, outfile, options=None, encoding=None):
 
     if options is None:
         options = {}
@@ -114,24 +114,14 @@ def xigt_import(infile, outfile, options=None, encode=None):
     options.setdefault('error_recovery_method', default_error_recovery_method)
 
     # just use existing info to create marker-based alignment info
-    options['tb_alignments'] = _make_tb_alignments(options)
+    options['tb_alignments'] = _make_tb_alignments(options) 
 
-    # assume 'latin-1' encoding for Toolbox files, otherwise open with specified encoding
-    if encode is None:
-        # read as 'latin-1', write as 'utf-8'
-        with codecs.open(infile, 'r', encoding='latin-1') as in_fh, open(outfile, 'w') as out_fh:
-            tb = toolbox.read_toolbox_file(in_fh)
-            igts = toolbox_igts(tb, options)
-            xc = XigtCorpus(igts=igts, mode='transient')
-            xigtxml.dump(out_fh, xc)
-    else:
-        # read as encode, write as 'utf-8'
-        with codecs.open(infile, 'r', encoding=encode) as in_fh, codecs(outfile, 'w') as out_fh:
-            tb = toolbox.read_toolbox_file(in_fh)
-            igts = toolbox_igts(tb, options)
-            xc = XigtCorpus(igts=igts, mode='transient')
-            xigtxml.dump(out_fh, xc)
-
+    with io.open(infile, 'r', encoding=encoding) as in_fh, \
+         open(outfile, 'w') as out_fh:
+        tb = toolbox.read_toolbox_file(in_fh)
+        igts = toolbox_igts(tb, options)
+        xc = XigtCorpus(igts=igts, mode='transient')
+        xigtxml.dump(out_fh, xc)
 
 
 def _make_tb_alignments(opts):
