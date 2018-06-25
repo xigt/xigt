@@ -117,7 +117,7 @@ def xigt_import(infile, outfile, options=None, encoding='utf-8'):
     # just use existing info to create marker-based alignment info
     options['tb_alignments'] = _make_tb_alignments(options) 
 
-    with open(infile, 'br') as in_fh, open(outfile, 'w') as out_fh:
+    with open(infile, 'rb') as in_fh, open(outfile, 'w') as out_fh:
         in_lines = (_respace_decode(line, encoding) for line in in_fh)
         tb = toolbox.read_toolbox_file(in_lines)
         igts = toolbox_igts(tb, options)
@@ -271,7 +271,8 @@ def make_tier(tier_type, tier_id, refattr, aln_tokens, algn_tier):
 
 def _respace_decode(line, encoding):
     toks = []
-    for match in re.finditer(b'\s*\S+\s*', line):
+    line = line.rstrip(b'\n')
+    for match in re.finditer(b'\\s*\\S+\\s*', line):
         length = match.end() - match.start()
         tok = match.group().decode(encoding).ljust(length)
         toks.append(tok)
