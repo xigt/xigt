@@ -4,7 +4,7 @@ import argparse
 import logging
 from xigt.codecs import xigtxml
 
-def run(infile, outpath, out_format, config=None):
+def run(infile, outpath, out_format, relations, config=None):
     cfg = None
     if config:
         import json
@@ -13,6 +13,7 @@ def run(infile, outpath, out_format, config=None):
         import xigt.exporters.latex as exporter
     elif out_format == 'itsdb':
         import xigt.exporters.itsdb as exporter
+        cfg = {'relations': relations}
     # elif ...
     with open(infile, 'r') as in_fh:
         xc = xigtxml.load(in_fh, mode='transient')
@@ -32,9 +33,11 @@ def main(arglist=None):
         help='The format of the output corpus (default: latex).')
     parser.add_argument('-c', '--config', metavar='PATH', default=None,
         help='A JSON-formatted configuration file.')
+    parser.add_argument('-r', '--relations', metavar='PATH', default=None,
+        help='A Relations file needed for converting to itsdb format.')
     args = parser.parse_args(arglist)
     logging.basicConfig(level=50-(args.verbosity*10))
-    run(args.input, args.output, args.format, config=args.config)
+    run(args.input, args.output, args.format, args.relations, config=args.config)
 
 if __name__ == '__main__':
     main()
