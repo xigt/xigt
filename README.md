@@ -1,10 +1,9 @@
 Xigt
 ====
 
-| Branch | Status |
-| ------ | ------ |
-| [master](https://github.com/xigt/xigt/tree/master)  | [![Build Status](https://travis-ci.org/xigt/xigt.svg?branch=master)](https://travis-ci.org/xigt/xigt) |
-| [develop](https://github.com/xigt/xigt/tree/develop) | [![Build Status](https://travis-ci.org/xigt/xigt.svg?branch=develop)](https://travis-ci.org/xigt/xigt) |
+[![PyPI Version](https://img.shields.io/pypi/v/xigt.svg)](https://pypi.org/project/Xigt/)
+![Python Support](https://img.shields.io/pypi/pyversions/xigt.svg)
+[![.github/workflows/checks.yml](https://github.com/xigt/xigt/actions/workflows/checks.yml/badge.svg?branch=develop)](https://github.com/xigt/xigt/actions/workflows/checks.yml)
 
 A framework for *eXtensible Interlinear Glossed Text*
 ([IGT](http://en.wikipedia.org/wiki/Interlinear_gloss)).
