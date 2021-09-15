@@ -1,11 +1,14 @@
 # Change Log
 
-## [Unreleased][unreleased]
+## [v1.1.1] - 2021.09.14
 
 ### Changed
 
+* The Toolbox importer can now try to get sub-segment alignment.
+
 * The Toolbox importer decodes files keeping multi-byte characters in
   their byte position, to aid with alignment (see #48)
+
 
 ## [v1.1.0] - 2016.01.13
 
@@ -159,3 +162,4 @@ report here.
 [v1.0rc1]: https://github.com/xigt/xigt/releases/tag/v1.0rc1
 [v1.0]: https://github.com/xigt/xigt/releases/tag/v1.0
 [v1.1.0]: https://github.com/xigt/xigt/releases/tag/v1.1.0
+[v1.1.1]: https://github.com/xigt/xigt/releases/tag/v1.1.1
