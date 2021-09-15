@@ -2,12 +2,21 @@
 
 ## [v1.1.1] - 2021.09.14
 
+This release fixes some alignment issues with Toolbox and updates the
+supported Python versions to those currently supported upstream. Users
+still on Python 2.7 should pin their version of Xigt to v1.1.0.
+
 ### Changed
 
 * The Toolbox importer can now try to get sub-segment alignment.
 
 * The Toolbox importer decodes files keeping multi-byte characters in
   their byte position, to aid with alignment (see #48)
+
+### Compatibility
+
+* Python2.7 through 3.5 support is removed, Python 3.6 through 3.9
+  support is added.
 
 
 ## [v1.1.0] - 2016.01.13
