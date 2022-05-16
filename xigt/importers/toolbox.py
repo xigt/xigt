@@ -54,7 +54,7 @@ from xigt.codecs import xigtxml
 from xigt.errors import XigtImportError
 
 try:
-    import toolbox
+    from toolbox import toolbox
 except ImportError:
     raise ImportError(
         'Could not import Toolbox module. Get it from here:\n'
@@ -115,7 +115,7 @@ def xigt_import(infile, outfile, options=None, encoding='utf-8'):
     options.setdefault('error_recovery_method', default_error_recovery_method)
 
     # just use existing info to create marker-based alignment info
-    options['tb_alignments'] = _make_tb_alignments(options) 
+    options['tb_alignments'] = _make_tb_alignments(options)
 
     with open(infile, 'rb') as in_fh, open(outfile, 'w') as out_fh:
         in_lines = (_respace_decode(line, encoding) for line in in_fh)
